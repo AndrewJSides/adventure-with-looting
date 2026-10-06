@@ -84,7 +84,7 @@ const writeResponse = z.discriminatedUnion("ok", [
 const perfSubsystemSchema = z.object({ terrain: z.number().nonnegative(), streaming: z.number().nonnegative(), entities: z.number().nonnegative(), camera: z.number().nonnegative(), hud: z.number().nonnegative(), collision: z.number().nonnegative(), enemyAi: z.number().nonnegative(), audio: z.number().nonnegative(), save: z.number().nonnegative() });
 const perfChunkLoadEventSchema = z.object({ timestamp: z.number().int().nonnegative(), key: z.string().min(1).max(40) });
 const perfSampleSchema = z.object({
-  timestamp: z.number().int().nonnegative(), fps: z.number().nonnegative().max(1000), frameMs: z.number().nonnegative().max(10000), jankMs: z.number().nonnegative().max(10000).optional(), subsystems: perfSubsystemSchema,
+  timestamp: z.number().int().nonnegative(), fps: z.number().nonnegative().max(1000), frameMs: z.number().nonnegative().max(10000), jankMs: z.number().nonnegative().max(10000), subsystems: perfSubsystemSchema,
   vehicleSpeed: z.number().min(-1000).max(1000), activeEnemies: z.number().int().nonnegative().max(10000), visibleEnemies: z.number().int().nonnegative().max(10000), renderScale: z.number().min(0.4).max(1).optional(), chunkLoadEvents: z.array(perfChunkLoadEventSchema).max(40),
 });
 const perfRecordingSummarySchema = z.object({ id: z.number().int(), startedAt: z.string(), stoppedAt: z.string(), sampleCount: z.number().int(), durationMs: z.number().int(), averageFps: z.number(), averageFrameMs: z.number(), p95FrameMs: z.number(), worstFrameMs: z.number(), worstJankMs: z.number(), stallCount50: z.number().int(), jankCount100: z.number().int(), hotspot: z.string(), chunkLoadCount: z.number().int() });
@@ -213,7 +213,9 @@ export const Actions = {
       const rows = await ctx.db<typeof schema>().select().from(schema.perfRecordings).where(eq(schema.perfRecordings.id, args.id)).limit(1);
       const row = rows[0];
       if (!row) return { ok: false, message: "That profiler recording was not found." };
-      return { ok: true, recording: { ...serializePerfSummary(row), samples: row.samples } };
+      let previousTimestamp = row.startedAt.getTime();
+      const samples = row.samples.map(sample => { const derived = Math.max(0, sample.timestamp - previousTimestamp - 50); previousTimestamp = sample.timestamp; return { ...sample, jankMs: sample.jankMs ?? derived }; });
+      return { ok: true, recording: { ...serializePerfSummary(row), samples } };
     },
   }),
 

@@ -72,7 +72,7 @@ type SubsystemValues = Record<SubsystemKey, number>;
 type ProfilerStats = { fps:number; average:number; p95:number; worst:number; samples:number; history:number[]; subsystems:SubsystemValues; activeEnemies:number; visibleEnemies:number };
 type PerfRecordingSample = ApiRequest<typeof api,"savePerfRecording">["samples"][number];
 type PerfRecordingSummary = ApiResponse<typeof api,"listPerfRecordings">["recordings"][number];
-type LatestPerfFrame = Omit<PerfRecordingSample,"timestamp"|"chunkLoadEvents"> & { renderScale:number };
+type LatestPerfFrame = Omit<PerfRecordingSample,"timestamp"|"jankMs"|"chunkLoadEvents"> & { renderScale:number };
 type World = {
   player: { x: number; y: number; radius: number; hp: number; maxHp: number; invuln: number; aim: number; walking: boolean };
   camera: Vec & { zoom: number }; enemies: Enemy[]; activeEnemies: Enemy[]; visibleEnemies: Enemy[]; frameNo:number; enemyUpdateMs:number; projectiles: Projectile[]; sparks: Spark[]; damageNumbers: DamageNumber[]; pickups: Pickup[]; chests: Chest[]; npcStates: NpcState[]; buffs: Record<BuffKind, number>; spiritWolf: SpiritWolf | null; dog: DogCompanion; vehicle: Vehicle; vehicles: Vehicle[]; playerBurn: number; playerBurnTick: number;
