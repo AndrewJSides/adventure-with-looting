@@ -254,7 +254,13 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 }
 .joystick-ring { position: absolute; inset: 8px; border: 2px solid rgba(215,225,223,.19); background: rgba(8,13,17,.32); border-radius: 50%; box-shadow: inset 0 0 30px rgba(0,0,0,.35); }
 .joystick-knob { position: absolute; width: 58px; height: 58px; left: 37px; top: 37px; border-radius: 50%; background: rgba(215,225,223,.78); border: 7px solid rgba(255,255,255,.14); box-shadow: 0 8px 18px rgba(0,0,0,.35); transition: transform .03s linear; }
-.action-stack { pointer-events: auto; position: absolute; right: 5%; bottom: 7%; width: 200px; display: flex; flex-flow: row wrap; justify-content: flex-end; align-items: center; align-content: flex-end; gap: 8px; }
+.action-stack { pointer-events: auto; position: absolute; right: 4%; bottom: 6%; width: 212px; height: 154px; display: grid; grid-template-columns: repeat(3, 68px); grid-template-rows: repeat(2, 74px); gap: 6px 4px; }
+.action-slot { width: 68px; height: 74px; display: grid; place-items: center; }
+.vehicle-slot { grid-column: 3; grid-row: 1; }
+.context-slot { grid-column: 2; grid-row: 1; }
+.dash-slot { grid-column: 1; grid-row: 2; }
+.flask-slot { grid-column: 2; grid-row: 2; }
+.melee-slot { grid-column: 3; grid-row: 2; }
 .dash-button, .melee-button, .flask-button, .talk-button, .fast-travel-button, .trunk-button, .vehicle-button { border-radius: 50%; display: grid; place-content: center; box-shadow: 0 8px 25px rgba(0,0,0,.35); }
 .vehicle-button { width: 68px; height: 68px; border: 2px solid rgba(239,177,109,.75); background: rgba(82,50,28,.92); color: #ffe0ae; animation: vehicle-pulse 1.5s ease-in-out infinite; }
 .vehicle-button:disabled { border-color: #5a4c43; background: rgba(35,31,29,.86); color: #8c8178; animation: none; }
@@ -458,8 +464,8 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .full-map-overlay header strong { color: #9eaaa5; font-size: 10px; }
 .map-close { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid #52615c; border-radius: 50%; background: #1b2422; color: #f2e9d6; font-size: 27px; line-height: 1; }
 .full-map-stage { position: relative; min-height: 0; overflow: hidden; background: #1d2421; }
-.full-map-stage svg { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
-.full-map-stage svg:active { cursor: grabbing; }
+.full-map-stage canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+.full-map-stage canvas:active { cursor: grabbing; }
 .full-map-ground { fill: #33413b; }
 .full-map-road { fill: none; stroke: rgba(213,193,147,.57); stroke-width: 112; stroke-linecap: round; stroke-dasharray: 8 30; }
 .full-map-region { opacity: .6; pointer-events: none; }
@@ -495,8 +501,9 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
   .joystick { width: 118px; height: 118px; }
   .joystick-ring { inset: 7px; }
   .joystick-knob { width: 54px; height: 54px; left: 32px; top: 32px; }
-  .action-stack { width: 185px; right: 3%; }
-  .dash-button { width: 72px; height: 72px; }
+  .action-stack { width: 190px; height: 140px; right: 2%; grid-template-columns: repeat(3, 60px); grid-template-rows: repeat(2, 67px); gap: 5px; }
+  .action-slot { width: 60px; height: 67px; }
+  .dash-button { width: 64px; height: 64px; }
   .melee-button { width: 66px; height: 66px; }
   .flask-button, .talk-button, .fast-travel-button, .trunk-button { width: 54px; height: 54px; }
   .vehicle-button { width: 62px; height: 62px; }

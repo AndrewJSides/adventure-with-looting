@@ -18,6 +18,7 @@ export const gameSave = sqliteTable("game_save", {
   trinketName: text("trinket_name").notNull().default("None"),
   critChance: real("crit_chance").notNull().default(0.05),
   keys: integer("keys").notNull().default(0),
+  vehicleKeyOwned: integer("vehicle_key_owned", { mode: "boolean" }).notNull().default(false),
   lifesteal: real("lifesteal").notNull().default(0),
   thorns: real("thorns").notNull().default(0),
   dashReduction: real("dash_reduction").notNull().default(0),

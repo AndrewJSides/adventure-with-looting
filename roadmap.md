@@ -11,11 +11,12 @@ Set by Andrew, Oct 5, 2026. Vision: like **Surroundead** (Steam indie) — open 
 6. **Dungeons** — instanced or delimited dungeon areas with elites/bosses and rare loot.
 7. **Key-locked chests** — chests that require finding rare keys to open.
 8. **Expansive cities** — both inhabited (NPCs, shops, quests) and abandoned (lootable buildings, zombie hordes, bosses).
-9. **Day/night cycle** — full cycle affecting visibility and zombie behavior.
-10. **Flashlights** — findable/usable flashlights (pairs with day/night).
-11. **Zombie sound effects** — groans, screams, ambient horror audio.
-12. **Way more NPCs and dialogue** — after cities land.
-13. **Deeper storyline** — after 12 (which follows 8).
+9. **Building interiors** — walk inside buildings; roofs fade to ~10% opacity when the player is inside, revealing interior rooms, loot, and indoor zombies.
+10. **Day/night cycle** — full cycle affecting visibility and zombie behavior.
+11. **Flashlights** — findable/usable flashlights (pairs with day/night).
+12. **Zombie sound effects** — groans, screams, ambient horror audio.
+13. **Way more NPCs and dialogue** — after cities land.
+14. **Deeper storyline** — after 13 (which follows 9).
 
 ## Already shipped (context)
 - 11+ biomes, ~16× world scale, zombie enemies with biome variants, elites, named bosses with unique relic drops

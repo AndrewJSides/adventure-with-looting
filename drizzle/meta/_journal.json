@@ -92,6 +92,13 @@
       "when": 1791258260343,
       "tag": "0013_persist_vehicle_fleet",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1791263748183,
+      "tag": "0014_add_vehicle_key_ownership",
+      "breakpoints": true
     }
   ]
 }
