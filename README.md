@@ -7,7 +7,12 @@ defeat scattered bosses for unique relics, drive vehicles, and follow quest line
 Mobile-first touch controls (joystick, tap-to-shoot, slash attack).
 
 ## Roadmap
-Vehicles → pet dog → machine guns → melee weapons → bases → dungeons → key-locked chests → cities.
+See `roadmap.md`. Vehicles → pet dog → machine guns → melee weapons → bases →
+dungeons → key-locked chests → cities → day/night → flashlights → zombie SFX →
+more NPCs → deeper storyline.
+
+## iOS app
+See `MOBILE.md` — Capacitor wrapper for the App Store.
 
 ## Stack
 - Client: TypeScript + Vite-style build (`client/`)
@@ -17,12 +22,9 @@ Vehicles → pet dog → machine guns → melee weapons → bases → dungeons �
 ## Dev
 ```sh
 bun install
-# client
-cd client && bun run build
-# server
-cd server
+bun run build:client   # outputs client/dist
 ```
 
 ## Notes
 - `app.db*` (save data) is intentionally not committed.
-- This repo is a snapshot of the game as built in Muse; hourly iterations continue to land.
+- Snapshots land automatically; hourly web iterations continue.

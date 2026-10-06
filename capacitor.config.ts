@@ -1,0 +1,13 @@
+import type { CapacitorConfig } from '@capacitor/cli';
+
+const config: CapacitorConfig = {
+  appId: 'com.andrewsides.adventurewithlooting',
+  appName: 'Adventure with Looting',
+  webDir: 'client/dist',
+  backgroundColor: '#0b0f0e',
+  ios: {
+    contentInset: 'always',
+  },
+};
+
+export default config;
