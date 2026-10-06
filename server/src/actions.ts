@@ -1,5 +1,5 @@
 import { defineAction, z, type ActionsModule, type Ctx } from "@hatch/space-sdk";
-import { and, desc, eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import * as schema from "./schema";
 
 const raritySchema = z.enum(["Common", "Uncommon", "Rare", "Epic", "Legendary", "Relic"]);
@@ -162,15 +162,13 @@ export const Actions = {
   savePerfRecording: defineAction({
     request: z.object({ startedAt: z.number().int().nonnegative(), stoppedAt: z.number().int().nonnegative(), samples: z.array(perfSampleSchema).min(1).max(12000) }), response: savePerfRecordingResponse,
     async handler(ctx, args): Promise<z.infer<typeof savePerfRecordingResponse>> {
-      const ownerKey = viewerKey(ctx);
-      if (!ownerKey) return { ok: false, message: "Sign in to save profiler recordings." };
       if (args.stoppedAt < args.startedAt) return { ok: false, message: "The recording end time is invalid." };
       const sums = { terrain: 0, streaming: 0, entities: 0, camera: 0, hud: 0, collision: 0, enemyAi: 0, audio: 0, save: 0 };
       let fpsTotal = 0, frameTotal = 0, chunkLoadCount = 0;
       for (const sample of args.samples) { fpsTotal += sample.fps; frameTotal += sample.frameMs; chunkLoadCount += sample.chunkLoadEvents.length; for (const key of Object.keys(sums) as Array<keyof typeof sums>) sums[key] += sample.subsystems[key]; }
       const hotspot = (Object.keys(sums) as Array<keyof typeof sums>).reduce((best, key) => sums[key] > sums[best] ? key : best, "terrain");
       const now = new Date();
-      const inserted = await ctx.db<typeof schema>().insert(schema.perfRecordings).values({ ownerKey, startedAt: new Date(args.startedAt), stoppedAt: new Date(args.stoppedAt), sampleCount: args.samples.length, averageFps: fpsTotal / args.samples.length, averageFrameMs: frameTotal / args.samples.length, hotspot, chunkLoadCount, samples: args.samples, createdAt: now }).returning();
+      const inserted = await ctx.db<typeof schema>().insert(schema.perfRecordings).values({ startedAt: new Date(args.startedAt), stoppedAt: new Date(args.stoppedAt), sampleCount: args.samples.length, averageFps: fpsTotal / args.samples.length, averageFrameMs: frameTotal / args.samples.length, hotspot, chunkLoadCount, samples: args.samples, createdAt: now }).returning();
       const row = inserted[0];
       if (!row) return { ok: false, message: "The profiler recording could not be saved." };
       ctx.invalidateQueries();
@@ -181,9 +179,7 @@ export const Actions = {
   listPerfRecordings: defineAction({
     request: z.object({}), response: listPerfRecordingsResponse,
     async handler(ctx): Promise<z.infer<typeof listPerfRecordingsResponse>> {
-      const ownerKey = viewerKey(ctx);
-      if (!ownerKey) return { recordings: [], canRecord: false, message: "Sign in to save profiler recordings." };
-      const rows = await ctx.db<typeof schema>().select().from(schema.perfRecordings).where(eq(schema.perfRecordings.ownerKey, ownerKey)).orderBy(desc(schema.perfRecordings.startedAt)).limit(20);
+      const rows = await ctx.db<typeof schema>().select().from(schema.perfRecordings).orderBy(desc(schema.perfRecordings.startedAt)).limit(20);
       return { recordings: rows.map(serializePerfSummary), canRecord: true, message: null };
     },
   }),
@@ -191,9 +187,7 @@ export const Actions = {
   getPerfRecording: defineAction({
     request: z.object({ id: z.number().int().positive() }), response: getPerfRecordingResponse,
     async handler(ctx, args): Promise<z.infer<typeof getPerfRecordingResponse>> {
-      const ownerKey = viewerKey(ctx);
-      if (!ownerKey) return { ok: false, message: "Sign in to view profiler recordings." };
-      const rows = await ctx.db<typeof schema>().select().from(schema.perfRecordings).where(and(eq(schema.perfRecordings.id, args.id), eq(schema.perfRecordings.ownerKey, ownerKey))).limit(1);
+      const rows = await ctx.db<typeof schema>().select().from(schema.perfRecordings).where(eq(schema.perfRecordings.id, args.id)).limit(1);
       const row = rows[0];
       if (!row) return { ok: false, message: "That profiler recording was not found." };
       return { ok: true, recording: { ...serializePerfSummary(row), samples: row.samples } };

@@ -6,7 +6,6 @@ export type PerfSample = { timestamp: number; fps: number; frameMs: number; subs
 
 export const perfRecordings = sqliteTable("perf_recordings", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  ownerKey: text("owner_key").notNull(),
   startedAt: integer("started_at", { mode: "timestamp_ms" }).notNull(),
   stoppedAt: integer("stopped_at", { mode: "timestamp_ms" }).notNull(),
   sampleCount: integer("sample_count").notNull(),
@@ -16,7 +15,7 @@ export const perfRecordings = sqliteTable("perf_recordings", {
   chunkLoadCount: integer("chunk_load_count").notNull(),
   samples: text("samples", { mode: "json" }).$type<PerfSample[]>().notNull(),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
-}, (table) => [index("perf_recordings_owner_started_idx").on(table.ownerKey, table.startedAt)]);
+}, (table) => [index("perf_recordings_started_idx").on(table.startedAt)]);
 
 export const gameSave = sqliteTable("game_save", {
   id: integer("id").primaryKey({ autoIncrement: true }),

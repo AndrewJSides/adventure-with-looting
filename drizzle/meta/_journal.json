@@ -141,6 +141,13 @@
       "when": 1791295023677,
       "tag": "0020_add_performance_recordings",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1791295804736,
+      "tag": "0021_make_profiler_recordings_global",
+      "breakpoints": true
     }
   ]
 }
