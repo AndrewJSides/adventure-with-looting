@@ -99,6 +99,13 @@
       "when": 1791263748183,
       "tag": "0014_add_vehicle_key_ownership",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1791268835661,
+      "tag": "0015_add_dog_companion_state",
+      "breakpoints": true
     }
   ]
 }
