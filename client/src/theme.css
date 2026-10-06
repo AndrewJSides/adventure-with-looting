@@ -108,7 +108,7 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 
 .objective-panel {
   position: absolute; top: 2.2%; left: 3.2%;
-  padding: 8px 10px; max-width: 56%;
+  padding: 8px 10px; max-width: 34%;
   background: rgba(7,11,14,.84); border-left: 3px solid var(--accent);
   pointer-events: none; text-align: left;
   box-shadow: 0 8px 22px rgba(0,0,0,.22);
@@ -208,7 +208,7 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .boss-bar strong { display: block; margin-bottom: 5px; color: #ffd166; font-family: Georgia,serif; font-size: 11px; letter-spacing: .18em; text-shadow: 0 2px 6px #000; }
 .boss-bar > div { height: 11px; padding: 2px; background: rgba(20,8,10,.9); border: 1px solid #8c5147; }
 .boss-bar span { display: block; height: 100%; background: linear-gradient(90deg,#9b2729,#ef5b45); transition: width .12s linear; }
-.vehicle-hud { position: absolute; z-index: 4; top: 22.5%; right: 3%; width: 142px; padding: 7px 8px; background: rgba(12,13,12,.9); border: 1px solid rgba(209,150,88,.46); box-shadow: 0 8px 22px rgba(0,0,0,.32); pointer-events: none; }
+.vehicle-hud { position: absolute; z-index: 4; top: 2.1%; left: 38.5%; width: clamp(104px, calc(58.5% - 124px), 142px); padding: 7px 8px; background: rgba(12,13,12,.9); border: 1px solid rgba(209,150,88,.46); box-shadow: 0 8px 22px rgba(0,0,0,.32); pointer-events: none; }
 .vehicle-hud-title { display: flex; justify-content: space-between; gap: 6px; margin-bottom: 5px; }
 .vehicle-hud-title strong { color: #efb16d; font-size: 8px; letter-spacing: .11em; }
 .vehicle-hud-title span { color: #a9b2af; font-size: 7px; font-weight: 900; }
@@ -507,7 +507,7 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
   .melee-button { width: 66px; height: 66px; }
   .flask-button, .talk-button, .fast-travel-button, .trunk-button { width: 54px; height: 54px; }
   .vehicle-button { width: 62px; height: 62px; }
-  .vehicle-hud { top: 23%; width: 132px; }
+  .vehicle-hud { top: 2.1%; left: 38.5%; width: calc(58.5% - 124px); }
   .desktop-hint { display: none; }
   .overlay { padding-inline: 22px; }
   .menu-copy { margin-block: 18px; }
