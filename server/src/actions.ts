@@ -72,7 +72,7 @@ const BASE_SAVE: z.infer<typeof saveSchema> = {
   keys: 0, lifesteal: 0, thorns: 0, dashReduction: 0, moveSpeed: 0, pickupRadius: 0,
   items: [], storedItems: [], questState: "not_started", questTravelOut: false, questTravelBack: false, rareLootDrops: [], enemyRespawns: [], kills: 0, roomsCleared: 0, bossesDefeated: 0, runsStarted: 1,
   openedChestIds: [], claimedPickupIds: [], claimedBreakableIds: [], defeatedEnemyIds: [], clearedRoomIds: [], secretOpenedRoomIds: [], exploredCells: [], truckX: 1580, truckY: 15745, truckFuel: 82, truckHp: 180,
-  vehicles: [{ id: "rustbucket", x: 1580, y: 15745, hp: 180, fuel: 82, owned: false, inventory: [] }, { id: "trailrunner", x: 4545, y: 15125, hp: 180, fuel: 64, owned: false, inventory: [] }, { id: "mire-mule", x: 10635, y: 13210, hp: 180, fuel: 55, owned: false, inventory: [] }], chestsOpened: 0,
+  vehicles: [{ id: "rustbucket", x: 1580, y: 15745, hp: 180, fuel: 82, owned: false, inventory: [] }, { id: "motorcycle", x: 1710, y: 15720, hp: 90, fuel: 76, owned: false, inventory: [] }, { id: "mustang", x: 4480, y: 15055, hp: 140, fuel: 70, owned: false, inventory: [] }, { id: "trailrunner", x: 4545, y: 15125, hp: 180, fuel: 64, owned: false, inventory: [] }, { id: "mire-mule", x: 10635, y: 13210, hp: 180, fuel: 55, owned: false, inventory: [] }], chestsOpened: 0,
   runStartedAt: new Date().toISOString(),
 };
 
