@@ -35,7 +35,7 @@ const saveSchema = z.object({
   respawnBase: z.enum(["village", "ember", "frost", "mire"]),
   rawMeat: z.number().int().min(0).max(999),
   cookedMeals: z.number().int().min(0).max(999),
-  gunAmmoState: z.array(z.object({ name: z.string().min(1).max(40), magazine: z.number().int().min(0).max(500), reserve: z.number().int().min(0).max(5000) })).max(3),
+  gunAmmoState: z.array(z.object({ name: z.string().min(1).max(40), magazine: z.number().int().min(0).max(500), reserve: z.number().int().min(0).max(5000) })).max(4),
   questState: z.enum(["not_started", "active", "complete"]),
   questTravelOut: z.boolean(),
   questTravelBack: z.boolean(),
@@ -80,10 +80,10 @@ const writeResponse = z.discriminatedUnion("ok", [
 
 const BASE_SAVE: z.infer<typeof saveSchema> = {
   room: 6, level: 1, hp: 100, maxHp: 100, coins: 0,
-  weaponName: "Rustblade", weaponDamage: 12, attackSpeed: 1, rarity: "Common", meleeWeaponName: "Rustblade",
+  weaponName: "Glock", weaponDamage: 13, attackSpeed: 4.2, rarity: "Common", meleeWeaponName: "Rustblade",
   armorName: "Traveler Cloak", armorDefense: 0, charmName: "None", trinketName: "None", critChance: 0.05,
   keys: 0, vehicleKeyOwned: false, lifesteal: 0, thorns: 0, dashReduction: 0, moveSpeed: 0, pickupRadius: 0,
-  items: [], storedItems: ["Mustang key"], baseStates: [], respawnBase: "village", rawMeat: 0, cookedMeals: 0, gunAmmoState: [], questState: "not_started", questTravelOut: false, questTravelBack: false, rareLootDrops: [], enemyRespawns: [], kills: 0, roomsCleared: 0, bossesDefeated: 0, runsStarted: 1,
+  items: ["Glock"], storedItems: ["Mustang key"], baseStates: [], respawnBase: "village", rawMeat: 0, cookedMeals: 0, gunAmmoState: [{ name: "Glock", magazine: 17, reserve: 68 }], questState: "not_started", questTravelOut: false, questTravelBack: false, rareLootDrops: [], enemyRespawns: [], kills: 0, roomsCleared: 0, bossesDefeated: 0, runsStarted: 1,
   openedChestIds: [], claimedPickupIds: [], claimedBreakableIds: [], defeatedEnemyIds: [], clearedRoomIds: [], secretOpenedRoomIds: [], exploredCells: [], truckX: 1580, truckY: 15745, truckFuel: 82, truckHp: 180,
   vehicles: [{ id: "rustbucket", x: 1580, y: 15745, hp: 180, fuel: 82, owned: false, inventory: [] }, { id: "motorcycle", x: 1710, y: 15720, hp: 90, fuel: 76, owned: false, inventory: [] }, { id: "mustang", x: 4480, y: 15055, hp: 140, fuel: 70, owned: false, inventory: [] }, { id: "trailrunner", x: 4545, y: 15125, hp: 180, fuel: 64, owned: false, inventory: [] }, { id: "mire-mule", x: 10635, y: 13210, hp: 180, fuel: 55, owned: false, inventory: [] }],
   dogAdopted: false, dogLevel: 1, dogX: 1210, dogY: 15715, dogHp: 64, dogKills: 0, chestsOpened: 0,

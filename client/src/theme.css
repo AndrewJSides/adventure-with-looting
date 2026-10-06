@@ -68,7 +68,7 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .hud {
   height: 58px;
   display: grid;
-  grid-template-columns: minmax(78px, 1.35fr) .43fr .5fr .45fr 44px 34px 34px 36px;
+  grid-template-columns: minmax(78px, 1.35fr) .43fr .5fr .45fr 34px 34px 36px;
   gap: 8px;
   align-items: center;
   padding: 0 4px 7px;
@@ -81,11 +81,15 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .health-track span { display: block; height: 100%; background: linear-gradient(90deg, #bd3f3b, #ef6a56); transition: width .2s ease; }
 .hud-stat { min-width: 0; text-align: center; border-left: 1px solid var(--border); }
 .hud-stat strong { display: block; margin-top: 2px; color: #edf5f3; white-space: nowrap; }
-.pause-button, .sound-button, .inventory-button, .map-button { width: 34px; height: 34px; border: 1px solid var(--border); background: #111a20; color: #bdc9c7; border-radius: 50%; font-weight: 900; padding: 0; }
+.pause-button, .sound-button, .inventory-button { width: 34px; height: 34px; border: 1px solid var(--border); background: #111a20; color: #bdc9c7; border-radius: 50%; font-weight: 900; padding: 0; }
 .pause-button { width: 36px; height: 36px; }
 .sound-button { color: #ffd166; font-size: 17px; }
 .inventory-button { color: #a9d7ce; font-size: 17px; }
-.map-button { width: 44px; height: 44px; color: #f1bf72; font-size: 19px; }
+
+.hud, .world-map, .vehicle-hud, .dog-hud, .objective-panel, .quest-panel, .boss-bar, .controls, .raid-warning, .combat-note, .save-state, .buff-timers, .shoot-hint {
+  opacity: var(--game-ui-opacity, 1);
+  transition: opacity .32s ease-out;
+}
 
 .arena-wrap {
   position: relative;
@@ -162,8 +166,13 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
   background: rgba(7,11,14,.9);
   border: 1px solid rgba(215,225,223,.2);
   box-shadow: 0 8px 22px rgba(0,0,0,.32);
-  pointer-events: none;
+  color: inherit;
+  font: inherit;
+  text-align: initial;
+  cursor: pointer;
+  pointer-events: auto;
 }
+.world-map:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .map-field { position: relative; height: 112px; background: radial-gradient(ellipse at 28% 18%,#35443b 0,transparent 46%), linear-gradient(145deg,#26322e,#1c2726 68%,#28312e); border: 1px solid #4c5b58; overflow: hidden; isolation: isolate; }
 .map-field::before { content: ""; position: absolute; inset: 0; z-index: 0; opacity: .34; background-image: radial-gradient(circle at 15% 28%,rgba(167,192,168,.18) 0 1px,transparent 1.5px),radial-gradient(circle at 78% 72%,rgba(3,10,8,.3) 0 1px,transparent 1.7px); background-size: 11px 13px,17px 15px; }
 .map-biome, .map-field b { position: absolute; transform: translate(-50%,-50%); }
