@@ -348,9 +348,11 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .inventory-heading .eyebrow { margin-bottom: 5px; }
 .inventory-heading h2 { margin: 0; }
 .inventory-heading > strong { color: var(--gold); font-size: 12px; }
-.inventory-equipped { width: min(100%, 390px); display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); border-block: 1px solid #344449; margin-bottom: 12px; }
+.inventory-equipped { width: min(100%, 390px); display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); border-block: 1px solid #344449; margin-bottom: 12px; }
 .inventory-equipped > div { min-width: 0; padding: 11px 8px; border-right: 1px solid #344449; }
-.inventory-equipped > div:nth-child(3) { border-right: 0; }
+.inventory-equipped > div:nth-child(even) { border-right: 0; }
+.inventory-equipped > div:nth-child(3), .inventory-equipped > div:nth-child(4) { border-top: 1px solid #344449; }
+.inventory-equipped > .melee-slot-card { background: rgba(255,139,86,.035); }
 .inventory-equipped > .trinket-slot { grid-column: 1 / -1; border-top: 1px solid #344449; border-right: 0; background: rgba(210,140,255,.045); }
 .inventory-equipped span, .inventory-equipped strong, .inventory-equipped small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .inventory-equipped span { color: var(--accent); font-size: 7px; font-weight: 900; letter-spacing: .12em; }

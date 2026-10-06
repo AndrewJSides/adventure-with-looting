@@ -16,6 +16,7 @@ const saveSchema = z.object({
   weaponDamage: z.number().min(1).max(999),
   attackSpeed: z.number().min(0.2).max(8),
   rarity: raritySchema,
+  meleeWeaponName: z.string().min(1).max(80),
   armorName: z.string().min(1).max(40),
   armorDefense: z.number().int().min(0).max(90),
   charmName: z.string().min(1).max(40),
@@ -75,7 +76,7 @@ const writeResponse = z.discriminatedUnion("ok", [
 
 const BASE_SAVE: z.infer<typeof saveSchema> = {
   room: 6, level: 1, hp: 100, maxHp: 100, coins: 0,
-  weaponName: "Rustblade", weaponDamage: 12, attackSpeed: 1, rarity: "Common",
+  weaponName: "Rustblade", weaponDamage: 12, attackSpeed: 1, rarity: "Common", meleeWeaponName: "Rustblade",
   armorName: "Traveler Cloak", armorDefense: 0, charmName: "None", trinketName: "None", critChance: 0.05,
   keys: 0, vehicleKeyOwned: false, lifesteal: 0, thorns: 0, dashReduction: 0, moveSpeed: 0, pickupRadius: 0,
   items: [], storedItems: ["Mustang key"], gunAmmoState: [], questState: "not_started", questTravelOut: false, questTravelBack: false, rareLootDrops: [], enemyRespawns: [], kills: 0, roomsCleared: 0, bossesDefeated: 0, runsStarted: 1,
@@ -95,7 +96,7 @@ function viewerKey(ctx: Ctx): string | null {
 function serialize(row: typeof schema.gameSave.$inferSelect): z.infer<typeof savedSchema> {
   return {
     room: row.room, level: row.level, hp: row.hp, maxHp: row.maxHp, coins: row.coins,
-    weaponName: row.weaponName, weaponDamage: row.weaponDamage, attackSpeed: row.attackSpeed, rarity: row.rarity,
+    weaponName: row.weaponName, weaponDamage: row.weaponDamage, attackSpeed: row.attackSpeed, rarity: row.rarity, meleeWeaponName: row.meleeWeaponName,
     armorName: row.armorName, armorDefense: row.armorDefense, charmName: row.charmName, trinketName: row.trinketName, critChance: row.critChance,
     keys: row.keys, vehicleKeyOwned: row.vehicleKeyOwned, lifesteal: row.lifesteal, thorns: row.thorns, dashReduction: row.dashReduction, moveSpeed: row.moveSpeed, pickupRadius: row.pickupRadius,
     items: row.items, storedItems: row.storedItems, gunAmmoState: row.gunAmmoState, questState: row.questState, questTravelOut: row.questTravelOut, questTravelBack: row.questTravelBack, rareLootDrops: row.rareLootDrops, enemyRespawns: row.enemyRespawns, kills: row.kills, roomsCleared: row.roomsCleared, bossesDefeated: row.bossesDefeated,

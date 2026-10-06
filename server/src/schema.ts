@@ -12,6 +12,7 @@ export const gameSave = sqliteTable("game_save", {
   weaponDamage: real("weapon_damage").notNull().default(12),
   attackSpeed: real("attack_speed").notNull().default(1),
   rarity: text("rarity", { enum: ["Common", "Uncommon", "Rare", "Epic", "Legendary", "Relic"] }).notNull().default("Common"),
+  meleeWeaponName: text("melee_weapon_name").notNull().default("Rustblade"),
   armorName: text("armor_name").notNull().default("Traveler Cloak"),
   armorDefense: integer("armor_defense").notNull().default(0),
   charmName: text("charm_name").notNull().default("None"),
