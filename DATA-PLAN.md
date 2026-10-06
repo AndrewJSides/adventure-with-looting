@@ -7,10 +7,13 @@
 
 ## Tested sources
 - The player supplied this top-down truck sprite sheet as visual-shape reference: https://cdn.masto.host/mastodongamedevplace/media_attachments/files/116/835/268/672/487/897/original/f120bac2fe1a5507.png
+- The village dirt uses Heathal’s 512×512 seamless dirt texture from OpenGameArt: https://opengameart.org/content/texture-pack-seamless-dirtpng
+- The exact owned image bytes were downloaded from: https://opengameart.org/sites/default/files/styles/medium/public/oga-textures/71932/dirt.png
+- OpenGameArt lists the texture as CC0. It is credited here even though attribution is not required.
 - No factual game content is imported from external sources; the world, enemies, and landmarks remain original.
 
 ## Imagery
-The supplied truck sheet informs only the high-level silhouette cues (separate bed, cab, hood, and protruding corner wheels). No external pixels are copied: the vehicles, world map, characters, enemies, chests, and loot remain original procedural canvas/SVG/CSS graphics.
+The supplied truck sheet informs only the high-level silhouette cues (separate bed, cab, hood, and protruding corner wheels). The OpenGameArt dirt texture is stored locally and rendered with deterministic rotation, offset, mirroring, overlap, and edge blending. All other vehicles, world map, characters, enemies, chests, and loot remain original procedural canvas/SVG/CSS graphics.
 
 ## Long-term data behavior
 - **Refresh policy**: No external refresh; a run plays entirely in the client and save snapshots are persisted through typed artifact actions.
@@ -21,5 +24,5 @@ The supplied truck sheet informs only the high-level silhouette cues (separate b
 ## Rejected approaches
 - **Tried**: Turn-based dungeon crawler or side-scrolling platformer.
   **Why rejected**: The user explicitly chose option 1, the top-down action roguelite.
-- **Tried**: External art or real-world imagery.
-  **Why rejected**: The game’s original abstract fantasy visuals are better rendered deterministically in the canvas and require no factual subjects or external provenance.
+- **Tried**: External character, vehicle, or landmark art.
+  **Why rejected**: Those game visuals remain original procedural drawings; only the requested CC0 seamless dirt texture is imported as owned local bytes.
