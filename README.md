@@ -1,6 +1,6 @@
 # Adventure with Looting
 
-Open-world zombie survival roguelite built with Muse.
+Open-world zombie survival roguelite (Surroundead-inspired), built with Muse.
 
 Top-down action: explore huge biomes, fight zombie hordes, loot buildings and chests,
 defeat scattered bosses for unique relics, drive vehicles, and follow quest lines.

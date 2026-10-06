@@ -6,10 +6,11 @@
 - “Top-down action roguelite — touch joystick, auto-attacks, monster rooms, treasure chests, gear upgrades, and a boss.” (assistant proposal explicitly accepted by the user’s reply “1”; defines the game format and required systems)
 
 ## Tested sources
-No external factual sources are required; this is an original game.
+- The player supplied this top-down truck sprite sheet as visual-shape reference: https://cdn.masto.host/mastodongamedevplace/media_attachments/files/116/835/268/672/487/897/original/f120bac2fe1a5507.png
+- No factual game content is imported from external sources; the world, enemies, and landmarks remain original.
 
 ## Imagery
-Imagery not needed: the dungeon, characters, projectiles, enemies, chests, and loot are original procedural canvas/CSS game graphics rather than depictions of real-world subjects or externally sourced art.
+The supplied truck sheet informs only the high-level silhouette cues (separate bed, cab, hood, and protruding corner wheels). No external pixels are copied: the vehicles, world map, characters, enemies, chests, and loot remain original procedural canvas/SVG/CSS graphics.
 
 ## Long-term data behavior
 - **Refresh policy**: No external refresh; a run plays entirely in the client and save snapshots are persisted through typed artifact actions.
