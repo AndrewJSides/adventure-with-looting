@@ -1,8 +1,8 @@
 import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
-export type PerfSubsystemValues = { terrain: number; streaming: number; entities: number; camera: number; hud: number; collision: number; enemyAi: number; audio: number; save: number };
-export type PerfChunkLoadEvent = { timestamp: number; key: string };
-export type PerfSample = { timestamp: number; fps: number; frameMs: number; jankMs?: number; subsystems: PerfSubsystemValues; vehicleSpeed: number; activeEnemies: number; visibleEnemies: number; renderScale?: number; chunkLoadEvents: PerfChunkLoadEvent[] };
+export type PerfSubsystemValues = { render?: number; terrain: number; streaming: number; entities: number; camera: number; hud: number; collision: number; enemyAi: number; audio: number; save: number };
+export type PerfChunkLoadEvent = { timestamp: number; key: string; durationMs?: number; drawCalls?: number };
+export type PerfSample = { timestamp: number; fps: number; frameMs: number; jankMs?: number; subsystems: PerfSubsystemValues; vehicleSpeed: number; activeEnemies: number; visibleEnemies: number; renderScale?: number; renderMs?: number; drawCalls?: number; chunkBuildMs?: number; chunkBuildSteps?: number; chunkBuildCompletions?: number; chunkCanvasAllocations?: number; chunkCanvasReuses?: number; chunkPoolSize?: number; chunkLoadEvents: PerfChunkLoadEvent[] };
 
 export const perfRecordings = sqliteTable("perf_recordings", {
   id: integer("id").primaryKey({ autoIncrement: true }),

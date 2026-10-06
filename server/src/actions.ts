@@ -81,13 +81,13 @@ const writeResponse = z.discriminatedUnion("ok", [
   z.object({ ok: z.literal(false), message: z.string() }),
 ]);
 
-const perfSubsystemSchema = z.object({ terrain: z.number().nonnegative(), streaming: z.number().nonnegative(), entities: z.number().nonnegative(), camera: z.number().nonnegative(), hud: z.number().nonnegative(), collision: z.number().nonnegative(), enemyAi: z.number().nonnegative(), audio: z.number().nonnegative(), save: z.number().nonnegative() });
-const perfChunkLoadEventSchema = z.object({ timestamp: z.number().int().nonnegative(), key: z.string().min(1).max(40) });
+const perfSubsystemSchema = z.object({ render: z.number().nonnegative().optional(), terrain: z.number().nonnegative(), streaming: z.number().nonnegative(), entities: z.number().nonnegative(), camera: z.number().nonnegative(), hud: z.number().nonnegative(), collision: z.number().nonnegative(), enemyAi: z.number().nonnegative(), audio: z.number().nonnegative(), save: z.number().nonnegative() });
+const perfChunkLoadEventSchema = z.object({ timestamp: z.number().int().nonnegative(), key: z.string().min(1).max(40), durationMs: z.number().nonnegative().max(10000).optional(), drawCalls: z.number().int().nonnegative().max(100000).optional() });
 const perfSampleSchema = z.object({
   timestamp: z.number().int().nonnegative(), fps: z.number().nonnegative().max(1000), frameMs: z.number().nonnegative().max(10000), jankMs: z.number().nonnegative().max(10000), subsystems: perfSubsystemSchema,
-  vehicleSpeed: z.number().min(-1000).max(1000), activeEnemies: z.number().int().nonnegative().max(10000), visibleEnemies: z.number().int().nonnegative().max(10000), renderScale: z.number().min(0.4).max(1).optional(), chunkLoadEvents: z.array(perfChunkLoadEventSchema).max(40),
+  vehicleSpeed: z.number().min(-1000).max(1000), activeEnemies: z.number().int().nonnegative().max(10000), visibleEnemies: z.number().int().nonnegative().max(10000), renderScale: z.number().min(0.4).max(1).optional(), renderMs: z.number().nonnegative().max(10000).optional(), drawCalls: z.number().int().nonnegative().max(100000).optional(), chunkBuildMs: z.number().nonnegative().max(10000).optional(), chunkBuildSteps: z.number().int().nonnegative().max(100000).optional(), chunkBuildCompletions: z.number().int().nonnegative().max(10000).optional(), chunkCanvasAllocations: z.number().int().nonnegative().max(100000).optional(), chunkCanvasReuses: z.number().int().nonnegative().max(100000).optional(), chunkPoolSize: z.number().int().nonnegative().max(10000).optional(), chunkLoadEvents: z.array(perfChunkLoadEventSchema).max(40),
 });
-const perfRecordingSummarySchema = z.object({ id: z.number().int(), startedAt: z.string(), stoppedAt: z.string(), sampleCount: z.number().int(), durationMs: z.number().int(), averageFps: z.number(), averageFrameMs: z.number(), p95FrameMs: z.number(), worstFrameMs: z.number(), worstJankMs: z.number(), stallCount50: z.number().int(), jankCount100: z.number().int(), hotspot: z.string(), chunkLoadCount: z.number().int() });
+const perfRecordingSummarySchema = z.object({ id: z.number().int(), startedAt: z.string(), stoppedAt: z.string(), sampleCount: z.number().int(), durationMs: z.number().int(), averageFps: z.number(), averageFrameMs: z.number(), p95FrameMs: z.number(), worstFrameMs: z.number(), worstJankMs: z.number(), stallCount50: z.number().int(), jankCount100: z.number().int(), hotspot: z.string(), chunkLoadCount: z.number().int(), averageRenderMs: z.number(), p95RenderMs: z.number(), averageDrawCalls: z.number(), maxDrawCalls: z.number().int(), averageChunkBuildMs: z.number(), chunkBuildFrameCount: z.number().int(), hitchWithChunkBuildCount: z.number().int(), chunkCanvasAllocations: z.number().int(), chunkCanvasReuses: z.number().int() });
 const savePerfRecordingResponse = z.discriminatedUnion("ok", [z.object({ ok: z.literal(true), recording: perfRecordingSummarySchema }), z.object({ ok: z.literal(false), message: z.string() })]);
 const listPerfRecordingsResponse = z.object({ recordings: z.array(perfRecordingSummarySchema), canRecord: z.boolean(), message: z.string().nullable() });
 const getPerfRecordingResponse = z.discriminatedUnion("ok", [z.object({ ok: z.literal(true), recording: perfRecordingSummarySchema.extend({ samples: z.array(perfSampleSchema) }) }), z.object({ ok: z.literal(false), message: z.string() })]);
@@ -150,6 +150,15 @@ function serializePerfSummary(row: typeof schema.perfRecordings.$inferSelect): z
     jankCount100: jankTimes.filter(value => value > 100).length,
     hotspot: row.hotspot,
     chunkLoadCount: row.chunkLoadCount,
+    averageRenderMs: row.samples.length ? row.samples.reduce((sum, sample) => sum + (sample.renderMs ?? sample.subsystems.render ?? 0), 0) / row.samples.length : 0,
+    p95RenderMs: (() => { const values = row.samples.map(sample => sample.renderMs ?? sample.subsystems.render ?? 0).sort((a, b) => a - b); return values[Math.max(0, Math.min(values.length - 1, Math.floor((values.length - 1) * 0.95)))] ?? 0; })(),
+    averageDrawCalls: row.samples.length ? row.samples.reduce((sum, sample) => sum + (sample.drawCalls ?? 0), 0) / row.samples.length : 0,
+    maxDrawCalls: row.samples.length ? Math.max(...row.samples.map(sample => sample.drawCalls ?? 0)) : 0,
+    averageChunkBuildMs: row.samples.length ? row.samples.reduce((sum, sample) => sum + (sample.chunkBuildMs ?? 0), 0) / row.samples.length : 0,
+    chunkBuildFrameCount: row.samples.filter(sample => (sample.chunkBuildMs ?? 0) > 0).length,
+    hitchWithChunkBuildCount: row.samples.filter(sample => sample.frameMs > 25 && (sample.chunkBuildMs ?? 0) > 0).length,
+    chunkCanvasAllocations: row.samples.length ? (row.samples[row.samples.length - 1]?.chunkCanvasAllocations ?? 0) : 0,
+    chunkCanvasReuses: row.samples.length ? (row.samples[row.samples.length - 1]?.chunkCanvasReuses ?? 0) : 0,
   };
 }
 
@@ -186,9 +195,9 @@ export const Actions = {
     request: z.object({ startedAt: z.number().int().nonnegative(), stoppedAt: z.number().int().nonnegative(), samples: z.array(perfSampleSchema).min(1).max(12000) }), response: savePerfRecordingResponse,
     async handler(ctx, args): Promise<z.infer<typeof savePerfRecordingResponse>> {
       if (args.stoppedAt < args.startedAt) return { ok: false, message: "The recording end time is invalid." };
-      const sums = { terrain: 0, streaming: 0, entities: 0, camera: 0, hud: 0, collision: 0, enemyAi: 0, audio: 0, save: 0 };
+      const sums = { render: 0, terrain: 0, streaming: 0, entities: 0, camera: 0, hud: 0, collision: 0, enemyAi: 0, audio: 0, save: 0 };
       let fpsTotal = 0, frameTotal = 0, chunkLoadCount = 0;
-      for (const sample of args.samples) { fpsTotal += sample.fps; frameTotal += sample.frameMs; chunkLoadCount += sample.chunkLoadEvents.length; for (const key of Object.keys(sums) as Array<keyof typeof sums>) sums[key] += sample.subsystems[key]; }
+      for (const sample of args.samples) { fpsTotal += sample.fps; frameTotal += sample.frameMs; chunkLoadCount += sample.chunkLoadEvents.length; for (const key of Object.keys(sums) as Array<keyof typeof sums>) sums[key] += sample.subsystems[key] ?? 0; }
       const hotspot = (Object.keys(sums) as Array<keyof typeof sums>).reduce((best, key) => sums[key] > sums[best] ? key : best, "terrain");
       const now = new Date();
       const inserted = await ctx.db<typeof schema>().insert(schema.perfRecordings).values({ startedAt: new Date(args.startedAt), stoppedAt: new Date(args.stoppedAt), sampleCount: args.samples.length, averageFps: fpsTotal / args.samples.length, averageFrameMs: frameTotal / args.samples.length, hotspot, chunkLoadCount, samples: args.samples, createdAt: now }).returning();
