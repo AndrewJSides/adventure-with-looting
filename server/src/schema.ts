@@ -2,7 +2,7 @@ import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-or
 
 export type PerfSubsystemValues = { render?: number; terrain: number; streaming: number; entities: number; camera: number; hud: number; collision: number; enemyAi: number; audio: number; save: number };
 export type PerfChunkLoadEvent = { timestamp: number; key: string; durationMs?: number; drawCalls?: number };
-export type PerfSample = { timestamp: number; fps: number; frameMs: number; jankMs?: number; subsystems: PerfSubsystemValues; vehicleSpeed: number; activeEnemies: number; visibleEnemies: number; renderScale?: number; renderMs?: number; drawCalls?: number; chunkBuildMs?: number; chunkBuildSteps?: number; chunkBuildCompletions?: number; chunkCanvasAllocations?: number; chunkCanvasReuses?: number; chunkPoolSize?: number; chunkLoadEvents: PerfChunkLoadEvent[] };
+export type PerfSample = { timestamp: number; fps: number; frameMs: number; jankMs?: number; subsystems: PerfSubsystemValues; vehicleSpeed: number; activeEnemies: number; visibleEnemies: number; renderScale?: number; renderMs?: number; drawCalls?: number; chunkBuildMs?: number; chunkBuildSteps?: number; chunkBuildCompletions?: number; chunkQueueDepth?: number; chunkQueuePeak?: number; chunksQueuedThisFrame?: number; visibleChunks?: number; chunkCanvasAllocations?: number; chunkCanvasReuses?: number; chunkPoolSize?: number; chunkLoadEvents: PerfChunkLoadEvent[] };
 
 export const perfRecordings = sqliteTable("perf_recordings", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -36,6 +36,9 @@ export const gameSave = sqliteTable("game_save", {
   trinketName: text("trinket_name").notNull().default("None"),
   critChance: real("crit_chance").notNull().default(0.05),
   keys: integer("keys").notNull().default(0),
+  ironKeys: integer("iron_keys").notNull().default(0),
+  goldKeys: integer("gold_keys").notNull().default(0),
+  ancientKeys: integer("ancient_keys").notNull().default(0),
   vehicleKeyOwned: integer("vehicle_key_owned", { mode: "boolean" }).notNull().default(false),
   lifesteal: real("lifesteal").notNull().default(0),
   thorns: real("thorns").notNull().default(0),

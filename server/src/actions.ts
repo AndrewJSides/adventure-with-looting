@@ -23,6 +23,9 @@ const saveSchema = z.object({
   trinketName: z.string().min(1).max(40),
   critChance: z.number().min(0).max(0.75),
   keys: z.number().int().min(0).max(99),
+  ironKeys: z.number().int().min(0).max(999),
+  goldKeys: z.number().int().min(0).max(999),
+  ancientKeys: z.number().int().min(0).max(999),
   vehicleKeyOwned: z.boolean(),
   lifesteal: z.number().min(0).max(0.5),
   thorns: z.number().min(0).max(0.75),
@@ -84,10 +87,10 @@ const writeResponse = z.discriminatedUnion("ok", [
 const perfSubsystemSchema = z.object({ render: z.number().nonnegative().optional(), terrain: z.number().nonnegative(), streaming: z.number().nonnegative(), entities: z.number().nonnegative(), camera: z.number().nonnegative(), hud: z.number().nonnegative(), collision: z.number().nonnegative(), enemyAi: z.number().nonnegative(), audio: z.number().nonnegative(), save: z.number().nonnegative() });
 const perfChunkLoadEventSchema = z.object({ timestamp: z.number().int().nonnegative(), key: z.string().min(1).max(40), durationMs: z.number().nonnegative().max(10000).optional(), drawCalls: z.number().int().nonnegative().max(100000).optional() });
 const perfSampleSchema = z.object({
-  timestamp: z.number().int().nonnegative(), fps: z.number().nonnegative().max(1000), frameMs: z.number().nonnegative().max(10000), jankMs: z.number().nonnegative().max(10000), subsystems: perfSubsystemSchema,
-  vehicleSpeed: z.number().min(-1000).max(1000), activeEnemies: z.number().int().nonnegative().max(10000), visibleEnemies: z.number().int().nonnegative().max(10000), renderScale: z.number().min(0.4).max(1).optional(), renderMs: z.number().nonnegative().max(10000).optional(), drawCalls: z.number().int().nonnegative().max(100000).optional(), chunkBuildMs: z.number().nonnegative().max(10000).optional(), chunkBuildSteps: z.number().int().nonnegative().max(100000).optional(), chunkBuildCompletions: z.number().int().nonnegative().max(10000).optional(), chunkCanvasAllocations: z.number().int().nonnegative().max(100000).optional(), chunkCanvasReuses: z.number().int().nonnegative().max(100000).optional(), chunkPoolSize: z.number().int().nonnegative().max(10000).optional(), chunkLoadEvents: z.array(perfChunkLoadEventSchema).max(40),
+  timestamp: z.number().int().nonnegative(), fps: z.number().nonnegative().max(1000), frameMs: z.number().nonnegative().max(600000), jankMs: z.number().nonnegative().max(600000), subsystems: perfSubsystemSchema,
+  vehicleSpeed: z.number().min(-1000).max(1000), activeEnemies: z.number().int().nonnegative().max(10000), visibleEnemies: z.number().int().nonnegative().max(10000), renderScale: z.number().min(0.4).max(1).optional(), renderMs: z.number().nonnegative().max(10000).optional(), drawCalls: z.number().int().nonnegative().max(100000).optional(), chunkBuildMs: z.number().nonnegative().max(10000).optional(), chunkBuildSteps: z.number().int().nonnegative().max(100000).optional(), chunkBuildCompletions: z.number().int().nonnegative().max(10000).optional(), chunkQueueDepth: z.number().int().nonnegative().max(10000).optional(), chunkQueuePeak: z.number().int().nonnegative().max(10000).optional(), chunksQueuedThisFrame: z.number().int().nonnegative().max(10000).optional(), visibleChunks: z.number().int().nonnegative().max(1000).optional(), chunkCanvasAllocations: z.number().int().nonnegative().max(100000).optional(), chunkCanvasReuses: z.number().int().nonnegative().max(100000).optional(), chunkPoolSize: z.number().int().nonnegative().max(10000).optional(), chunkLoadEvents: z.array(perfChunkLoadEventSchema).max(40),
 });
-const perfRecordingSummarySchema = z.object({ id: z.number().int(), startedAt: z.string(), stoppedAt: z.string(), sampleCount: z.number().int(), durationMs: z.number().int(), averageFps: z.number(), averageFrameMs: z.number(), p95FrameMs: z.number(), worstFrameMs: z.number(), worstJankMs: z.number(), stallCount50: z.number().int(), jankCount100: z.number().int(), hotspot: z.string(), chunkLoadCount: z.number().int(), averageRenderMs: z.number(), p95RenderMs: z.number(), averageDrawCalls: z.number(), maxDrawCalls: z.number().int(), averageChunkBuildMs: z.number(), chunkBuildFrameCount: z.number().int(), hitchWithChunkBuildCount: z.number().int(), chunkCanvasAllocations: z.number().int(), chunkCanvasReuses: z.number().int() });
+const perfRecordingSummarySchema = z.object({ id: z.number().int(), startedAt: z.string(), stoppedAt: z.string(), sampleCount: z.number().int(), durationMs: z.number().int(), averageFps: z.number(), averageFrameMs: z.number(), p95FrameMs: z.number(), worstFrameMs: z.number(), worstJankMs: z.number(), stallCount50: z.number().int(), jankCount100: z.number().int(), hotspot: z.string(), chunkLoadCount: z.number().int(), averageRenderMs: z.number(), p95RenderMs: z.number(), averageDrawCalls: z.number(), maxDrawCalls: z.number().int(), averageChunkBuildMs: z.number(), chunkBuildFrameCount: z.number().int(), hitchWithChunkBuildCount: z.number().int(), maxChunkQueueDepth: z.number().int().nullable(), maxChunkQueuePeak: z.number().int().nullable(), maxChunksQueuedThisFrame: z.number().int().nullable(), averageVisibleChunks: z.number().nullable(), maxVisibleChunks: z.number().int().nullable(), chunkCanvasAllocations: z.number().int(), chunkCanvasReuses: z.number().int() });
 const savePerfRecordingResponse = z.discriminatedUnion("ok", [z.object({ ok: z.literal(true), recording: perfRecordingSummarySchema }), z.object({ ok: z.literal(false), message: z.string() })]);
 const listPerfRecordingsResponse = z.object({ recordings: z.array(perfRecordingSummarySchema), canRecord: z.boolean(), message: z.string().nullable() });
 const getPerfRecordingResponse = z.discriminatedUnion("ok", [z.object({ ok: z.literal(true), recording: perfRecordingSummarySchema.extend({ samples: z.array(perfSampleSchema) }) }), z.object({ ok: z.literal(false), message: z.string() })]);
@@ -96,10 +99,10 @@ const BASE_SAVE: z.infer<typeof saveSchema> = {
   room: 6, level: 1, hp: 100, maxHp: 100, coins: 0,
   weaponName: "Glock", weaponDamage: 13, attackSpeed: 4.2, rarity: "Common", meleeWeaponName: "Rustblade",
   armorName: "Traveler Cloak", armorDefense: 0, charmName: "None", trinketName: "None", critChance: 0.05,
-  keys: 0, vehicleKeyOwned: false, lifesteal: 0, thorns: 0, dashReduction: 0, moveSpeed: 0, pickupRadius: 0,
+  keys: 0, ironKeys: 0, goldKeys: 0, ancientKeys: 0, vehicleKeyOwned: false, lifesteal: 0, thorns: 0, dashReduction: 0, moveSpeed: 0, pickupRadius: 0,
   items: ["Glock"], storedItems: ["Mustang key"], baseStates: [], dungeonProgress: [], dungeonBossesDefeated: [], dungeonLootedChestIds: [], respawnBase: "village", rawMeat: 0, cookedMeals: 0, gunAmmoState: [{ name: "Glock", magazine: 17, reserve: 68 }], questState: "not_started", questTravelOut: false, questTravelBack: false, rareLootDrops: [], enemyRespawns: [], kills: 0, roomsCleared: 0, bossesDefeated: 0, runsStarted: 1,
   openedChestIds: [], claimedPickupIds: [], claimedBreakableIds: [], defeatedEnemyIds: [], clearedRoomIds: [], secretOpenedRoomIds: [], exploredCells: [], truckX: 1580, truckY: 15745, truckFuel: 82, truckHp: 180,
-  vehicles: [{ id: "rustbucket", x: 1580, y: 15745, hp: 180, fuel: 82, owned: false, inventory: [] }, { id: "motorcycle", x: 1710, y: 15720, hp: 90, fuel: 76, owned: false, inventory: [] }, { id: "mustang", x: 1960, y: 15450, hp: 140, fuel: 70, owned: false, inventory: [] }, { id: "trailrunner", x: 4545, y: 15125, hp: 180, fuel: 64, owned: false, inventory: [] }, { id: "mire-mule", x: 10635, y: 13210, hp: 180, fuel: 55, owned: false, inventory: [] }],
+  vehicles: [{ id: "rustbucket", x: 1580, y: 15745, hp: 180, fuel: 82, owned: false, inventory: [] }, { id: "motorcycle", x: 1710, y: 15720, hp: 90, fuel: 76, owned: false, inventory: [] }, { id: "mustang", x: 4375, y: 15095, hp: 140, fuel: 70, owned: false, inventory: [] }, { id: "trailrunner", x: 4545, y: 15125, hp: 180, fuel: 64, owned: false, inventory: [] }, { id: "mire-mule", x: 10635, y: 13210, hp: 180, fuel: 55, owned: false, inventory: [] }],
   dogAdopted: false, dogLevel: 1, dogX: 1210, dogY: 15715, dogHp: 64, dogKills: 0, chestsOpened: 0,
   runStartedAt: new Date().toISOString(),
 };
@@ -116,7 +119,7 @@ function serialize(row: typeof schema.gameSave.$inferSelect): z.infer<typeof sav
     room: row.room, level: row.level, hp: row.hp, maxHp: row.maxHp, coins: row.coins,
     weaponName: row.weaponName, weaponDamage: row.weaponDamage, attackSpeed: row.attackSpeed, rarity: row.rarity, meleeWeaponName: row.meleeWeaponName,
     armorName: row.armorName, armorDefense: row.armorDefense, charmName: row.charmName, trinketName: row.trinketName, critChance: row.critChance,
-    keys: row.keys, vehicleKeyOwned: row.vehicleKeyOwned, lifesteal: row.lifesteal, thorns: row.thorns, dashReduction: row.dashReduction, moveSpeed: row.moveSpeed, pickupRadius: row.pickupRadius,
+    keys: row.keys, ironKeys: row.ironKeys, goldKeys: row.goldKeys, ancientKeys: row.ancientKeys, vehicleKeyOwned: row.vehicleKeyOwned, lifesteal: row.lifesteal, thorns: row.thorns, dashReduction: row.dashReduction, moveSpeed: row.moveSpeed, pickupRadius: row.pickupRadius,
     items: row.items, storedItems: row.storedItems, baseStates: row.baseStates, dungeonProgress: row.dungeonProgress, dungeonBossesDefeated: row.dungeonBossesDefeated, dungeonLootedChestIds: row.dungeonLootedChestIds, respawnBase: row.respawnBase, rawMeat: row.rawMeat, cookedMeals: row.cookedMeals, gunAmmoState: row.gunAmmoState, questState: row.questState, questTravelOut: row.questTravelOut, questTravelBack: row.questTravelBack, rareLootDrops: row.rareLootDrops, enemyRespawns: row.enemyRespawns, kills: row.kills, roomsCleared: row.roomsCleared, bossesDefeated: row.bossesDefeated,
     runsStarted: row.runsStarted, openedChestIds: row.openedChestIds, claimedPickupIds: row.claimedPickupIds,
     claimedBreakableIds: row.claimedBreakableIds, defeatedEnemyIds: row.defeatedEnemyIds, clearedRoomIds: row.clearedRoomIds,
@@ -125,6 +128,9 @@ function serialize(row: typeof schema.gameSave.$inferSelect): z.infer<typeof sav
     runStartedAt: row.runStartedAt || row.updatedAt.toISOString(), updatedAt: row.updatedAt.toISOString(),
   };
 }
+
+function presentValues(values:Array<number|undefined>):number[]{return values.filter((value):value is number=>typeof value==="number");}
+function averageOrNull(values:number[]):number|null{return values.length?values.reduce((sum,value)=>sum+value,0)/values.length:null;}
 
 function serializePerfSummary(row: typeof schema.perfRecordings.$inferSelect): z.infer<typeof perfRecordingSummarySchema> {
   const frameTimes = row.samples.map(sample => sample.frameMs).sort((a, b) => a - b);
@@ -157,6 +163,11 @@ function serializePerfSummary(row: typeof schema.perfRecordings.$inferSelect): z
     averageChunkBuildMs: row.samples.length ? row.samples.reduce((sum, sample) => sum + (sample.chunkBuildMs ?? 0), 0) / row.samples.length : 0,
     chunkBuildFrameCount: row.samples.filter(sample => (sample.chunkBuildMs ?? 0) > 0).length,
     hitchWithChunkBuildCount: row.samples.filter(sample => sample.frameMs > 25 && (sample.chunkBuildMs ?? 0) > 0).length,
+    maxChunkQueueDepth: presentValues(row.samples.map(sample => sample.chunkQueueDepth)).length ? Math.max(...presentValues(row.samples.map(sample => sample.chunkQueueDepth))) : null,
+    maxChunkQueuePeak: presentValues(row.samples.map(sample => sample.chunkQueuePeak)).length ? Math.max(...presentValues(row.samples.map(sample => sample.chunkQueuePeak))) : null,
+    maxChunksQueuedThisFrame: presentValues(row.samples.map(sample => sample.chunksQueuedThisFrame)).length ? Math.max(...presentValues(row.samples.map(sample => sample.chunksQueuedThisFrame))) : null,
+    averageVisibleChunks: averageOrNull(presentValues(row.samples.map(sample => sample.visibleChunks))),
+    maxVisibleChunks: presentValues(row.samples.map(sample => sample.visibleChunks)).length ? Math.max(...presentValues(row.samples.map(sample => sample.visibleChunks))) : null,
     chunkCanvasAllocations: row.samples.length ? (row.samples[row.samples.length - 1]?.chunkCanvasAllocations ?? 0) : 0,
     chunkCanvasReuses: row.samples.length ? (row.samples[row.samples.length - 1]?.chunkCanvasReuses ?? 0) : 0,
   };

@@ -68,8 +68,8 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .hud {
   height: 58px;
   display: grid;
-  grid-template-columns: minmax(78px, 1.35fr) .43fr .5fr .45fr 34px 34px 36px;
-  gap: 8px;
+  grid-template-columns: minmax(72px, 1.25fr) .38fr .48fr .88fr 34px 34px 36px;
+  gap: 5px;
   align-items: center;
   padding: 0 4px 7px;
 }
@@ -81,6 +81,11 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .health-track span { display: block; height: 100%; background: linear-gradient(90deg, #bd3f3b, #ef6a56); transition: width .2s ease; }
 .hud-stat { min-width: 0; text-align: center; border-left: 1px solid var(--border); }
 .hud-stat strong { display: block; margin-top: 2px; color: #edf5f3; white-space: nowrap; }
+.hud-keyring strong { display: flex; justify-content: center; gap: 4px; }
+.hud-keyring strong i { font-size: 10px; font-style: normal; }
+.hud-keyring strong i:nth-child(1) { color: #c9d1d4; }
+.hud-keyring strong i:nth-child(2) { color: #ffd166; }
+.hud-keyring strong i:nth-child(3) { color: #d7a6ff; }
 .pause-button, .sound-button, .inventory-button { width: 34px; height: 34px; border: 1px solid var(--border); background: #111a20; color: #bdc9c7; border-radius: 50%; font-weight: 900; padding: 0; }
 .pause-button { width: 36px; height: 36px; }
 .sound-button { color: #ffd166; font-size: 17px; }
@@ -102,6 +107,8 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
   box-shadow: 0 24px 70px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.025) inset;
 }
 .arena-wrap canvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+.game-notice { position: absolute; z-index: 7; top: 14%; left: 50%; max-width: 78%; padding: 7px 12px; transform: translateX(-50%); border: 1px solid rgba(255,209,102,.48); background: rgba(10,13,13,.84); color: #fff0b3; box-shadow: 0 7px 20px rgba(0,0,0,.32); font-size: 11px; font-weight: 900; letter-spacing: .04em; text-align: center; pointer-events: none; animation: notice-out 2.8s ease forwards; }
+@keyframes notice-out { 0%,72% { opacity: 1; } 100% { opacity: 0; } }
 
 .profiler-idle {
   position: absolute; z-index: 12; left: 3%; bottom: 31.5%;
@@ -334,7 +341,7 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .dash-slot { grid-column: 1; grid-row: 2; }
 .flask-slot { grid-column: 2; grid-row: 2; }
 .melee-slot { grid-column: 3; grid-row: 2; }
-.dash-button, .melee-button, .flask-button, .talk-button, .fast-travel-button, .trunk-button, .adopt-dog-button, .vehicle-button { border-radius: 50%; display: grid; place-content: center; box-shadow: 0 8px 25px rgba(0,0,0,.35); }
+.dash-button, .melee-button, .flask-button, .talk-button, .fast-travel-button, .trunk-button, .locked-chest-button, .adopt-dog-button, .vehicle-button { border-radius: 50%; display: grid; place-content: center; box-shadow: 0 8px 25px rgba(0,0,0,.35); }
 .vehicle-button { width: 68px; height: 68px; border: 2px solid rgba(239,177,109,.75); background: rgba(82,50,28,.92); color: #ffe0ae; animation: vehicle-pulse 1.5s ease-in-out infinite; }
 .vehicle-button:disabled { border-color: #5a4c43; background: rgba(35,31,29,.86); color: #8c8178; animation: none; }
 .vehicle-button span { font-size: 23px; line-height: 19px; }
@@ -342,15 +349,17 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 @keyframes vehicle-pulse { 50% { box-shadow: 0 0 0 7px rgba(239,177,109,.11), 0 8px 25px rgba(0,0,0,.35); } }
 .dash-button { width: 82px; height: 82px; border: 2px solid rgba(242,140,56,.52); background: rgba(62,37,20,.78); color: #ffd2ad; }
 .melee-button { width: 72px; height: 72px; border: 2px solid rgba(209,232,238,.62); background: rgba(34,52,61,.88); color: #ecfbff; }
-.flask-button, .talk-button, .fast-travel-button, .trunk-button, .adopt-dog-button { width: 58px; height: 58px; border: 2px solid rgba(116,188,164,.48); background: rgba(20,54,48,.82); color: #bcebd9; }
+.flask-button, .talk-button, .fast-travel-button, .trunk-button, .locked-chest-button, .adopt-dog-button { width: 58px; height: 58px; border: 2px solid rgba(116,188,164,.48); background: rgba(20,54,48,.82); color: #bcebd9; }
+.locked-chest-button { border-color: rgba(255,209,102,.9); background: rgba(67,43,12,.94); color: #ffe49a; animation: locked-chest-pulse 1.25s ease-in-out infinite; }
+@keyframes locked-chest-pulse { 50% { box-shadow: 0 0 0 8px rgba(255,209,102,.13), 0 8px 25px rgba(0,0,0,.38); } }
 .adopt-dog-button { border-color: rgba(223,164,100,.72); background: rgba(70,43,27,.9); color: #ffd6a1; animation: vehicle-pulse 1.5s ease-in-out infinite; }
 .trunk-button { border-color: rgba(228,184,95,.72); background: rgba(65,42,20,.9); color: #ffe49a; }
 .talk-button { border-color: rgba(255,209,102,.62); background: rgba(72,52,22,.88); color: #ffe3a1; animation: talk-pulse 1.4s ease-in-out infinite; }
 .fast-travel-button { border-color: rgba(255,111,45,.72); background: rgba(70,28,18,.88); color: #ffcf91; }
 .dash-button:disabled, .flask-button:disabled { border-color: #3a4447; background: rgba(20,27,31,.74); color: #627072; }
 .dash-button span, .melee-button span { font-size: 26px; line-height: 21px; }
-.flask-button span, .talk-button span, .fast-travel-button span, .trunk-button span { font-size: 22px; line-height: 18px; }
-.dash-button small, .melee-button small, .flask-button small, .talk-button small, .fast-travel-button small, .trunk-button small, .vehicle-button small { font-size: 9px; font-weight: 900; letter-spacing: .08em; }
+.flask-button span, .talk-button span, .fast-travel-button span, .trunk-button span, .locked-chest-button span { font-size: 22px; line-height: 18px; }
+.dash-button small, .melee-button small, .flask-button small, .talk-button small, .fast-travel-button small, .trunk-button small, .locked-chest-button small, .vehicle-button small { font-size: 9px; font-weight: 900; letter-spacing: .08em; }
 @keyframes talk-pulse { 50% { box-shadow: 0 0 0 7px rgba(255,209,102,.1), 0 8px 25px rgba(0,0,0,.35); } }
 .chest-button { min-width: 106px; min-height: 48px; border: 0; padding: 8px 13px; background: var(--gold); color: #23180b; font-size: 11px; line-height: 13px; font-weight: 900; letter-spacing: .08em; box-shadow: 0 5px 0 #9a672a, 0 12px 30px rgba(255,209,102,.2); }
 
@@ -420,6 +429,14 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .inventory-heading h2 { margin: 0; font-size: clamp(25px,6vw,34px); }
 .inventory-heading > strong { color: var(--gold); font-size: 12px; }
 .inventory-equipped { grid-column: 1; grid-row: 2 / 5; width: 100%; min-height: 0; align-self: start; display: grid; grid-template-columns: 1fr; border-block: 1px solid #344449; }
+.inventory-keyring { padding: 9px 7px; border-bottom: 1px solid #5c5137; background: rgba(255,209,102,.04); }
+.inventory-keyring > div { display: grid; grid-template-columns: repeat(3,1fr); gap: 3px; margin-top: 6px; }
+.inventory-keyring b { display: grid; justify-items: center; gap: 1px; color: #f0f4f2; font-size: 11px; }
+.inventory-keyring i { width: 22px; height: 22px; display: grid; place-items: center; border: 1px solid currentColor; font-style: normal; font-size: 10px; }
+.inventory-keyring .key-iron { color: #c9d1d4; }
+.inventory-keyring .key-gold { color: #ffd166; }
+.inventory-keyring .key-ancient { color: #d7a6ff; }
+.inventory-keyring b small { margin: 0; font-size: 6px; }
 .inventory-equipped > div { min-width: 0; padding: 9px 7px; border-bottom: 1px solid #344449; }
 .inventory-equipped > div:last-child { border-bottom: 0; }
 .inventory-equipped > .melee-slot-card { background: rgba(255,139,86,.035); }
@@ -594,7 +611,7 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
   .action-slot { width: 60px; height: 67px; }
   .dash-button { width: 64px; height: 64px; }
   .melee-button { width: 66px; height: 66px; }
-  .flask-button, .talk-button, .fast-travel-button, .trunk-button { width: 54px; height: 54px; }
+  .flask-button, .talk-button, .fast-travel-button, .trunk-button, .locked-chest-button { width: 54px; height: 54px; }
   .vehicle-button { width: 62px; height: 62px; }
   .vehicle-hud { top: 2.1%; left: 38.5%; width: calc(58.5% - 124px); }
   .desktop-hint { display: none; }

@@ -148,6 +148,13 @@
       "when": 1791295804736,
       "tag": "0021_make_profiler_recordings_global",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1791304983558,
+      "tag": "0022_add_tiered_chest_keys",
+      "breakpoints": true
     }
   ]
 }
