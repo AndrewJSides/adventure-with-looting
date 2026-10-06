@@ -234,6 +234,7 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .map-field { position: relative; height: 112px; background: radial-gradient(ellipse at 28% 18%,#35443b 0,transparent 46%), linear-gradient(145deg,#26322e,#1c2726 68%,#28312e); border: 1px solid #4c5b58; overflow: hidden; isolation: isolate; }
 .map-field::before { content: ""; position: absolute; inset: 0; z-index: 0; opacity: .34; background-image: radial-gradient(circle at 15% 28%,rgba(167,192,168,.18) 0 1px,transparent 1.5px),radial-gradient(circle at 78% 72%,rgba(3,10,8,.3) 0 1px,transparent 1.7px); background-size: 11px 13px,17px 15px; }
 .map-biome, .map-field b { position: absolute; transform: translate(-50%,-50%); }
+.map-city-pin { position:absolute; z-index:4; transform:translate(-50%,-50%); padding:2px 4px; border:1px solid rgba(255,215,130,.5); background:rgba(17,16,14,.82); color:#ffe0a0; font-size:5px; font-weight:900; line-height:1; white-space:nowrap; pointer-events:none; }
 .map-biome { z-index: 1; min-width: 16px; min-height: 12px; overflow: visible; opacity: .9; }
 .map-biome.cleared { opacity: .96; }
 .map-biome.current { opacity: 1; }
@@ -245,6 +246,8 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .map-biome-texture.terrain-lava { fill: rgba(255,218,113,.34); stroke: rgba(255,174,65,.42); stroke-width: 3; }
 .map-biome-texture.terrain-starfall { fill: rgba(224,230,255,.64); stroke: rgba(145,177,230,.36); stroke-width: 1.7; }
 .map-biome-texture.terrain-frost { fill: rgba(231,249,255,.46); stroke: rgba(194,236,247,.52); stroke-width: 2.2; }
+.map-biome-texture.terrain-frontier { fill: rgba(214,175,112,.34); stroke: rgba(122,81,42,.5); stroke-width: 2.4; }
+.map-biome-texture.terrain-city { fill: rgba(122,118,111,.42); stroke: rgba(45,42,40,.62); stroke-width: 2.7; }
 .map-biome-texture.terrain-village { fill: rgba(239,209,149,.22); stroke: rgba(235,205,143,.3); stroke-width: 2; }
 .map-fog { position: absolute; inset: -1px; z-index: 2; width: calc(100% + 2px); height: calc(100% + 2px); overflow: visible; }
 .map-fog .fog-base { fill: rgba(92,101,100,.94); }
@@ -492,6 +495,9 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .dialogue-shell { position: absolute; inset: auto 0 0; z-index: 8; width: 100%; height: min(70%, 560px); max-height: calc(100% - 12px); padding: 14px 14px max(16px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: minmax(118px, 34%) 1fr; gap: 14px; align-items: stretch; overflow: hidden; overscroll-behavior: contain; touch-action: pan-y; background: linear-gradient(180deg, rgba(8,12,14,.97), #080c0f); border-top: 1px solid #6b756c; box-shadow: 0 -24px 65px rgba(0,0,0,.62); }
 .dialogue-portrait-frame { position: relative; width: 100%; height: 100%; min-height: 0; overflow: hidden; background: #283532; border: 1px solid rgba(255,255,255,.17); }
 .npc-portrait { width: 100%; height: 100%; min-height: 0; display: block; object-fit: cover; object-position: center top; }
+.npc-portrait-fallback { position: relative; display:grid; place-items:end center; overflow:hidden; color:#fff2c2; font:900 clamp(2rem,8vw,4.5rem) Georgia,serif; padding-bottom:18%; background:#302924; text-shadow:0 3px 0 #18130f; }
+.npc-portrait-fallback > span { position:absolute; inset:8% 18% 44%; border-radius:52% 52% 34% 34%; }
+.npc-portrait-fallback > i { position:absolute; inset:22% 25% 22%; border-radius:48% 48% 42% 42%; box-shadow:inset 0 -18px 0 rgba(0,0,0,.16); }
 .dialogue-portrait-frame > div { position: absolute; inset: auto 0 0; padding: 30px 10px 10px; background: linear-gradient(transparent,rgba(3,6,7,.96)); }
 .dialogue-portrait-frame strong,.dialogue-portrait-frame span { display: block; }
 .dialogue-portrait-frame strong { color: #fff; font-family: Georgia,serif; font-size: 18px; }
