@@ -88,7 +88,10 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .hud-keyring strong i:nth-child(3) { color: #d7a6ff; }
 .pause-button, .sound-button, .inventory-button { width: 34px; height: 34px; border: 1px solid var(--border); background: #111a20; color: #bdc9c7; border-radius: 50%; font-weight: 900; padding: 0; }
 .pause-button { width: 36px; height: 36px; }
-.sound-button { color: #ffd166; font-size: 17px; }
+.sound-button { position: relative; color: #ffd166; font-size: 17px; }
+.sound-button.sounding::after { content: ""; position: absolute; inset: -4px; border: 1px solid rgba(255,209,102,.72); border-radius: 50%; animation: sound-pulse .72s ease-out 2; pointer-events: none; }
+@keyframes sound-pulse { from { transform: scale(.72); opacity: .95; } to { transform: scale(1.28); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .sound-button.sounding::after { animation: none; box-shadow: 0 0 0 3px rgba(255,209,102,.22); } }
 .inventory-button { color: #a9d7ce; font-size: 17px; }
 
 .hud, .world-map, .vehicle-hud, .dog-hud, .objective-panel, .quest-panel, .boss-bar, .controls, .raid-warning, .combat-note, .save-state, .buff-timers, .shoot-hint {
