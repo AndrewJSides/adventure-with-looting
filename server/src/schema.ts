@@ -35,6 +35,8 @@ export const gameSave = sqliteTable("game_save", {
   armorDefense: integer("armor_defense").notNull().default(0),
   charmName: text("charm_name").notNull().default("None"),
   trinketName: text("trinket_name").notNull().default("None"),
+  gadgetName: text("gadget_name").notNull().default("None"),
+  flashlightOn: integer("flashlight_on", { mode: "boolean" }).notNull().default(false),
   critChance: real("crit_chance").notNull().default(0.05),
   keys: integer("keys").notNull().default(0),
   ironKeys: integer("iron_keys").notNull().default(0),

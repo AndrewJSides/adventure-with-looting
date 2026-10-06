@@ -22,6 +22,8 @@ const saveSchema = z.object({
   armorDefense: z.number().int().min(0).max(90),
   charmName: z.string().min(1).max(40),
   trinketName: z.string().min(1).max(40),
+  gadgetName: z.string().min(1).max(40),
+  flashlightOn: z.boolean(),
   critChance: z.number().min(0).max(0.75),
   keys: z.number().int().min(0).max(99),
   ironKeys: z.number().int().min(0).max(999),
@@ -104,11 +106,11 @@ const getPerfRecordingResponse = z.discriminatedUnion("ok", [z.object({ ok: z.li
 const BASE_SAVE: z.infer<typeof saveSchema> = {
   room: 6, level: 1, timeOfDay: .38, hp: 100, maxHp: 100, coins: 0,
   weaponName: "Glock", weaponDamage: 13, attackSpeed: 4.2, rarity: "Common", meleeWeaponName: "Rustblade",
-  armorName: "Traveler Cloak", armorDefense: 0, charmName: "None", trinketName: "None", critChance: 0.05,
+  armorName: "Traveler Cloak", armorDefense: 0, charmName: "None", trinketName: "None", gadgetName: "None", flashlightOn: false, critChance: 0.05,
   keys: 0, ironKeys: 0, goldKeys: 0, ancientKeys: 0, vehicleKeyOwned: false, lifesteal: 0, thorns: 0, dashReduction: 0, moveSpeed: 0, pickupRadius: 0,
   items: ["Glock"], storedItems: [], baseStates: [], dungeonProgress: [], dungeonBossesDefeated: [], dungeonLootedChestIds: [], respawnBase: "village", rawMeat: 0, cookedMeals: 0, gunAmmoState: [{ name: "Glock", magazine: 17, reserve: 68 }], questState: "not_started", questTravelOut: false, questTravelBack: false, frontierQuestState: "not_started", ruinedLootedSiteIds: [], visitedBuildingIds: [], interiorLootedContainerIds: [], interiorDefeatedEnemyIds: [], rareLootDrops: [], enemyRespawns: [], kills: 0, roomsCleared: 0, bossesDefeated: 0, runsStarted: 1,
-  openedChestIds: [], claimedPickupIds: [], claimedBreakableIds: [], defeatedEnemyIds: [], clearedRoomIds: [], secretOpenedRoomIds: [], exploredCells: [], truckX: 1580, truckY: 15745, truckFuel: 82, truckHp: 180,
-  vehicles: [{ id: "rustbucket", x: 1580, y: 15745, hp: 180, fuel: 82, owned: false, inventory: [] }, { id: "motorcycle", x: 1710, y: 15720, hp: 90, fuel: 76, owned: false, inventory: [] }, { id: "mustang", x: 4375, y: 15095, hp: 140, fuel: 70, owned: false, inventory: [] }, { id: "trailrunner", x: 4545, y: 15125, hp: 180, fuel: 64, owned: false, inventory: [] }, { id: "mire-mule", x: 10635, y: 13210, hp: 180, fuel: 55, owned: false, inventory: [] }],
+  openedChestIds: [], claimedPickupIds: [], claimedBreakableIds: [], defeatedEnemyIds: [], clearedRoomIds: [], secretOpenedRoomIds: [], exploredCells: [], truckX: 3335, truckY: 14880, truckFuel: 82, truckHp: 180,
+  vehicles: [{ id: "rustbucket", x: 3335, y: 14880, hp: 180, fuel: 82, owned: false, inventory: [] }, { id: "motorcycle", x: 1840, y: 15450, hp: 90, fuel: 76, owned: false, inventory: [] }, { id: "mustang", x: 4375, y: 15095, hp: 140, fuel: 70, owned: false, inventory: [] }, { id: "trailrunner", x: 13330, y: 10740, hp: 180, fuel: 64, owned: false, inventory: [] }, { id: "mire-mule", x: 10635, y: 13210, hp: 180, fuel: 55, owned: false, inventory: [] }],
   dogAdopted: false, dogLevel: 1, dogX: 1210, dogY: 15715, dogHp: 64, dogKills: 0, chestsOpened: 0,
   runStartedAt: new Date().toISOString(),
 };
@@ -124,7 +126,7 @@ function serialize(row: typeof schema.gameSave.$inferSelect): z.infer<typeof sav
   return {
     room: row.room, level: row.level, timeOfDay: row.timeOfDay, hp: row.hp, maxHp: row.maxHp, coins: row.coins,
     weaponName: row.weaponName, weaponDamage: row.weaponDamage, attackSpeed: row.attackSpeed, rarity: row.rarity, meleeWeaponName: row.meleeWeaponName,
-    armorName: row.armorName, armorDefense: row.armorDefense, charmName: row.charmName, trinketName: row.trinketName, critChance: row.critChance,
+    armorName: row.armorName, armorDefense: row.armorDefense, charmName: row.charmName, trinketName: row.trinketName, gadgetName: row.gadgetName, flashlightOn: row.flashlightOn, critChance: row.critChance,
     keys: row.keys, ironKeys: row.ironKeys, goldKeys: row.goldKeys, ancientKeys: row.ancientKeys, vehicleKeyOwned: row.vehicleKeyOwned, lifesteal: row.lifesteal, thorns: row.thorns, dashReduction: row.dashReduction, moveSpeed: row.moveSpeed, pickupRadius: row.pickupRadius,
     items: row.items, storedItems: row.storedItems, baseStates: row.baseStates, dungeonProgress: row.dungeonProgress, dungeonBossesDefeated: row.dungeonBossesDefeated, dungeonLootedChestIds: row.dungeonLootedChestIds, respawnBase: row.respawnBase, rawMeat: row.rawMeat, cookedMeals: row.cookedMeals, gunAmmoState: row.gunAmmoState, questState: row.questState, questTravelOut: row.questTravelOut, questTravelBack: row.questTravelBack, frontierQuestState: row.frontierQuestState, ruinedLootedSiteIds: row.ruinedLootedSiteIds, visitedBuildingIds: row.visitedBuildingIds, interiorLootedContainerIds: row.interiorLootedContainerIds, interiorDefeatedEnemyIds: row.interiorDefeatedEnemyIds, rareLootDrops: row.rareLootDrops, enemyRespawns: row.enemyRespawns, kills: row.kills, roomsCleared: row.roomsCleared, bossesDefeated: row.bossesDefeated,
     runsStarted: row.runsStarted, openedChestIds: row.openedChestIds, claimedPickupIds: row.claimedPickupIds,

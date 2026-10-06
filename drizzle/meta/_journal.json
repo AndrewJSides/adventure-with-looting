@@ -176,6 +176,13 @@
       "when": 1791315787590,
       "tag": "0025_add_day_night_cycle_state",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1791319194879,
+      "tag": "0026_add_flashlight_gadget",
+      "breakpoints": true
     }
   ]
 }
