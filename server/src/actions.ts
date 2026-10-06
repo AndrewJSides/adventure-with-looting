@@ -84,10 +84,10 @@ const writeResponse = z.discriminatedUnion("ok", [
 const perfSubsystemSchema = z.object({ terrain: z.number().nonnegative(), streaming: z.number().nonnegative(), entities: z.number().nonnegative(), camera: z.number().nonnegative(), hud: z.number().nonnegative(), collision: z.number().nonnegative(), enemyAi: z.number().nonnegative(), audio: z.number().nonnegative(), save: z.number().nonnegative() });
 const perfChunkLoadEventSchema = z.object({ timestamp: z.number().int().nonnegative(), key: z.string().min(1).max(40) });
 const perfSampleSchema = z.object({
-  timestamp: z.number().int().nonnegative(), fps: z.number().nonnegative().max(1000), frameMs: z.number().nonnegative().max(10000), subsystems: perfSubsystemSchema,
+  timestamp: z.number().int().nonnegative(), fps: z.number().nonnegative().max(1000), frameMs: z.number().nonnegative().max(10000), jankMs: z.number().nonnegative().max(10000).optional(), subsystems: perfSubsystemSchema,
   vehicleSpeed: z.number().min(-1000).max(1000), activeEnemies: z.number().int().nonnegative().max(10000), visibleEnemies: z.number().int().nonnegative().max(10000), renderScale: z.number().min(0.4).max(1).optional(), chunkLoadEvents: z.array(perfChunkLoadEventSchema).max(40),
 });
-const perfRecordingSummarySchema = z.object({ id: z.number().int(), startedAt: z.string(), stoppedAt: z.string(), sampleCount: z.number().int(), durationMs: z.number().int(), averageFps: z.number(), averageFrameMs: z.number(), hotspot: z.string(), chunkLoadCount: z.number().int() });
+const perfRecordingSummarySchema = z.object({ id: z.number().int(), startedAt: z.string(), stoppedAt: z.string(), sampleCount: z.number().int(), durationMs: z.number().int(), averageFps: z.number(), averageFrameMs: z.number(), p95FrameMs: z.number(), worstFrameMs: z.number(), worstJankMs: z.number(), stallCount50: z.number().int(), jankCount100: z.number().int(), hotspot: z.string(), chunkLoadCount: z.number().int() });
 const savePerfRecordingResponse = z.discriminatedUnion("ok", [z.object({ ok: z.literal(true), recording: perfRecordingSummarySchema }), z.object({ ok: z.literal(false), message: z.string() })]);
 const listPerfRecordingsResponse = z.object({ recordings: z.array(perfRecordingSummarySchema), canRecord: z.boolean(), message: z.string().nullable() });
 const getPerfRecordingResponse = z.discriminatedUnion("ok", [z.object({ ok: z.literal(true), recording: perfRecordingSummarySchema.extend({ samples: z.array(perfSampleSchema) }) }), z.object({ ok: z.literal(false), message: z.string() })]);
@@ -127,7 +127,30 @@ function serialize(row: typeof schema.gameSave.$inferSelect): z.infer<typeof sav
 }
 
 function serializePerfSummary(row: typeof schema.perfRecordings.$inferSelect): z.infer<typeof perfRecordingSummarySchema> {
-  return { id: row.id, startedAt: row.startedAt.toISOString(), stoppedAt: row.stoppedAt.toISOString(), sampleCount: row.sampleCount, durationMs: Math.max(0, row.stoppedAt.getTime() - row.startedAt.getTime()), averageFps: row.averageFps, averageFrameMs: row.averageFrameMs, hotspot: row.hotspot, chunkLoadCount: row.chunkLoadCount };
+  const frameTimes = row.samples.map(sample => sample.frameMs).sort((a, b) => a - b);
+  let previousTimestamp = row.startedAt.getTime();
+  const jankTimes = row.samples.map(sample => {
+    const derived = Math.max(0, sample.timestamp - previousTimestamp - 50);
+    previousTimestamp = sample.timestamp;
+    return Math.max(0, sample.jankMs ?? derived);
+  });
+  const p95Index = Math.max(0, Math.min(frameTimes.length - 1, Math.floor((frameTimes.length - 1) * 0.95)));
+  return {
+    id: row.id,
+    startedAt: row.startedAt.toISOString(),
+    stoppedAt: row.stoppedAt.toISOString(),
+    sampleCount: row.sampleCount,
+    durationMs: Math.max(0, row.stoppedAt.getTime() - row.startedAt.getTime()),
+    averageFps: row.averageFps,
+    averageFrameMs: row.averageFrameMs,
+    p95FrameMs: frameTimes[p95Index] ?? 0,
+    worstFrameMs: frameTimes[frameTimes.length - 1] ?? 0,
+    worstJankMs: jankTimes.length ? Math.max(...jankTimes) : 0,
+    stallCount50: jankTimes.filter(value => value > 50).length,
+    jankCount100: jankTimes.filter(value => value > 100).length,
+    hotspot: row.hotspot,
+    chunkLoadCount: row.chunkLoadCount,
+  };
 }
 
 export const Actions = {
