@@ -536,3 +536,37 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .001ms !important; animation-duration: .001ms !important; }
 }
+
+/* Automatic weapon HUD and hold-to-fire control */
+.melee-slot { position: relative; }
+.melee-button.gun-fire-button {
+  border-color: rgba(255,208,106,.82);
+  background: radial-gradient(circle at 35% 28%, rgba(106,89,53,.94), rgba(28,37,41,.96) 65%);
+  color: #fff2bd;
+  touch-action: none;
+}
+.gun-ammo {
+  position: absolute;
+  right: 69px;
+  bottom: 5px;
+  width: 74px;
+  min-height: 45px;
+  padding: 6px 7px 5px;
+  border: 1px solid rgba(255,208,106,.52);
+  border-radius: 10px;
+  background: rgba(9,14,17,.9);
+  color: #fff2bd;
+  box-shadow: 0 5px 18px rgba(0,0,0,.38);
+  text-align: center;
+  line-height: 1;
+  touch-action: none;
+}
+.gun-ammo strong { font: 900 20px/1 "Trebuchet MS", sans-serif; }
+.gun-ammo > span { color: #aebdbd; font-size: 11px; font-weight: 800; }
+.gun-ammo small { display: block; margin-top: 4px; color: #d9aa59; font-size: 8px; font-weight: 900; letter-spacing: .08em; }
+.gun-ammo i { position: absolute; left: 0; bottom: 0; height: 3px; border-radius: 0 0 8px 8px; background: #f3b34d; }
+.gun-ammo.reloading { border-color: rgba(243,179,77,.86); }
+@media (max-width: 520px) {
+  .gun-ammo { right: 63px; width: 68px; min-height: 42px; }
+  .gun-ammo strong { font-size: 18px; }
+}

@@ -26,6 +26,7 @@ export const gameSave = sqliteTable("game_save", {
   pickupRadius: real("pickup_radius").notNull().default(0),
   items: text("items", { mode: "json" }).$type<string[]>().notNull().default([]),
   storedItems: text("stored_items", { mode: "json" }).$type<string[]>().notNull().default([]),
+  gunAmmoState: text("gun_ammo_state", { mode: "json" }).$type<Array<{ name: string; magazine: number; reserve: number }>>().notNull().default([]),
   questState: text("quest_state", { enum: ["not_started", "active", "complete"] }).notNull().default("not_started"),
   questTravelOut: integer("quest_travel_out", { mode: "boolean" }).notNull().default(false),
   questTravelBack: integer("quest_travel_back", { mode: "boolean" }).notNull().default(false),
