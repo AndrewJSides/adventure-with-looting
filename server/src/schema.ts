@@ -63,6 +63,8 @@ export const gameSave = sqliteTable("game_save", {
   questTravelOut: integer("quest_travel_out", { mode: "boolean" }).notNull().default(false),
   questTravelBack: integer("quest_travel_back", { mode: "boolean" }).notNull().default(false),
   frontierQuestState: text("frontier_quest_state", { enum: ["not_started", "active", "complete"] }).notNull().default("not_started"),
+  npcMetIds: text("npc_met_ids", { mode: "json" }).$type<string[]>().notNull().default([]),
+  npcQuestStates: text("npc_quest_states", { mode: "json" }).$type<Array<{ id: string; state: "not_started" | "active" | "complete" }>>().notNull().default([]),
   ruinedLootedSiteIds: text("ruined_looted_site_ids", { mode: "json" }).$type<number[]>().notNull().default([]),
   visitedBuildingIds: text("visited_building_ids", { mode: "json" }).$type<string[]>().notNull().default([]),
   interiorLootedContainerIds: text("interior_looted_container_ids", { mode: "json" }).$type<number[]>().notNull().default([]),
