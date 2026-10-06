@@ -1,0 +1,97 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1790662969432,
+      "tag": "0001_initial",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1790662969432,
+      "tag": "0002_replace_entries_with_game_save",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791172050071,
+      "tag": "0003_add_private_saves_gear_and_stats",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1791174264905,
+      "tag": "0004_add_loot_discovery_stats",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1791174878654,
+      "tag": "0005_persist_room_progress_and_run_summary",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1791221889364,
+      "tag": "0006_add_rare_loot_drops",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1791228700927,
+      "tag": "0007_add_stored_items",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1791229096479,
+      "tag": "0008_add_ember_quest_progress",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1791241868834,
+      "tag": "0009_persist_explored_map_cells",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1791247895405,
+      "tag": "0010_add_enemy_respawn_timers",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1791250778437,
+      "tag": "0011_add_equipped_trinket",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1791257987811,
+      "tag": "0012_add_rustbucket_vehicle_state",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1791258260343,
+      "tag": "0013_persist_vehicle_fleet",
+      "breakpoints": true
+    }
+  ]
+}

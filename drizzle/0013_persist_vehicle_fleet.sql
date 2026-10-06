@@ -1,0 +1,1 @@
+ALTER TABLE `game_save` ADD `vehicles` text DEFAULT '[]' NOT NULL;

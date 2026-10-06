@@ -1,0 +1,12 @@
+node_modules/
+dist/
+dist-cvm/
+.bun-cache/
+.harness/
+.space-build/
+.space-build-cvm/
+app.db
+app.db-shm
+app.db-wal
+*.log
+.DS_Store

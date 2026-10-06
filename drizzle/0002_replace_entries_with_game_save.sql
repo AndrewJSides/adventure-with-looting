@@ -1,0 +1,15 @@
+DROP TABLE entries;
+--> statement-breakpoint
+CREATE TABLE game_save (
+  id INTEGER PRIMARY KEY,
+  room INTEGER NOT NULL DEFAULT 1,
+  level INTEGER NOT NULL DEFAULT 1,
+  hp INTEGER NOT NULL DEFAULT 100,
+  max_hp INTEGER NOT NULL DEFAULT 100,
+  coins INTEGER NOT NULL DEFAULT 0,
+  weapon_name TEXT NOT NULL DEFAULT 'Rustblade',
+  weapon_damage REAL NOT NULL DEFAULT 12,
+  attack_speed REAL NOT NULL DEFAULT 1,
+  rarity TEXT NOT NULL DEFAULT 'Common',
+  updated_at INTEGER NOT NULL
+);

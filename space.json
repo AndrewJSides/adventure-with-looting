@@ -1,0 +1,8 @@
+{
+  "entry": "client/dist/index.html",
+  "managedCronJobs": [],
+  "name": "Adventure with Looting",
+  "platformVersion": 24,
+  "runtime": "typescript",
+  "slug": "adventure-with-looting"
+}
