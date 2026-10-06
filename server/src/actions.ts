@@ -85,7 +85,7 @@ const perfSubsystemSchema = z.object({ terrain: z.number().nonnegative(), stream
 const perfChunkLoadEventSchema = z.object({ timestamp: z.number().int().nonnegative(), key: z.string().min(1).max(40) });
 const perfSampleSchema = z.object({
   timestamp: z.number().int().nonnegative(), fps: z.number().nonnegative().max(1000), frameMs: z.number().nonnegative().max(10000), subsystems: perfSubsystemSchema,
-  vehicleSpeed: z.number().min(-1000).max(1000), activeEnemies: z.number().int().nonnegative().max(10000), visibleEnemies: z.number().int().nonnegative().max(10000), chunkLoadEvents: z.array(perfChunkLoadEventSchema).max(40),
+  vehicleSpeed: z.number().min(-1000).max(1000), activeEnemies: z.number().int().nonnegative().max(10000), visibleEnemies: z.number().int().nonnegative().max(10000), renderScale: z.number().min(0.4).max(1).optional(), chunkLoadEvents: z.array(perfChunkLoadEventSchema).max(40),
 });
 const perfRecordingSummarySchema = z.object({ id: z.number().int(), startedAt: z.string(), stoppedAt: z.string(), sampleCount: z.number().int(), durationMs: z.number().int(), averageFps: z.number(), averageFrameMs: z.number(), hotspot: z.string(), chunkLoadCount: z.number().int() });
 const savePerfRecordingResponse = z.discriminatedUnion("ok", [z.object({ ok: z.literal(true), recording: perfRecordingSummarySchema }), z.object({ ok: z.literal(false), message: z.string() })]);

@@ -2,7 +2,7 @@ import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-or
 
 export type PerfSubsystemValues = { terrain: number; streaming: number; entities: number; camera: number; hud: number; collision: number; enemyAi: number; audio: number; save: number };
 export type PerfChunkLoadEvent = { timestamp: number; key: string };
-export type PerfSample = { timestamp: number; fps: number; frameMs: number; subsystems: PerfSubsystemValues; vehicleSpeed: number; activeEnemies: number; visibleEnemies: number; chunkLoadEvents: PerfChunkLoadEvent[] };
+export type PerfSample = { timestamp: number; fps: number; frameMs: number; subsystems: PerfSubsystemValues; vehicleSpeed: number; activeEnemies: number; visibleEnemies: number; renderScale?: number; chunkLoadEvents: PerfChunkLoadEvent[] };
 
 export const perfRecordings = sqliteTable("perf_recordings", {
   id: integer("id").primaryKey({ autoIncrement: true }),

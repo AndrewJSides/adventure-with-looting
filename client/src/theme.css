@@ -578,7 +578,9 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .full-map-overlay footer span { display: flex; align-items: center; gap: 5px; }
 .full-map-overlay footer b { margin-left: auto; color: #e2c58e; font-size: 8px; }
 .legend { width: 9px; height: 9px; display: inline-block; border-radius: 50%; background: #efb36d; }
-.legend.wayfire { background: #f07843; }.legend.boss { background: #c96870; }
+.legend.wayfire { background: #f07843; }
+.legend.dungeon { border-radius: 1px; background: #d28cff; transform: rotate(45deg); }
+.legend.boss { background: #c96870; }
 
 @media (max-width: 410px) {
   .game-page { padding-inline: 0; }
