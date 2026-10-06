@@ -2,7 +2,7 @@ import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-or
 
 export type PerfSubsystemValues = { render?: number; terrain: number; streaming: number; entities: number; camera: number; hud: number; collision: number; enemyAi: number; audio: number; save: number };
 export type PerfChunkLoadEvent = { timestamp: number; key: string; durationMs?: number; drawCalls?: number };
-export type PerfSample = { timestamp: number; fps: number; frameMs: number; jankMs?: number; subsystems: PerfSubsystemValues; vehicleSpeed: number; activeEnemies: number; visibleEnemies: number; renderScale?: number; renderMs?: number; drawCalls?: number; chunkBuildMs?: number; chunkBuildSteps?: number; chunkBuildCompletions?: number; chunkQueueDepth?: number; chunkQueuePeak?: number; chunksQueuedThisFrame?: number; visibleChunks?: number; chunkCanvasAllocations?: number; chunkCanvasReuses?: number; chunkPoolSize?: number; chunkLoadEvents: PerfChunkLoadEvent[] };
+export type PerfSample = { timestamp: number; fps: number; frameMs: number; jankMs?: number; subsystems: PerfSubsystemValues; vehicleSpeed: number; activeEnemies: number; visibleEnemies: number; totalEnemies?: number; totalPickups?: number; activeProjectiles?: number; activeSparks?: number; activeDamageNumbers?: number; activeAudioVoices?: number; groundChunksCached?: number; groundCacheMiB?: number; groundQueueSlots?: number; renderScale?: number; renderMs?: number; drawCalls?: number; chunkBuildMs?: number; chunkBuildSteps?: number; chunkBuildCompletions?: number; chunkQueueDepth?: number; chunkQueuePeak?: number; chunksQueuedThisFrame?: number; visibleChunks?: number; chunkCanvasAllocations?: number; chunkCanvasReuses?: number; chunkPoolSize?: number; chunkLoadEvents: PerfChunkLoadEvent[] };
 
 export const perfRecordings = sqliteTable("perf_recordings", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -22,6 +22,7 @@ export const gameSave = sqliteTable("game_save", {
   ownerKey: text("owner_key").notNull().default("owner"),
   room: integer("room").notNull().default(1),
   level: integer("level").notNull().default(1),
+  timeOfDay: real("time_of_day").notNull().default(0.38),
   hp: integer("hp").notNull().default(100),
   maxHp: integer("max_hp").notNull().default(100),
   coins: integer("coins").notNull().default(0),

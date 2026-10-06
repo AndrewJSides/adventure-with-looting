@@ -169,6 +169,13 @@
       "when": 1791311928314,
       "tag": "0024_add_building_interior_progress",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1791315787590,
+      "tag": "0025_add_day_night_cycle_state",
+      "breakpoints": true
     }
   ]
 }
