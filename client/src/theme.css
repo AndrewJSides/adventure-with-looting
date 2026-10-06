@@ -256,6 +256,7 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .map-field b { z-index: 4; width: 7px; height: 7px; border-radius: 50%; background: #8ed7ff; border: 1px solid #effdff; box-shadow: 0 0 7px #6dc5ff; }
 .map-region-name { position: absolute; z-index: 5; right: 4px; bottom: 3px; max-width: calc(100% - 10px); padding: 2px 4px; overflow: hidden; color: #edf4f2; background: rgba(6,10,12,.72); font-size: 6px; font-weight: 800; letter-spacing: .08em; line-height: 1.2; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 .map-region-name.wilderness { color: #d2d9d7; background: rgba(35,41,41,.8); }
+.map-interior { position: absolute; z-index: 6; left: 4px; bottom: 3px; padding: 2px 4px; border: 1px solid rgba(255,209,102,.75); color: #fff2bd; background: rgba(23,18,10,.9); font-size: 6px; font-weight: 900; letter-spacing: .1em; line-height: 1.2; }
 
 .room-banner {
   position: absolute;
