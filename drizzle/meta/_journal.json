@@ -120,6 +120,13 @@
       "when": 1791283353967,
       "tag": "0017_add_equipped_melee_weapon",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1791286842965,
+      "tag": "0018_add_claimable_outpost_bases",
+      "breakpoints": true
     }
   ]
 }
