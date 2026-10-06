@@ -1,4 +1,22 @@
-import { integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+
+export type PerfSubsystemValues = { terrain: number; streaming: number; entities: number; camera: number; hud: number; collision: number; enemyAi: number; audio: number; save: number };
+export type PerfChunkLoadEvent = { timestamp: number; key: string };
+export type PerfSample = { timestamp: number; fps: number; frameMs: number; subsystems: PerfSubsystemValues; vehicleSpeed: number; activeEnemies: number; visibleEnemies: number; chunkLoadEvents: PerfChunkLoadEvent[] };
+
+export const perfRecordings = sqliteTable("perf_recordings", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  ownerKey: text("owner_key").notNull(),
+  startedAt: integer("started_at", { mode: "timestamp_ms" }).notNull(),
+  stoppedAt: integer("stopped_at", { mode: "timestamp_ms" }).notNull(),
+  sampleCount: integer("sample_count").notNull(),
+  averageFps: real("average_fps").notNull(),
+  averageFrameMs: real("average_frame_ms").notNull(),
+  hotspot: text("hotspot").notNull(),
+  chunkLoadCount: integer("chunk_load_count").notNull(),
+  samples: text("samples", { mode: "json" }).$type<PerfSample[]>().notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
+}, (table) => [index("perf_recordings_owner_started_idx").on(table.ownerKey, table.startedAt)]);
 
 export const gameSave = sqliteTable("game_save", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -28,6 +46,9 @@ export const gameSave = sqliteTable("game_save", {
   items: text("items", { mode: "json" }).$type<string[]>().notNull().default([]),
   storedItems: text("stored_items", { mode: "json" }).$type<string[]>().notNull().default([]),
   baseStates: text("base_states", { mode: "json" }).$type<Array<{ id: "ember" | "frost" | "mire"; claimed: boolean; upgrades: Array<"spikes" | "lantern" | "cookfire"> }>>().notNull().default([]),
+  dungeonProgress: text("dungeon_progress", { mode: "json" }).$type<Array<{ id: "meadow" | "ember" | "frost"; roomsCleared: number; foesDefeated: number; eliteDefeated: boolean }>>().notNull().default([]),
+  dungeonBossesDefeated: text("dungeon_bosses_defeated", { mode: "json" }).$type<Array<"meadow" | "ember" | "frost">>().notNull().default([]),
+  dungeonLootedChestIds: text("dungeon_looted_chest_ids", { mode: "json" }).$type<number[]>().notNull().default([]),
   respawnBase: text("respawn_base", { enum: ["village", "ember", "frost", "mire"] }).notNull().default("village"),
   rawMeat: integer("raw_meat").notNull().default(0),
   cookedMeals: integer("cooked_meals").notNull().default(0),

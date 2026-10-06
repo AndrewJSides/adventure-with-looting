@@ -1,5 +1,5 @@
 import { defineAction, z, type ActionsModule, type Ctx } from "@hatch/space-sdk";
-import { eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import * as schema from "./schema";
 
 const raritySchema = z.enum(["Common", "Uncommon", "Rare", "Epic", "Legendary", "Relic"]);
@@ -32,6 +32,9 @@ const saveSchema = z.object({
   items: z.array(z.string().min(1).max(40)).max(60),
   storedItems: z.array(z.string().min(1).max(40)).max(60),
   baseStates: z.array(z.object({ id: z.enum(["ember", "frost", "mire"]), claimed: z.boolean(), upgrades: z.array(z.enum(["spikes", "lantern", "cookfire"])).max(3) })).max(3),
+  dungeonProgress: z.array(z.object({ id: z.enum(["meadow", "ember", "frost"]), roomsCleared: z.number().int().min(0).max(4), foesDefeated: z.number().int().min(0).max(999), eliteDefeated: z.boolean() })).max(3),
+  dungeonBossesDefeated: z.array(z.enum(["meadow", "ember", "frost"])).max(3),
+  dungeonLootedChestIds: z.array(z.number().int()).max(12),
   respawnBase: z.enum(["village", "ember", "frost", "mire"]),
   rawMeat: z.number().int().min(0).max(999),
   cookedMeals: z.number().int().min(0).max(999),
@@ -78,12 +81,23 @@ const writeResponse = z.discriminatedUnion("ok", [
   z.object({ ok: z.literal(false), message: z.string() }),
 ]);
 
+const perfSubsystemSchema = z.object({ terrain: z.number().nonnegative(), streaming: z.number().nonnegative(), entities: z.number().nonnegative(), camera: z.number().nonnegative(), hud: z.number().nonnegative(), collision: z.number().nonnegative(), enemyAi: z.number().nonnegative(), audio: z.number().nonnegative(), save: z.number().nonnegative() });
+const perfChunkLoadEventSchema = z.object({ timestamp: z.number().int().nonnegative(), key: z.string().min(1).max(40) });
+const perfSampleSchema = z.object({
+  timestamp: z.number().int().nonnegative(), fps: z.number().nonnegative().max(1000), frameMs: z.number().nonnegative().max(10000), subsystems: perfSubsystemSchema,
+  vehicleSpeed: z.number().min(-1000).max(1000), activeEnemies: z.number().int().nonnegative().max(10000), visibleEnemies: z.number().int().nonnegative().max(10000), chunkLoadEvents: z.array(perfChunkLoadEventSchema).max(40),
+});
+const perfRecordingSummarySchema = z.object({ id: z.number().int(), startedAt: z.string(), stoppedAt: z.string(), sampleCount: z.number().int(), durationMs: z.number().int(), averageFps: z.number(), averageFrameMs: z.number(), hotspot: z.string(), chunkLoadCount: z.number().int() });
+const savePerfRecordingResponse = z.discriminatedUnion("ok", [z.object({ ok: z.literal(true), recording: perfRecordingSummarySchema }), z.object({ ok: z.literal(false), message: z.string() })]);
+const listPerfRecordingsResponse = z.object({ recordings: z.array(perfRecordingSummarySchema), canRecord: z.boolean(), message: z.string().nullable() });
+const getPerfRecordingResponse = z.discriminatedUnion("ok", [z.object({ ok: z.literal(true), recording: perfRecordingSummarySchema.extend({ samples: z.array(perfSampleSchema) }) }), z.object({ ok: z.literal(false), message: z.string() })]);
+
 const BASE_SAVE: z.infer<typeof saveSchema> = {
   room: 6, level: 1, hp: 100, maxHp: 100, coins: 0,
   weaponName: "Glock", weaponDamage: 13, attackSpeed: 4.2, rarity: "Common", meleeWeaponName: "Rustblade",
   armorName: "Traveler Cloak", armorDefense: 0, charmName: "None", trinketName: "None", critChance: 0.05,
   keys: 0, vehicleKeyOwned: false, lifesteal: 0, thorns: 0, dashReduction: 0, moveSpeed: 0, pickupRadius: 0,
-  items: ["Glock"], storedItems: ["Mustang key"], baseStates: [], respawnBase: "village", rawMeat: 0, cookedMeals: 0, gunAmmoState: [{ name: "Glock", magazine: 17, reserve: 68 }], questState: "not_started", questTravelOut: false, questTravelBack: false, rareLootDrops: [], enemyRespawns: [], kills: 0, roomsCleared: 0, bossesDefeated: 0, runsStarted: 1,
+  items: ["Glock"], storedItems: ["Mustang key"], baseStates: [], dungeonProgress: [], dungeonBossesDefeated: [], dungeonLootedChestIds: [], respawnBase: "village", rawMeat: 0, cookedMeals: 0, gunAmmoState: [{ name: "Glock", magazine: 17, reserve: 68 }], questState: "not_started", questTravelOut: false, questTravelBack: false, rareLootDrops: [], enemyRespawns: [], kills: 0, roomsCleared: 0, bossesDefeated: 0, runsStarted: 1,
   openedChestIds: [], claimedPickupIds: [], claimedBreakableIds: [], defeatedEnemyIds: [], clearedRoomIds: [], secretOpenedRoomIds: [], exploredCells: [], truckX: 1580, truckY: 15745, truckFuel: 82, truckHp: 180,
   vehicles: [{ id: "rustbucket", x: 1580, y: 15745, hp: 180, fuel: 82, owned: false, inventory: [] }, { id: "motorcycle", x: 1710, y: 15720, hp: 90, fuel: 76, owned: false, inventory: [] }, { id: "mustang", x: 4480, y: 15055, hp: 140, fuel: 70, owned: false, inventory: [] }, { id: "trailrunner", x: 4545, y: 15125, hp: 180, fuel: 64, owned: false, inventory: [] }, { id: "mire-mule", x: 10635, y: 13210, hp: 180, fuel: 55, owned: false, inventory: [] }],
   dogAdopted: false, dogLevel: 1, dogX: 1210, dogY: 15715, dogHp: 64, dogKills: 0, chestsOpened: 0,
@@ -103,13 +117,17 @@ function serialize(row: typeof schema.gameSave.$inferSelect): z.infer<typeof sav
     weaponName: row.weaponName, weaponDamage: row.weaponDamage, attackSpeed: row.attackSpeed, rarity: row.rarity, meleeWeaponName: row.meleeWeaponName,
     armorName: row.armorName, armorDefense: row.armorDefense, charmName: row.charmName, trinketName: row.trinketName, critChance: row.critChance,
     keys: row.keys, vehicleKeyOwned: row.vehicleKeyOwned, lifesteal: row.lifesteal, thorns: row.thorns, dashReduction: row.dashReduction, moveSpeed: row.moveSpeed, pickupRadius: row.pickupRadius,
-    items: row.items, storedItems: row.storedItems, baseStates: row.baseStates, respawnBase: row.respawnBase, rawMeat: row.rawMeat, cookedMeals: row.cookedMeals, gunAmmoState: row.gunAmmoState, questState: row.questState, questTravelOut: row.questTravelOut, questTravelBack: row.questTravelBack, rareLootDrops: row.rareLootDrops, enemyRespawns: row.enemyRespawns, kills: row.kills, roomsCleared: row.roomsCleared, bossesDefeated: row.bossesDefeated,
+    items: row.items, storedItems: row.storedItems, baseStates: row.baseStates, dungeonProgress: row.dungeonProgress, dungeonBossesDefeated: row.dungeonBossesDefeated, dungeonLootedChestIds: row.dungeonLootedChestIds, respawnBase: row.respawnBase, rawMeat: row.rawMeat, cookedMeals: row.cookedMeals, gunAmmoState: row.gunAmmoState, questState: row.questState, questTravelOut: row.questTravelOut, questTravelBack: row.questTravelBack, rareLootDrops: row.rareLootDrops, enemyRespawns: row.enemyRespawns, kills: row.kills, roomsCleared: row.roomsCleared, bossesDefeated: row.bossesDefeated,
     runsStarted: row.runsStarted, openedChestIds: row.openedChestIds, claimedPickupIds: row.claimedPickupIds,
     claimedBreakableIds: row.claimedBreakableIds, defeatedEnemyIds: row.defeatedEnemyIds, clearedRoomIds: row.clearedRoomIds,
     secretOpenedRoomIds: row.secretOpenedRoomIds, exploredCells: row.exploredCells, truckX: row.truckX, truckY: row.truckY, truckFuel: row.truckFuel, truckHp: row.truckHp, vehicles: row.vehicles.map(vehicle => ({ ...vehicle, inventory: Array.isArray(vehicle.inventory) ? vehicle.inventory.slice(0, 4) : [] })),
     dogAdopted: row.dogAdopted, dogLevel: row.dogLevel, dogX: row.dogX, dogY: row.dogY, dogHp: row.dogHp, dogKills: row.dogKills, chestsOpened: row.chestsOpened,
     runStartedAt: row.runStartedAt || row.updatedAt.toISOString(), updatedAt: row.updatedAt.toISOString(),
   };
+}
+
+function serializePerfSummary(row: typeof schema.perfRecordings.$inferSelect): z.infer<typeof perfRecordingSummarySchema> {
+  return { id: row.id, startedAt: row.startedAt.toISOString(), stoppedAt: row.stoppedAt.toISOString(), sampleCount: row.sampleCount, durationMs: Math.max(0, row.stoppedAt.getTime() - row.startedAt.getTime()), averageFps: row.averageFps, averageFrameMs: row.averageFrameMs, hotspot: row.hotspot, chunkLoadCount: row.chunkLoadCount };
 }
 
 export const Actions = {
@@ -141,7 +159,49 @@ export const Actions = {
     },
   }),
 
+  savePerfRecording: defineAction({
+    request: z.object({ startedAt: z.number().int().nonnegative(), stoppedAt: z.number().int().nonnegative(), samples: z.array(perfSampleSchema).min(1).max(12000) }), response: savePerfRecordingResponse,
+    async handler(ctx, args): Promise<z.infer<typeof savePerfRecordingResponse>> {
+      const ownerKey = viewerKey(ctx);
+      if (!ownerKey) return { ok: false, message: "Sign in to save profiler recordings." };
+      if (args.stoppedAt < args.startedAt) return { ok: false, message: "The recording end time is invalid." };
+      const sums = { terrain: 0, streaming: 0, entities: 0, camera: 0, hud: 0, collision: 0, enemyAi: 0, audio: 0, save: 0 };
+      let fpsTotal = 0, frameTotal = 0, chunkLoadCount = 0;
+      for (const sample of args.samples) { fpsTotal += sample.fps; frameTotal += sample.frameMs; chunkLoadCount += sample.chunkLoadEvents.length; for (const key of Object.keys(sums) as Array<keyof typeof sums>) sums[key] += sample.subsystems[key]; }
+      const hotspot = (Object.keys(sums) as Array<keyof typeof sums>).reduce((best, key) => sums[key] > sums[best] ? key : best, "terrain");
+      const now = new Date();
+      const inserted = await ctx.db<typeof schema>().insert(schema.perfRecordings).values({ ownerKey, startedAt: new Date(args.startedAt), stoppedAt: new Date(args.stoppedAt), sampleCount: args.samples.length, averageFps: fpsTotal / args.samples.length, averageFrameMs: frameTotal / args.samples.length, hotspot, chunkLoadCount, samples: args.samples, createdAt: now }).returning();
+      const row = inserted[0];
+      if (!row) return { ok: false, message: "The profiler recording could not be saved." };
+      ctx.invalidateQueries();
+      return { ok: true, recording: serializePerfSummary(row) };
+    },
+  }),
+
+  listPerfRecordings: defineAction({
+    request: z.object({}), response: listPerfRecordingsResponse,
+    async handler(ctx): Promise<z.infer<typeof listPerfRecordingsResponse>> {
+      const ownerKey = viewerKey(ctx);
+      if (!ownerKey) return { recordings: [], canRecord: false, message: "Sign in to save profiler recordings." };
+      const rows = await ctx.db<typeof schema>().select().from(schema.perfRecordings).where(eq(schema.perfRecordings.ownerKey, ownerKey)).orderBy(desc(schema.perfRecordings.startedAt)).limit(20);
+      return { recordings: rows.map(serializePerfSummary), canRecord: true, message: null };
+    },
+  }),
+
+  getPerfRecording: defineAction({
+    request: z.object({ id: z.number().int().positive() }), response: getPerfRecordingResponse,
+    async handler(ctx, args): Promise<z.infer<typeof getPerfRecordingResponse>> {
+      const ownerKey = viewerKey(ctx);
+      if (!ownerKey) return { ok: false, message: "Sign in to view profiler recordings." };
+      const rows = await ctx.db<typeof schema>().select().from(schema.perfRecordings).where(and(eq(schema.perfRecordings.id, args.id), eq(schema.perfRecordings.ownerKey, ownerKey))).limit(1);
+      const row = rows[0];
+      if (!row) return { ok: false, message: "That profiler recording was not found." };
+      return { ok: true, recording: { ...serializePerfSummary(row), samples: row.samples } };
+    },
+  }),
+
   resetGame: defineAction({
+
     request: z.object({}), response: writeResponse,
     async handler(ctx): Promise<z.infer<typeof writeResponse>> {
       const ownerKey = viewerKey(ctx);
