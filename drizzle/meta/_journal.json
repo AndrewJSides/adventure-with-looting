@@ -218,6 +218,13 @@
       "when": 1791359136276,
       "tag": "0031_add_crossbow_ammunition_and_wood_scraps",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "6",
+      "when": 1791362598341,
+      "tag": "0032_add_zombie_animal_progress",
+      "breakpoints": true
     }
   ]
 }
