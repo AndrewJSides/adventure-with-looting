@@ -745,9 +745,10 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .profiler-peak > small { display: block; margin-top: 5px; color: #758983; font-size: 7px; line-height: 1.5; }
 
 /* Main story: tracked apart from side contracts, with short nonblocking memory panels. */
-.main-story-quest { left: auto; right: 3.2%; border-left: 0; border-right: 3px solid #e6b85c; background: rgba(12,16,18,.93); }
+.main-story-quest { left: 3.2%; right: auto; width: min(48%, 214px); border-left: 3px solid #e6b85c; background: rgba(12,16,18,.93); }
 .main-story-quest .quest-title span { color: #f0c875; }
 .main-story-quest em { border-top-color: rgba(240,200,117,.24); color: #d9c9a8; }
+.main-story-quest ~ .quest-panel:not(.main-story-quest) { transform: translateY(102px); }
 .story-beat-panel { position: absolute; left: 50%; bottom: 18.5%; z-index: 7; width: min(88%, 570px); transform: translateX(-50%); padding: 12px 54px 13px 15px; pointer-events: none; background: rgba(7,11,14,.95); border-top: 2px solid #dcaa55; border-bottom: 1px solid rgba(220,170,85,.38); box-shadow: 0 -10px 30px rgba(0,0,0,.5); }
 .story-beat-panel > button { position: absolute; top: 7px; right: 8px; width: 40px; height: 40px; pointer-events: auto; touch-action: manipulation; border: 1px solid #74664b; border-radius: 50%; background: #171d1e; color: #fff2cf; font-size: 24px; }
 .story-beat-panel > span { display: block; color: #e6b85c; font-size: 8px; font-weight: 900; letter-spacing: .12em; }
