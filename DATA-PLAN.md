@@ -13,6 +13,9 @@
 - No factual game content is imported from external sources; the world, enemies, and landmarks remain original.
 
 ## Imagery
+
+The per-biome ground textures `client/src/assets/textures/biome-NN-*.png` are procedurally generated placeholders produced by `scripts/gen-placeholder-textures.py` from a seeded PRNG. They are original output with no external source, so nothing is imported and nothing requires attribution. They are grayscale and multiply-blended, which adds ground surface detail without altering any biome's palette; they are intended to be replaced with sourced CC0 art (see that directory's README).
+
 The supplied truck sheet informs only the high-level silhouette cues (separate bed, cab, hood, and protruding corner wheels). The OpenGameArt dirt texture is stored locally and rendered with deterministic rotation, offset, mirroring, overlap, and edge blending. All other vehicles, world map, characters, enemies, chests, and loot remain original procedural canvas/SVG/CSS graphics.
 
 ## Long-term data behavior
