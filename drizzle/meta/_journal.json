@@ -225,6 +225,13 @@
       "when": 1791362598341,
       "tag": "0032_add_zombie_animal_progress",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "6",
+      "when": 1791369718183,
+      "tag": "0033_persist_active_interior",
+      "breakpoints": true
     }
   ]
 }

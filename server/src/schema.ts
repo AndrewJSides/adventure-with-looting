@@ -72,6 +72,7 @@ export const gameSave = sqliteTable("game_save", {
   storyFlags: text("story_flags", { mode: "json" }).$type<string[]>().notNull().default([]),
   ruinedLootedSiteIds: text("ruined_looted_site_ids", { mode: "json" }).$type<number[]>().notNull().default([]),
   visitedBuildingIds: text("visited_building_ids", { mode: "json" }).$type<string[]>().notNull().default([]),
+  activeInteriorId: text("active_interior_id"),
   interiorLootedContainerIds: text("interior_looted_container_ids", { mode: "json" }).$type<number[]>().notNull().default([]),
   interiorDefeatedEnemyIds: text("interior_defeated_enemy_ids", { mode: "json" }).$type<number[]>().notNull().default([]),
   rareLootDrops: text("rare_loot_drops", { mode: "json" }).$type<Array<{ id: number; itemId: string; x: number; y: number }>>().notNull().default([]),
