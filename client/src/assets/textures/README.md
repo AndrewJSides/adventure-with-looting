@@ -11,8 +11,10 @@ and snow); exact source pages and byte URLs are recorded in `DATA-PLAN.md`.
 ## Runtime pipeline
 
 `BIOME_TEXTURE_URLS` in `App.tsx` keys textures by region id, loads them lazily, builds
-16 flip/rotate variants, and calls `resetGroundChunkCache()` after each load. The final
-blit uses `source-over` because these are full-colour assets.
+normalized canvas copies, and calls `resetGroundChunkCache()` after each load. Ground
+chunks use one fixed orientation on a world-aligned 192-unit lattice: adjacent copies
+meet edge-to-edge, without random offsets, rotations, alpha changes, or overlap bands.
+The final blit uses `source-over` because these are full-colour assets.
 
 All final images passed the edge-difference seam check used by
 `scripts/gen-placeholder-textures.py`. The placeholder generator remains available as a
@@ -30,9 +32,11 @@ diagnostic/reference utility, but running it will overwrite this sourced art.
 
 | Constant | Current effect |
 |---|---|
-| `BIOME_TEXTURE_STRIDE` | 192 world units between blits; a multiple of the 48-unit terrain tile, reducing draw calls versus 144. |
-| `BIOME_TEXTURE_SPAN` | `STRIDE * 1.18`; overlaps neighboring blits to hide boundaries. |
-| `BIOME_TEXTURE_ALPHA_BASE` / `_RANGE` | `.28` plus up to `.10` deterministic per-tile jitter. |
+| `BIOME_TEXTURE_STRIDE` | 192 world units between blits; the texture is normalized to the same size so edges meet exactly. |
+| `BIOME_TEXTURE_ALPHA` | Uniform `.32` across every tile; avoiding per-tile alpha changes removes visible rectangular blocks. |
+
+The Hearthglen camp uses the same normalized texture as a single repeating canvas
+pattern clipped to the camp ellipse, rather than overlapping randomized rectangles.
 
 Each texture blit is one draw call during incremental chunk construction. Toggle
 **Ground tex** in the profiler effect row (Minimal Mode also disables it) to compare the

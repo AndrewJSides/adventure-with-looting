@@ -74,6 +74,8 @@ export const gameSave = sqliteTable("game_save", {
   interiorDefeatedEnemyIds: text("interior_defeated_enemy_ids", { mode: "json" }).$type<number[]>().notNull().default([]),
   rareLootDrops: text("rare_loot_drops", { mode: "json" }).$type<Array<{ id: number; itemId: string; x: number; y: number }>>().notNull().default([]),
   kills: integer("kills").notNull().default(0),
+  headshots: integer("headshots").notNull().default(0),
+  headshotKills: integer("headshot_kills").notNull().default(0),
   roomsCleared: integer("rooms_cleared").notNull().default(0),
   bossesDefeated: integer("bosses_defeated").notNull().default(0),
   runsStarted: integer("runs_started").notNull().default(1),

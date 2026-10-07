@@ -204,6 +204,13 @@
       "when": 1791344433640,
       "tag": "0029_add_main_story_progress",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "6",
+      "when": 1791351486857,
+      "tag": "0030_add_headshot_stats",
+      "breakpoints": true
     }
   ]
 }
