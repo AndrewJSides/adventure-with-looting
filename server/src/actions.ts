@@ -24,7 +24,10 @@ const saveSchema = z.object({
   trinketName: z.string().min(1).max(40),
   gadgetName: z.string().min(1).max(40),
   flashlightOn: z.boolean(),
+  uvEmitterOwned: z.boolean().default(false),
+  uvEmitterOn: z.boolean().default(false),
   soundMuted: z.boolean(),
+  controlScheme: z.enum(["joystick", "wasd"]).nullable().default(null),
   critChance: z.number().min(0).max(0.75),
   keys: z.number().int().min(0).max(99),
   ironKeys: z.number().int().min(0).max(999),
@@ -140,7 +143,7 @@ const getPerfRecordingResponse = z.discriminatedUnion("ok", [z.object({ ok: z.li
 const BASE_SAVE: z.infer<typeof saveSchema> = {
   room: 6, level: 1, timeOfDay: .38, hp: 100, maxHp: 100, coins: 0,
   weaponName: "Glock", weaponDamage: 13, attackSpeed: 4.2, rarity: "Common", meleeWeaponName: "Rustblade",
-  armorName: "Traveler Cloak", armorDefense: 0, charmName: "None", trinketName: "None", gadgetName: "None", flashlightOn: false, soundMuted: false, critChance: 0.05,
+  armorName: "Traveler Cloak", armorDefense: 0, charmName: "None", trinketName: "None", gadgetName: "None", flashlightOn: false, uvEmitterOwned: false, uvEmitterOn: false, soundMuted: false, controlScheme: null, critChance: 0.05,
   keys: 0, ironKeys: 0, goldKeys: 0, ancientKeys: 0, vehicleKeyOwned: false, lifesteal: 0, thorns: 0, dashReduction: 0, moveSpeed: 0, pickupRadius: 0,
   items: ["Glock"], storedItems: [], baseStates: [], dungeonProgress: [], dungeonBossesDefeated: [], dungeonLootedChestIds: [], respawnBase: "village", rawMeat: 0, cookedMeals: 0, gunAmmoState: [{ name: "Glock", magazine: 17, reserve: 68 }], boltCount: 0, woodScraps: 0, planks: 0, barricades: [], questState: "not_started", questTravelOut: false, questTravelBack: false, frontierQuestState: "not_started", npcMetIds: [], npcQuestStates: [], mainStoryState: "not_started", mainStoryChapter: 0, storyIntroSeen: false, veilTruthStage: 0, veilTruthChoice: null, storyFlags: [], ruinedLootedSiteIds: [], visitedBuildingIds: [], activeInteriorId: null, interiorLootedContainerIds: [], interiorDefeatedEnemyIds: [], mallVisited: false, mallBossDefeated: false, mallLootedContainerIds: [], rareLootDrops: [], enemyRespawns: [], kills: 0, headshots: 0, headshotKills: 0, roomsCleared: 0, bossesDefeated: 0, runsStarted: 1,
   openedChestIds: [], claimedPickupIds: [], claimedBreakableIds: [], defeatedEnemyIds: [], clearedRoomIds: [], secretOpenedRoomIds: [], exploredCells: [], truckX: 3335, truckY: 14880, truckFuel: 82, truckHp: 180,
@@ -161,7 +164,7 @@ function serialize(row: typeof schema.gameSave.$inferSelect): z.infer<typeof sav
   return {
     room: row.room, level: row.level, timeOfDay: row.timeOfDay, hp: row.hp, maxHp: row.maxHp, coins: row.coins,
     weaponName: row.weaponName, weaponDamage: row.weaponDamage, attackSpeed: row.attackSpeed, rarity: row.rarity, meleeWeaponName: row.meleeWeaponName,
-    armorName: row.armorName, armorDefense: row.armorDefense, charmName: row.charmName, trinketName: row.trinketName, gadgetName: row.gadgetName, flashlightOn: row.flashlightOn, soundMuted: row.soundMuted, critChance: row.critChance,
+    armorName: row.armorName, armorDefense: row.armorDefense, charmName: row.charmName, trinketName: row.trinketName, gadgetName: row.gadgetName, flashlightOn: row.flashlightOn, uvEmitterOwned: row.uvEmitterOwned, uvEmitterOn: row.uvEmitterOn, soundMuted: row.soundMuted, controlScheme: row.controlScheme, critChance: row.critChance,
     keys: row.keys, ironKeys: row.ironKeys, goldKeys: row.goldKeys, ancientKeys: row.ancientKeys, vehicleKeyOwned: row.vehicleKeyOwned, lifesteal: row.lifesteal, thorns: row.thorns, dashReduction: row.dashReduction, moveSpeed: row.moveSpeed, pickupRadius: row.pickupRadius,
     items: row.items, storedItems: row.storedItems, baseStates: row.baseStates, dungeonProgress: row.dungeonProgress, dungeonBossesDefeated: row.dungeonBossesDefeated, dungeonLootedChestIds: row.dungeonLootedChestIds, respawnBase: row.respawnBase, rawMeat: row.rawMeat, cookedMeals: row.cookedMeals, gunAmmoState: row.gunAmmoState, boltCount: row.boltCount, woodScraps: row.woodScraps, planks: row.planks, barricades: row.barricades, questState: row.questState, questTravelOut: row.questTravelOut, questTravelBack: row.questTravelBack, frontierQuestState: row.frontierQuestState, npcMetIds: row.npcMetIds, npcQuestStates: row.npcQuestStates, mainStoryState: row.mainStoryState, mainStoryChapter: row.mainStoryChapter, storyIntroSeen: row.storyIntroSeen, veilTruthStage: row.veilTruthStage, veilTruthChoice: row.veilTruthChoice, storyFlags: row.storyFlags, ruinedLootedSiteIds: row.ruinedLootedSiteIds, visitedBuildingIds: row.visitedBuildingIds, activeInteriorId: row.activeInteriorId, interiorLootedContainerIds: row.interiorLootedContainerIds, interiorDefeatedEnemyIds: row.interiorDefeatedEnemyIds, mallVisited: row.mallVisited, mallBossDefeated: row.mallBossDefeated, mallLootedContainerIds: row.mallLootedContainerIds, rareLootDrops: row.rareLootDrops, enemyRespawns: row.enemyRespawns, kills: row.kills, headshots: row.headshots, headshotKills: row.headshotKills, roomsCleared: row.roomsCleared, bossesDefeated: row.bossesDefeated,
     runsStarted: row.runsStarted, openedChestIds: row.openedChestIds, claimedPickupIds: row.claimedPickupIds,

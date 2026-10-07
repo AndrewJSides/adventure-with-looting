@@ -281,6 +281,13 @@
       "when": 1791395164615,
       "tag": "0040_add_night_volatile_save_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "6",
+      "when": 1791398536333,
+      "tag": "0041_add_uv_emitter_fields",
+      "breakpoints": true
     }
   ]
 }
