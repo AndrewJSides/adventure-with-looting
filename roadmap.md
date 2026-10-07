@@ -8,7 +8,7 @@ Set by Andrew, Oct 5, 2026. Vision: like **Surroundead** (Steam indie) — open 
 3. **Machine guns** — ✅ SHIPPED. Rust SMG, Scavenger LMG, Warlord's Minigun (spin-up), hold-to-fire.
 4. **Swords and other melee weapons** — ✅ SHIPPED. Rusty Machete, Firefighter's Axe, Katana (crit), Wraithbane Greatsword (lifesteal). Point-blank melee hits all around.
 5. **Bases** — ✅ SHIPPED. 3 claimable outposts (Ember Wastes, Frostfall Peaks, Gloam Mire): banner claims, shared storage, campfires, buildable upgrades, zombie raids.
-6. **Dungeons** — ❌ NOT SHIPPED. Four attempts superseded by build collisions; needs a sustained quiet window.
+6. **Dungeons** — ✅ SHIPPED (Oct 7, 2026). Three dungeons published: Rootbound Crypt (beneath Mosslight Meadow), Cinder Vault (beneath Ember Wastes), Rimehold Depths (beneath Frostfall Peaks) — entrance portals, chamber combat, 1 elite each, dungeon bosses, relic + gold-chest rewards, objective HUD, minimap markers, safe exits, additive save fields. In-game capture evidence still owed.
 7. **Key-locked chests** — ✅ SHIPPED. Iron/Gold/Ancient keys, six world chests.
 8. **Expansive cities** — ✅ SHIPPED. Greyhaven (inhabited) and Old Greyhaven (abandoned).
 9. **Building interiors** — ❌ NOT SHIPPED. Roofs fade to ~10% opacity concept pending.
