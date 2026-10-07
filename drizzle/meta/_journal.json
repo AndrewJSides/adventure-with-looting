@@ -197,6 +197,13 @@
       "when": 1791326488214,
       "tag": "0028_add_npc_met_and_quest_states",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "6",
+      "when": 1791344433640,
+      "tag": "0029_add_main_story_progress",
+      "breakpoints": true
     }
   ]
 }
