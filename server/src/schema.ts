@@ -59,6 +59,8 @@ export const gameSave = sqliteTable("game_save", {
   rawMeat: integer("raw_meat").notNull().default(0),
   cookedMeals: integer("cooked_meals").notNull().default(0),
   gunAmmoState: text("gun_ammo_state", { mode: "json" }).$type<Array<{ name: string; magazine: number; reserve: number }>>().notNull().default([]),
+  boltCount: integer("bolt_count").notNull().default(0),
+  woodScraps: integer("wood_scraps").notNull().default(0),
   questState: text("quest_state", { enum: ["not_started", "active", "complete"] }).notNull().default("not_started"),
   questTravelOut: integer("quest_travel_out", { mode: "boolean" }).notNull().default(false),
   questTravelBack: integer("quest_travel_back", { mode: "boolean" }).notNull().default(false),

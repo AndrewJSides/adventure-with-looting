@@ -211,6 +211,13 @@
       "when": 1791351486857,
       "tag": "0030_add_headshot_stats",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "6",
+      "when": 1791359136276,
+      "tag": "0031_add_crossbow_ammunition_and_wood_scraps",
+      "breakpoints": true
     }
   ]
 }
