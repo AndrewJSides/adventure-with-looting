@@ -137,6 +137,9 @@ export const gameSave = sqliteTable("game_save", {
   volatileTrophyOwned: integer("volatile_trophy_owned", { mode: "boolean" }).notNull().default(false),
   volatileNestDespawnedIds: text("volatile_nest_despawned_ids", { mode: "json" }).$type<number[]>().notNull().default([]),
   comboCrafts: integer("combo_crafts").notNull().default(0),
+  boxLocation: integer("box_location").notNull().default(0),
+  boxPullsRemaining: integer("box_pulls_remaining").notNull().default(0),
+  boxPoolState: text("box_pool_state", { mode: "json" }).$type<string[]>().notNull().default([]),
   runStartedAt: text("run_started_at").notNull().default(""),
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
 }, (table) => [uniqueIndex("game_save_owner_key_unique").on(table.ownerKey)]);
