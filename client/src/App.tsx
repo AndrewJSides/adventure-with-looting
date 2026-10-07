@@ -589,6 +589,41 @@ function dialogueOptions(npc:Npc,topic:DialogueTopic,save:PersistedSave):Dialogu
   options.push({label:"Ask something else",action:"topic",topic:"root"},{label:"Leave",action:"leave"});
   return options.slice(0,4);
 }
+function milestoneDialogue(id:NpcId,topic:DialogueTopic,save:PersistedSave):string|null {
+  if(id==="rowan"){
+    const progress=frontierQuestProgress(save);
+    if(save.frontierQuestState==="complete")return topic==="hint"?"The market road is open. If you want another hard fight, the Regent still circles Civic Square.":"Patrols walked the old market this morning because of you. Greyhaven remembers who clears a road.";
+    if(save.frontierQuestState==="active")return progress>=FRONTIER_QUEST_IDS.length?"I heard the last shot from the wall. Tell me the market road is ours.":topic==="hint"?`You have dropped ${progress} of the six marked walkers. Finish the route before dusk.`:`The watch counted ${progress} marked dead on the market road. ${6-progress} still stand between us and a safe patrol.`;
+    if(topic==="hint")return "The old market road needs six walkers cleared. Stay behind the overturned tram when the Regent passes.";
+    return topic==="root"?"Greyhaven holds, but the old market road is strangling our patrols. I have work if you can finish it.":null;
+  }
+  if(id==="tamsin"){
+    if(save.items.includes("Greyhaven Plate"))return topic==="hint"?"That plate will blunt a charge, not stop one. Let the dead commit, then move across their shoulder.":"Greyhaven Plate suits you. Bring it back before the straps rot and I will keep it roadworthy.";
+    if(save.frontierQuestState==="complete")return topic==="hint"?"Rowan reopened the market route. I can spare an Iron Key now; the gold ones still cost us dearly.":"Rowan says you reopened the market. That means my next supply cart might arrive with all four wheels.";
+    if(save.ironKeys+save.goldKeys+save.ancientKeys>0)return topic==="hint"?"Iron opens field crates, gold opens municipal vaults, ancient keys belong below ground. Do not waste them on the wrong lock.":"You already carry a key. Good. A locked crate is only useful once you survive the trip to it.";
+    return topic==="root"?"Need armor, traps, or your first city key? Tell me where you are headed and I will tell you what keeps people alive there.":null;
+  }
+  if(id==="lark"){
+    if(save.dungeonBossesDefeated.includes("meadow"))return topic==="hint"?"The Rootbound Crypt is quiet now. Search its gold chest before the roots close over it again.":"That song has a new ending: you walked into the roots, and the thing below did not walk back out.";
+    if(save.clearedRoomIds.includes(1))return topic==="hint"?"You cleared the meadow, so its south wayfire should answer now. The crypt waits beyond it.":"Mosslight is breathing easier since you broke the first horde. Even the crickets came back.";
+    return topic==="root"?"Sit for a verse, traveler. Mosslight looks peaceful until the grass starts moving against the wind.":null;
+  }
+  if(id==="lio"){
+    const state=npcQuestState(save,EMBER_CRYSTAL_QUEST_ID),crystals=countInventoryItem(save,EMBER_CRYSTAL);
+    if(state==="complete")return topic==="hint"?"Take the bound core to Cora Flint in Greyhaven. Nobody else can temper that much heat safely.":"You came back through the ash with all three shards. I had started composing an apology to your ghost.";
+    if(state==="active")return topic==="hint"?`You have ${crystals} of 3 crystals. Hunt where the basalt glows, but do not stand on the orange seams.`:`Still alive. Good. I can feel ${crystals} clean ${crystals===1?"crystal":"crystals"} knocking together in your pack.`;
+    if(save.bossesDefeated>0)return topic==="root"?"You have the look of someone who has killed something too large to be sensible. Maybe you can survive my crystal run.":null;
+    return topic==="root"?"Water? No? Then maybe you can help with the other problem. Three ember crystals would buy both of us a road out.":null;
+  }
+  if(id==="suri"){
+    const state=npcQuestState(save,FROST_DEFENSE_QUEST_ID),progress=frostDefenseProgress(save);
+    if(state==="complete")return topic==="hint"?"The shelter is safe. Frostmaul still roams below the blue shelf, and its relic chills the air before it appears.":"The avalanche bells stayed quiet last night. You bought this shelter a week of sleep.";
+    if(state==="active")return topic==="hint"?`${3-progress} marked ${3-progress===1?"hunter remains":"hunters remain"}. Draw them away from the stove before you finish them.`:`I heard ${progress} hunter ${progress===1?"fall":"fall"}. The others will come closer after dark.`;
+    if(save.dungeonBossesDefeated.includes("frost"))return topic==="root"?"Frostmaul is gone. The mountain carried that news farther than any runner could.":null;
+    return topic==="root"?"Close the flap behind you. Three ice-manes have been testing my shelter every dusk.":null;
+  }
+  return null;
+}
 const EMBER_QUEST_ELITE_IDS = [1000, 1001, 1002, 1003, 1004] as const;
 const EMBER_QUEST_BOSS_ID = 1005;
 const EMBER_QUEST_TOTAL = 8;
