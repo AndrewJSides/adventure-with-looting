@@ -100,7 +100,9 @@ const saveSchema = z.object({
   specialKills: z.number().int().min(0).max(999999),
   bileJars: z.number().int().min(0).max(99),
   specialTrophies: z.array(z.string().min(1).max(48)).max(60),
-  chestsOpened: z.number().int().min(0).max(999),
+  chestsOpened: z.number().int().min(0).max(999999),
+  bloodMoons: z.number().int().min(0).max(999999),
+  bloodMoonsSurvived: z.number().int().min(0).max(999999),
   runStartedAt: z.string().min(1).max(64),
 });
 
@@ -135,7 +137,7 @@ const BASE_SAVE: z.infer<typeof saveSchema> = {
   openedChestIds: [], claimedPickupIds: [], claimedBreakableIds: [], defeatedEnemyIds: [], clearedRoomIds: [], secretOpenedRoomIds: [], exploredCells: [], truckX: 3335, truckY: 14880, truckFuel: 82, truckHp: 180,
   vehicles: [{ id: "rustbucket", x: 3335, y: 14880, hp: 180, fuel: 82, owned: false, inventory: [] }, { id: "motorcycle", x: 1840, y: 15450, hp: 90, fuel: 76, owned: false, inventory: [] }, { id: "mustang", x: 4375, y: 15095, hp: 140, fuel: 70, owned: false, inventory: [] }, { id: "trailrunner", x: 13330, y: 10740, hp: 180, fuel: 64, owned: false, inventory: [] }, { id: "mire-mule", x: 10635, y: 13210, hp: 180, fuel: 55, owned: false, inventory: [] }],
   dogAdopted: false, dogLevel: 1, dogX: 1210, dogY: 15715, dogHp: 64, dogKills: 0,
-  zombieDogKills: 0, zombieCrowKills: 0, packHuntBonuses: 0, dogTagRelics: 0, leatherScraps: 0, specialEncountered: [], specialKills: 0, bileJars: 0, specialTrophies: [], chestsOpened: 0,
+  zombieDogKills: 0, zombieCrowKills: 0, packHuntBonuses: 0, dogTagRelics: 0, leatherScraps: 0, specialEncountered: [], specialKills: 0, bileJars: 0, specialTrophies: [], chestsOpened: 0, bloodMoons: 0, bloodMoonsSurvived: 0,
   runStartedAt: new Date().toISOString(),
 };
 
@@ -157,7 +159,7 @@ function serialize(row: typeof schema.gameSave.$inferSelect): z.infer<typeof sav
     claimedBreakableIds: row.claimedBreakableIds, defeatedEnemyIds: row.defeatedEnemyIds, clearedRoomIds: row.clearedRoomIds,
     secretOpenedRoomIds: row.secretOpenedRoomIds, exploredCells: row.exploredCells, truckX: row.truckX, truckY: row.truckY, truckFuel: row.truckFuel, truckHp: row.truckHp, vehicles: row.vehicles.map(vehicle => ({ ...vehicle, inventory: Array.isArray(vehicle.inventory) ? vehicle.inventory.slice(0, 4) : [] })),
     dogAdopted: row.dogAdopted, dogLevel: row.dogLevel, dogX: row.dogX, dogY: row.dogY, dogHp: row.dogHp, dogKills: row.dogKills,
-    zombieDogKills: row.zombieDogKills, zombieCrowKills: row.zombieCrowKills, packHuntBonuses: row.packHuntBonuses, dogTagRelics: row.dogTagRelics, leatherScraps: row.leatherScraps, specialEncountered: row.specialEncountered, specialKills: row.specialKills, bileJars: row.bileJars, specialTrophies: row.specialTrophies, chestsOpened: row.chestsOpened,
+    zombieDogKills: row.zombieDogKills, zombieCrowKills: row.zombieCrowKills, packHuntBonuses: row.packHuntBonuses, dogTagRelics: row.dogTagRelics, leatherScraps: row.leatherScraps, specialEncountered: row.specialEncountered, specialKills: row.specialKills, bileJars: row.bileJars, specialTrophies: row.specialTrophies, chestsOpened: row.chestsOpened, bloodMoons: row.bloodMoons, bloodMoonsSurvived: row.bloodMoonsSurvived,
     runStartedAt: row.runStartedAt || row.updatedAt.toISOString(), updatedAt: row.updatedAt.toISOString(),
   };
 }

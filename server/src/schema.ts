@@ -114,6 +114,8 @@ export const gameSave = sqliteTable("game_save", {
   bileJars: integer("bile_jars").notNull().default(0),
   specialTrophies: text("special_trophies", { mode: "json" }).$type<string[]>().notNull().default([]),
   chestsOpened: integer("chests_opened").notNull().default(0),
+  bloodMoons: integer("blood_moons").notNull().default(0),
+  bloodMoonsSurvived: integer("blood_moons_survived").notNull().default(0),
   runStartedAt: text("run_started_at").notNull().default(""),
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
 }, (table) => [uniqueIndex("game_save_owner_key_unique").on(table.ownerKey)]);
