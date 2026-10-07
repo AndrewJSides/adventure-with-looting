@@ -11,12 +11,12 @@ Set by Andrew, Oct 5, 2026. Vision: like **Surroundead** (Steam indie) — open 
 6. **Dungeons** — ✅ SHIPPED (Oct 7, 2026). Three dungeons published: Rootbound Crypt (beneath Mosslight Meadow), Cinder Vault (beneath Ember Wastes), Rimehold Depths (beneath Frostfall Peaks) — entrance portals, chamber combat, 1 elite each, dungeon bosses, relic + gold-chest rewards, objective HUD, minimap markers, safe exits, additive save fields. In-game capture evidence still owed.
 7. **Key-locked chests** — ✅ SHIPPED. Iron/Gold/Ancient keys, six world chests.
 8. **Expansive cities** — ✅ SHIPPED. Greyhaven (inhabited) and Old Greyhaven (abandoned).
-9. **Building interiors** — ❌ NOT SHIPPED. Roofs fade to ~10% opacity concept pending.
+9. **Building interiors** — ✅ SHIPPED (Oct 7, 2026). Doors enter/exit, roofs fade on entry, furnished rooms, searchable loot containers, interior zombies, indoor indicator, additive save fields.
 10. **Day/night cycle** — ✅ SHIPPED. 8-minute cycle, clock HUD, reduced night visibility, stronger night zombies. (Lighting perf fixed: pre-rendered masks, no per-frame gradients.)
 11. **Flashlights** — ✅ SHIPPED. Lootable Basic Flashlight + rare Lantern Rig; tap-to-toggle night cone, slows/reveals zombies.
 12. **Zombie sound effects** — ✅ SHIPPED. Web Audio: groans, snarls, yelps, gurgles, boss roars, night drone, loot chimes. HUD mute toggle.
 13. **Way more NPCs and dialogue** — ✅ SHIPPED. Hearthglen villagers, Sable quest line, Maro's shop, Greyhaven (Cora/Ilyan/Patch/Edda), Old Greyhaven (Alden Cross/Nia Mercer), Lio (Ember Wastes), Suri (Frostfall), Veiled figure. Branching dialogue, quest chains, HUD tracking.
-14. **Deeper storyline** — 🔶 PARTIAL. Cross-NPC quest chains (Ember Crystal → Bound Ember Core → Wayfarer's Ember Charm), Veiled figure mystery hook. Needs a dedicated story pass.
+14. **Deeper storyline** — ✅ SHIPPED (Oct 7, 2026). "The Veil's Truth" five-stage arc: Veiled figure reveal (Nera Rusk, branching), ties Ember Crystal / Bound Ember Core / Wayfarer's Ember Charm chains + all three dungeons; 3-card skippable new-game intro; additive save fields.
 
 ## Zombie trope backlog (from the classics) — added Oct 6, 2026
 Tropes to work through, sourced from famous zombie movies and games:

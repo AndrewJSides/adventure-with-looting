@@ -232,6 +232,13 @@
       "when": 1791369718183,
       "tag": "0033_persist_active_interior",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "6",
+      "when": 1791373164204,
+      "tag": "0034_add_veil_truth_story_progress",
+      "breakpoints": true
     }
   ]
 }

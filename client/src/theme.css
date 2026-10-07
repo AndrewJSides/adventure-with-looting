@@ -771,6 +771,14 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .profiler-peak > small { display: block; margin-top: 5px; color: #758983; font-size: 7px; line-height: 1.5; }
 
 /* Main story: tracked apart from side contracts, with short nonblocking memory panels. */
+.story-intro { position: absolute; inset: 0; z-index: 20; display: grid; place-items: end start; padding: clamp(24px,8vw,52px); overflow: hidden; touch-action: manipulation; background: radial-gradient(circle at 68% 28%, rgba(129,57,31,.2), transparent 35%), linear-gradient(150deg,#101a18 0%,#0a0f12 56%,#1b100e 100%); color: #edf3ef; }
+.story-intro::before { content: ""; position: absolute; inset: 7%; border: 1px solid rgba(226,185,104,.22); pointer-events: none; }
+.story-intro > div { position: relative; width: min(90%,390px); padding-left: 15px; border-left: 3px solid #d9a94e; }
+.story-intro span { color: #e2b968; font-size: 9px; font-weight: 900; letter-spacing: .15em; }
+.story-intro h2 { max-width: 330px; margin: 8px 0 9px; color: #fff2d2; font: 700 clamp(25px,8vw,38px)/1.02 Georgia,serif; }
+.story-intro p { max-width: 350px; margin: 0; color: #cbd5d0; font: 14px/1.45 Georgia,serif; }
+.story-intro small { display: block; margin-top: 20px; color: #8fa09a; font-size: 9px; font-weight: 800; letter-spacing: .06em; }
+.story-intro-skip { position: absolute; top: max(18px,env(safe-area-inset-top)); right: 18px; z-index: 2; min-width: 82px; min-height: 42px; touch-action: manipulation; border: 1px solid #65726c; background: #131c1d; color: #dfe8e3; font-size: 10px; font-weight: 900; }
 .main-story-quest { left: 3.2%; right: auto; width: min(48%, 214px); border-left: 3px solid #e6b85c; background: rgba(12,16,18,.93); }
 .main-story-quest .quest-title span { color: #f0c875; }
 .main-story-quest em { border-top-color: rgba(240,200,117,.24); color: #d9c9a8; }
