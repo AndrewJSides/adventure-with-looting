@@ -379,6 +379,13 @@
       "when": 1791455922188,
       "tag": "0054_add_relic_armor_sets",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "6",
+      "when": 1791460030226,
+      "tag": "0055_add_saint_mercy_infirmary_progress",
+      "breakpoints": true
     }
   ]
 }
