@@ -400,6 +400,13 @@
       "when": 1791467193131,
       "tag": "0057_add_ward_rounds_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "6",
+      "when": 1791470433513,
+      "tag": "0058_add_gameplay_options_and_hud_rail_preferences",
+      "breakpoints": true
     }
   ]
 }
