@@ -449,6 +449,20 @@
       "when": 1791492595997,
       "tag": "0064_add_survivor_xp",
       "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "6",
+      "when": 1791497597359,
+      "tag": "0065_add_fogmariner_boss_state",
+      "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "6",
+      "when": 1791499664789,
+      "tag": "0066_add_harlan_airfield_progress",
+      "breakpoints": true
     }
   ]
 }
