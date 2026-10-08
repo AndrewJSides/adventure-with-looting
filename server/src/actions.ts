@@ -59,7 +59,7 @@ const saveSchema = z.object({
   boltCount: z.number().int().min(0).max(5000),
   woodScraps: z.number().int().min(0).max(999),
   planks: z.number().int().min(0).max(999),
-  barricades: z.array(z.object({ siteId: z.string().min(1).max(24), points: z.array(z.object({ id: z.string().min(1).max(24), hp: z.number().int().min(0).max(100), maxHp: z.number().int().min(1).max(100) })).max(4) })).max(4),
+  barricades: z.array(z.object({ siteId: z.string().min(1).max(24), points: z.array(z.object({ id: z.string().min(1).max(24), hp: z.number().int().min(0).max(100), maxHp: z.number().int().min(1).max(100) })).max(4) })).max(5),
   questState: z.enum(["not_started", "active", "complete"]),
   questTravelOut: z.boolean(),
   questTravelBack: z.boolean(),
@@ -90,6 +90,10 @@ const saveSchema = z.object({
   hardcoreMode: z.boolean().default(false),
   nextRunHardcore: z.boolean().default(false),
   hardcoreBossRewards: z.number().int().min(0).max(999999).default(0),
+  origin: z.enum(["village", "farmhouse"]).default("village"),
+  farmhouseIntroStage: z.number().int().min(0).max(2).default(0),
+  farmhouseRewardClaimed: z.boolean().default(false),
+  healthPotions: z.number().int().min(0).max(99).default(0),
   runsStarted: z.number().int().min(1).max(999999),
   openedChestIds: z.array(z.number().int()).max(100),
   claimedPickupIds: z.array(z.number().int()).max(200),
@@ -172,7 +176,7 @@ const BASE_SAVE: z.infer<typeof saveSchema> = {
   armorName: "Traveler Cloak", armorDefense: 0, charmName: "None", trinketName: "None", gadgetName: "None", flashlightOn: false, uvEmitterOwned: false, uvEmitterOn: false, soundMuted: false, controlScheme: null, critChance: 0.05,
   keys: 0, ironKeys: 0, goldKeys: 0, ancientKeys: 0, vehicleKeyOwned: false, lifesteal: 0, thorns: 0, dashReduction: 0, moveSpeed: 0, pickupRadius: 0,
   items: ["Glock"], storedItems: [], baseStates: [], dungeonProgress: [], dungeonBossesDefeated: [], dungeonLootedChestIds: [], sewerVisited: false, sewerBossDefeated: false, sewerLootedCacheIds: [], respawnBase: "village", rawMeat: 0, cookedMeals: 0, infectionLevel: 0, antibiotics: 0, herbs: 0, antiseptic: 0, gunAmmoState: [{ name: "Glock", magazine: 17, reserve: 68 }], boltCount: 0, woodScraps: 0, planks: 0, barricades: [], questState: "not_started", questTravelOut: false, questTravelBack: false, frontierQuestState: "not_started", npcMetIds: [], npcQuestStates: [], mainStoryState: "not_started", mainStoryChapter: 0, storyIntroSeen: false, veilTruthStage: 0, veilTruthChoice: null, storyFlags: [], ruinedLootedSiteIds: [], visitedBuildingIds: [], activeInteriorId: null, interiorLootedContainerIds: [], interiorDefeatedEnemyIds: [], mallVisited: false, mallBossDefeated: false, mallLootedContainerIds: [], rareLootDrops: [], enemyRespawns: [], kills: 0, headshots: 0, headshotKills: 0, roomsCleared: 0, bossesDefeated: 0, runsStarted: 1,
-  hardcoreMode: false, nextRunHardcore: false, hardcoreBossRewards: 0,
+  hardcoreMode: false, nextRunHardcore: false, hardcoreBossRewards: 0, origin: "village", farmhouseIntroStage: 0, farmhouseRewardClaimed: false, healthPotions: 0,
   openedChestIds: [], claimedPickupIds: [], claimedBreakableIds: [], defeatedEnemyIds: [], clearedRoomIds: [], secretOpenedRoomIds: [], exploredCells: [], truckX: 3335, truckY: 14880, truckFuel: 82, truckHp: 180,
   vehicles: [{ id: "rustbucket", x: 3335, y: 14880, hp: 180, fuel: 82, owned: false, inventory: [] }, { id: "motorcycle", x: 1840, y: 15450, hp: 90, fuel: 76, owned: false, inventory: [] }, { id: "mustang", x: 4375, y: 15095, hp: 140, fuel: 70, owned: false, inventory: [] }, { id: "trailrunner", x: 13330, y: 10740, hp: 180, fuel: 64, owned: false, inventory: [] }, { id: "mire-mule", x: 10635, y: 13210, hp: 180, fuel: 55, owned: false, inventory: [] }],
   dogAdopted: false, dogLevel: 1, dogX: 1210, dogY: 15715, dogHp: 64, dogKills: 0,
@@ -194,7 +198,7 @@ function serialize(row: typeof schema.gameSave.$inferSelect): z.infer<typeof sav
     armorName: row.armorName, armorDefense: row.armorDefense, charmName: row.charmName, trinketName: row.trinketName, gadgetName: row.gadgetName, flashlightOn: row.flashlightOn, uvEmitterOwned: row.uvEmitterOwned, uvEmitterOn: row.uvEmitterOn, soundMuted: row.soundMuted, controlScheme: row.controlScheme, critChance: row.critChance,
     keys: row.keys, ironKeys: row.ironKeys, goldKeys: row.goldKeys, ancientKeys: row.ancientKeys, vehicleKeyOwned: row.vehicleKeyOwned, lifesteal: row.lifesteal, thorns: row.thorns, dashReduction: row.dashReduction, moveSpeed: row.moveSpeed, pickupRadius: row.pickupRadius,
     items: row.items, storedItems: row.storedItems, baseStates: row.baseStates, dungeonProgress: row.dungeonProgress, dungeonBossesDefeated: row.dungeonBossesDefeated, dungeonLootedChestIds: row.dungeonLootedChestIds, sewerVisited: row.sewerVisited, sewerBossDefeated: row.sewerBossDefeated, sewerLootedCacheIds: row.sewerLootedCacheIds, respawnBase: row.respawnBase, rawMeat: row.rawMeat, cookedMeals: row.cookedMeals, infectionLevel: row.infectionLevel, antibiotics: row.antibiotics, herbs: row.herbs, antiseptic: row.antiseptic, gunAmmoState: row.gunAmmoState, boltCount: row.boltCount, woodScraps: row.woodScraps, planks: row.planks, barricades: row.barricades, questState: row.questState, questTravelOut: row.questTravelOut, questTravelBack: row.questTravelBack, frontierQuestState: row.frontierQuestState, npcMetIds: row.npcMetIds, npcQuestStates: row.npcQuestStates, mainStoryState: row.mainStoryState, mainStoryChapter: row.mainStoryChapter, storyIntroSeen: row.storyIntroSeen, veilTruthStage: row.veilTruthStage, veilTruthChoice: row.veilTruthChoice, storyFlags: row.storyFlags, ruinedLootedSiteIds: row.ruinedLootedSiteIds, visitedBuildingIds: row.visitedBuildingIds, activeInteriorId: row.activeInteriorId, interiorLootedContainerIds: row.interiorLootedContainerIds, interiorDefeatedEnemyIds: row.interiorDefeatedEnemyIds, mallVisited: row.mallVisited, mallBossDefeated: row.mallBossDefeated, mallLootedContainerIds: row.mallLootedContainerIds, rareLootDrops: row.rareLootDrops, enemyRespawns: row.enemyRespawns, kills: row.kills, headshots: row.headshots, headshotKills: row.headshotKills, roomsCleared: row.roomsCleared, bossesDefeated: row.bossesDefeated,
-    hardcoreMode: row.hardcoreMode, nextRunHardcore: row.nextRunHardcore, hardcoreBossRewards: row.hardcoreBossRewards,
+    hardcoreMode: row.hardcoreMode, nextRunHardcore: row.nextRunHardcore, hardcoreBossRewards: row.hardcoreBossRewards, origin: row.origin, farmhouseIntroStage: row.farmhouseIntroStage, farmhouseRewardClaimed: row.farmhouseRewardClaimed, healthPotions: row.healthPotions,
     runsStarted: row.runsStarted, openedChestIds: row.openedChestIds, claimedPickupIds: row.claimedPickupIds,
     claimedBreakableIds: row.claimedBreakableIds, defeatedEnemyIds: row.defeatedEnemyIds, clearedRoomIds: row.clearedRoomIds,
     secretOpenedRoomIds: row.secretOpenedRoomIds, exploredCells: row.exploredCells, truckX: row.truckX, truckY: row.truckY, truckFuel: row.truckFuel, truckHp: row.truckHp, vehicles: row.vehicles.map(vehicle => ({ ...vehicle, inventory: Array.isArray(vehicle.inventory) ? vehicle.inventory.slice(0, 4) : [] })),
@@ -315,7 +319,7 @@ export const Actions = {
   }),
 
   resetGame: defineAction({
-    request: z.object({ hardcore: z.boolean().default(false) }), response: writeResponse,
+    request: z.object({ hardcore: z.boolean().default(false), origin: z.enum(["village", "farmhouse"]).default("village") }), response: writeResponse,
     async handler(ctx, args): Promise<z.infer<typeof writeResponse>> {
       const ownerKey = viewerKey(ctx);
       if (!ownerKey) return { ok: false, message: "Sign in to start a synced run." };
@@ -323,7 +327,8 @@ export const Actions = {
       const existing = await db.select().from(schema.gameSave).where(eq(schema.gameSave.ownerKey, ownerKey)).limit(1);
       const runsStarted = (existing[0]?.runsStarted ?? 0) + 1;
       const now = new Date();
-      const fresh = { ...BASE_SAVE, hardcoreMode: args.hardcore, nextRunHardcore: args.hardcore, runsStarted, runStartedAt: now.toISOString() };
+      const farmhouseBarricades = args.origin === "farmhouse" ? [{ siteId: "farmhouse", points: [{ id: "farmhouse-door", hp: 50, maxHp: 100 }, { id: "farmhouse-window-west", hp: 50, maxHp: 100 }, { id: "farmhouse-window-east", hp: 50, maxHp: 100 }] }] : [];
+      const fresh = { ...BASE_SAVE, hardcoreMode: args.hardcore, nextRunHardcore: args.hardcore, origin: args.origin, farmhouseIntroStage: 0, farmhouseRewardClaimed: false, healthPotions: 0, barricades: farmhouseBarricades, timeOfDay: args.origin === "farmhouse" ? .69 : BASE_SAVE.timeOfDay, runsStarted, runStartedAt: now.toISOString() };
       await db.insert(schema.gameSave).values({ ownerKey, ...fresh, updatedAt: now })
         .onConflictDoUpdate({ target: schema.gameSave.ownerKey, set: { ...fresh, updatedAt: now } });
       const rows = await db.select().from(schema.gameSave).where(eq(schema.gameSave.ownerKey, ownerKey)).limit(1);
