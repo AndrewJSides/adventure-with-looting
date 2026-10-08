@@ -76,6 +76,8 @@ export const gameSave = sqliteTable("game_save", {
   hospitalGeneratorPowered: integer("hospital_generator_powered", { mode: "boolean" }).notNull().default(false),
   hospitalBossDefeated: integer("hospital_boss_defeated", { mode: "boolean" }).notNull().default(false),
   hospitalVisited: integer("hospital_visited", { mode: "boolean" }).notNull().default(false),
+  wardRoundsStage: integer("ward_rounds_stage").notNull().default(0),
+  quarantineVialFound: integer("quarantine_vial_found", { mode: "boolean" }).notNull().default(false),
   gunAmmoState: text("gun_ammo_state", { mode: "json" }).$type<Array<{ name: string; magazine: number; reserve: number }>>().notNull().default([]),
   boltCount: integer("bolt_count").notNull().default(0),
   woodScraps: integer("wood_scraps").notNull().default(0),
