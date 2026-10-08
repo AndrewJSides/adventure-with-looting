@@ -140,6 +140,7 @@ export const gameSave = sqliteTable("game_save", {
   volatileTrophyOwned: integer("volatile_trophy_owned", { mode: "boolean" }).notNull().default(false),
   volatileNestDespawnedIds: text("volatile_nest_despawned_ids", { mode: "json" }).$type<number[]>().notNull().default([]),
   comboCrafts: integer("combo_crafts").notNull().default(0),
+  weaponUpgrades: text("weapon_upgrades", { mode: "json" }).$type<Array<{ name: string; tier: number }>>().notNull().default([]),
   boxLocation: integer("box_location").notNull().default(0),
   boxPullsRemaining: integer("box_pulls_remaining").notNull().default(0),
   boxPoolState: text("box_pool_state", { mode: "json" }).$type<string[]>().notNull().default([]),
