@@ -33,6 +33,8 @@ export const gameSave = sqliteTable("game_save", {
   meleeWeaponName: text("melee_weapon_name").notNull().default("Rustblade"),
   armorName: text("armor_name").notNull().default("Traveler Cloak"),
   armorDefense: integer("armor_defense").notNull().default(0),
+  armorPieces: text("armor_pieces", { mode: "json" }).$type<string[]>().notNull().default([]),
+  equippedArmorPieces: text("equipped_armor_pieces", { mode: "json" }).$type<string[]>().notNull().default([]),
   charmName: text("charm_name").notNull().default("None"),
   trinketName: text("trinket_name").notNull().default("None"),
   gadgetName: text("gadget_name").notNull().default("None"),

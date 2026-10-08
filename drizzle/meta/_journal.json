@@ -372,6 +372,13 @@
       "when": 1791445593941,
       "tag": "0053_add_harvester_persistence",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "6",
+      "when": 1791455922188,
+      "tag": "0054_add_relic_armor_sets",
+      "breakpoints": true
     }
   ]
 }
