@@ -7,7 +7,7 @@ const rareLootDropSchema = z.object({ id: z.number().int(), itemId: z.string().m
 const enemyRespawnSchema = z.object({ id: z.number().int(), respawnAt: z.number().int().nonnegative() });
 const vehicleStateSchema = z.object({ id: z.string().min(1).max(24), x: z.number().min(0).max(14400), y: z.number().min(0).max(17800), hp: z.number().min(0).max(180), fuel: z.number().min(0).max(100), owned: z.boolean(), inventory: z.array(z.string().min(1).max(40)).max(4) });
 const saveSchema = z.object({
-  room: z.number().int().min(1).max(16),
+  room: z.number().int().min(1).max(17),
   level: z.number().int().min(1).max(99),
   timeOfDay: z.number().min(0).max(1),
   hp: z.number().int().min(0).max(999),
@@ -120,8 +120,8 @@ const saveSchema = z.object({
   claimedPickupIds: z.array(z.number().int()).max(200),
   claimedBreakableIds: z.array(z.number().int()).max(100),
   defeatedEnemyIds: z.array(z.number().int()).max(2000),
-  clearedRoomIds: z.array(z.number().int().min(1).max(16)).max(16),
-  secretOpenedRoomIds: z.array(z.number().int().min(1).max(16)).max(16),
+  clearedRoomIds: z.array(z.number().int().min(1).max(17)).max(17),
+  secretOpenedRoomIds: z.array(z.number().int().min(1).max(17)).max(17),
   exploredCells: z.array(z.string().regex(/^\d+:\d+$/)).max(8000),
   truckX: z.number().min(0).max(14400),
   truckY: z.number().min(0).max(17800),
@@ -149,8 +149,16 @@ const saveSchema = z.object({
   holdoutBestWaves: z.array(z.object({ id: z.enum(["ember", "frost", "mire"]), wave: z.number().int().min(0).max(10) })).max(3).default([]),
   holdoutCompletions: z.array(z.object({ id: z.enum(["ember", "frost", "mire"]), count: z.number().int().min(0).max(999999) })).max(3).default([]),
   worldDay: z.number().int().min(0).max(999999).default(0),
-  regionWeather: z.array(z.object({ regionId: z.number().int().min(1).max(16), kind: z.enum(["clear", "rain", "storm", "ash", "blizzard", "fog"]) })).max(16).default([]),
+  regionWeather: z.array(z.object({ regionId: z.number().int().min(1).max(17), kind: z.enum(["clear", "rain", "storm", "ash", "blizzard", "fog"]) })).max(17).default([]),
   weatherCycleTick: z.number().int().min(0).max(999999999).default(0),
+  blackwaterVisited: z.boolean().default(false),
+  baySkiffUnlocked: z.boolean().default(false),
+  lighthouseClimbed: z.boolean().default(false),
+  wreckmotherKilled: z.boolean().default(false),
+  wreckmotherRespawnDay: z.number().int().min(0).max(999999).default(0),
+  wreckmotherX: z.number().min(0).max(14400).default(0),
+  wreckmotherY: z.number().min(0).max(17800).default(0),
+  wreckmotherHp: z.number().min(0).max(99999).default(0),
   harvesterState: z.number().int().min(0).max(2).default(0),
   harvesterX: z.number().min(0).max(14400).default(0),
   harvesterY: z.number().min(0).max(17800).default(0),
@@ -223,7 +231,7 @@ const BASE_SAVE: z.infer<typeof saveSchema> = {
   openedChestIds: [], claimedPickupIds: [], claimedBreakableIds: [], defeatedEnemyIds: [], clearedRoomIds: [], secretOpenedRoomIds: [], exploredCells: [], truckX: 3335, truckY: 14880, truckFuel: 82, truckHp: 180,
   vehicles: [{ id: "rustbucket", x: 3335, y: 14880, hp: 180, fuel: 82, owned: false, inventory: [] }, { id: "motorcycle", x: 1840, y: 15450, hp: 90, fuel: 76, owned: false, inventory: [] }, { id: "mustang", x: 4375, y: 15095, hp: 140, fuel: 70, owned: false, inventory: [] }, { id: "trailrunner", x: 13330, y: 10740, hp: 180, fuel: 64, owned: false, inventory: [] }, { id: "mire-mule", x: 10635, y: 13210, hp: 180, fuel: 55, owned: false, inventory: [] }],
   dogAdopted: false, dogLevel: 1, dogX: 1210, dogY: 15715, dogHp: 64, dogKills: 0,
-  zombieDogKills: 0, zombieCrowKills: 0, packHuntBonuses: 0, dogTagRelics: 0, leatherScraps: 0, specialEncountered: [], specialKills: 0, bileJars: 0, pipeBombs: 0, molotovs: 0, rags: 0, selectedThrowable: "pipeBomb", specialTrophies: [], chestsOpened: 0, bloodMoons: 0, bloodMoonsSurvived: 0, holdoutBestWaves: [], holdoutCompletions: [], worldDay: 0, regionWeather: [], weatherCycleTick: 0, harvesterState: 0, harvesterX: 0, harvesterY: 0, harvesterHp: 0, harvesterRespawnDay: 0, sunwraithState: 0, sunwraithX: 0, sunwraithY: 0, sunwraithHp: 0, sunwraithRespawnDay: 0, sunwraithVeilOwned: false, sunwraithVeilUntil: 0, volatileKills: 0, volatileEyes: 0, volatileTrophyOwned: false, volatileNestDespawnedIds: [], comboCrafts: 0, weaponUpgrades: [], boxLocation: 0, boxPullsRemaining: 0, boxPoolState: [], yarrowLocation: 0, perkInventory: [], activePerks: [], collectedRuleIds: [], readRuleIds: [], uvCells: 0, scrapBlades: 0, nails: 0, oil: 0, cloth: 0, lanternMarketPurchases: 0, lanternMarketRelicBoughtNight: 0,
+  zombieDogKills: 0, zombieCrowKills: 0, packHuntBonuses: 0, dogTagRelics: 0, leatherScraps: 0, specialEncountered: [], specialKills: 0, bileJars: 0, pipeBombs: 0, molotovs: 0, rags: 0, selectedThrowable: "pipeBomb", specialTrophies: [], chestsOpened: 0, bloodMoons: 0, bloodMoonsSurvived: 0, holdoutBestWaves: [], holdoutCompletions: [], worldDay: 0, regionWeather: [], weatherCycleTick: 0, blackwaterVisited: false, baySkiffUnlocked: false, lighthouseClimbed: false, wreckmotherKilled: false, wreckmotherRespawnDay: 0, wreckmotherX: 0, wreckmotherY: 0, wreckmotherHp: 0, harvesterState: 0, harvesterX: 0, harvesterY: 0, harvesterHp: 0, harvesterRespawnDay: 0, sunwraithState: 0, sunwraithX: 0, sunwraithY: 0, sunwraithHp: 0, sunwraithRespawnDay: 0, sunwraithVeilOwned: false, sunwraithVeilUntil: 0, volatileKills: 0, volatileEyes: 0, volatileTrophyOwned: false, volatileNestDespawnedIds: [], comboCrafts: 0, weaponUpgrades: [], boxLocation: 0, boxPullsRemaining: 0, boxPoolState: [], yarrowLocation: 0, perkInventory: [], activePerks: [], collectedRuleIds: [], readRuleIds: [], uvCells: 0, scrapBlades: 0, nails: 0, oil: 0, cloth: 0, lanternMarketPurchases: 0, lanternMarketRelicBoughtNight: 0,
   runStartedAt: new Date().toISOString(),
 };
 
@@ -246,7 +254,7 @@ function serialize(row: typeof schema.gameSave.$inferSelect): z.infer<typeof sav
     claimedBreakableIds: row.claimedBreakableIds, defeatedEnemyIds: row.defeatedEnemyIds, clearedRoomIds: row.clearedRoomIds,
     secretOpenedRoomIds: row.secretOpenedRoomIds, exploredCells: row.exploredCells, truckX: row.truckX, truckY: row.truckY, truckFuel: row.truckFuel, truckHp: row.truckHp, vehicles: row.vehicles.map(vehicle => ({ ...vehicle, inventory: Array.isArray(vehicle.inventory) ? vehicle.inventory.slice(0, 4) : [] })),
     dogAdopted: row.dogAdopted, dogLevel: row.dogLevel, dogX: row.dogX, dogY: row.dogY, dogHp: row.dogHp, dogKills: row.dogKills,
-    zombieDogKills: row.zombieDogKills, zombieCrowKills: row.zombieCrowKills, packHuntBonuses: row.packHuntBonuses, dogTagRelics: row.dogTagRelics, leatherScraps: row.leatherScraps, specialEncountered: row.specialEncountered, specialKills: row.specialKills, bileJars: row.bileJars, pipeBombs: row.pipeBombs, molotovs: row.molotovs, rags: row.rags, selectedThrowable: row.selectedThrowable, specialTrophies: row.specialTrophies, chestsOpened: row.chestsOpened, bloodMoons: row.bloodMoons, bloodMoonsSurvived: row.bloodMoonsSurvived, holdoutBestWaves: row.holdoutBestWaves, holdoutCompletions: row.holdoutCompletions, worldDay: row.worldDay, regionWeather: row.regionWeather, weatherCycleTick: row.weatherCycleTick, harvesterState: row.harvesterState, harvesterX: row.harvesterX, harvesterY: row.harvesterY, harvesterHp: row.harvesterHp, harvesterRespawnDay: row.harvesterRespawnDay, sunwraithState: row.sunwraithState, sunwraithX: row.sunwraithX, sunwraithY: row.sunwraithY, sunwraithHp: row.sunwraithHp, sunwraithRespawnDay: row.sunwraithRespawnDay, sunwraithVeilOwned: row.sunwraithVeilOwned, sunwraithVeilUntil: row.sunwraithVeilUntil, volatileKills: row.volatileKills, volatileEyes: row.volatileEyes, volatileTrophyOwned: row.volatileTrophyOwned, volatileNestDespawnedIds: row.volatileNestDespawnedIds, comboCrafts: row.comboCrafts, weaponUpgrades: row.weaponUpgrades, boxLocation: row.boxLocation, boxPullsRemaining: row.boxPullsRemaining, boxPoolState: row.boxPoolState, yarrowLocation: row.yarrowLocation, perkInventory: row.perkInventory, activePerks: row.activePerks, collectedRuleIds: row.collectedRuleIds, readRuleIds: row.readRuleIds, uvCells: row.uvCells, scrapBlades: row.scrapBlades, nails: row.nails, oil: row.oil, cloth: row.cloth, lanternMarketPurchases: row.lanternMarketPurchases, lanternMarketRelicBoughtNight: row.lanternMarketRelicBoughtNight,
+    zombieDogKills: row.zombieDogKills, zombieCrowKills: row.zombieCrowKills, packHuntBonuses: row.packHuntBonuses, dogTagRelics: row.dogTagRelics, leatherScraps: row.leatherScraps, specialEncountered: row.specialEncountered, specialKills: row.specialKills, bileJars: row.bileJars, pipeBombs: row.pipeBombs, molotovs: row.molotovs, rags: row.rags, selectedThrowable: row.selectedThrowable, specialTrophies: row.specialTrophies, chestsOpened: row.chestsOpened, bloodMoons: row.bloodMoons, bloodMoonsSurvived: row.bloodMoonsSurvived, holdoutBestWaves: row.holdoutBestWaves, holdoutCompletions: row.holdoutCompletions, worldDay: row.worldDay, regionWeather: row.regionWeather, weatherCycleTick: row.weatherCycleTick, blackwaterVisited: row.blackwaterVisited, baySkiffUnlocked: row.baySkiffUnlocked, lighthouseClimbed: row.lighthouseClimbed, wreckmotherKilled: row.wreckmotherKilled, wreckmotherRespawnDay: row.wreckmotherRespawnDay, wreckmotherX: row.wreckmotherX, wreckmotherY: row.wreckmotherY, wreckmotherHp: row.wreckmotherHp, harvesterState: row.harvesterState, harvesterX: row.harvesterX, harvesterY: row.harvesterY, harvesterHp: row.harvesterHp, harvesterRespawnDay: row.harvesterRespawnDay, sunwraithState: row.sunwraithState, sunwraithX: row.sunwraithX, sunwraithY: row.sunwraithY, sunwraithHp: row.sunwraithHp, sunwraithRespawnDay: row.sunwraithRespawnDay, sunwraithVeilOwned: row.sunwraithVeilOwned, sunwraithVeilUntil: row.sunwraithVeilUntil, volatileKills: row.volatileKills, volatileEyes: row.volatileEyes, volatileTrophyOwned: row.volatileTrophyOwned, volatileNestDespawnedIds: row.volatileNestDespawnedIds, comboCrafts: row.comboCrafts, weaponUpgrades: row.weaponUpgrades, boxLocation: row.boxLocation, boxPullsRemaining: row.boxPullsRemaining, boxPoolState: row.boxPoolState, yarrowLocation: row.yarrowLocation, perkInventory: row.perkInventory, activePerks: row.activePerks, collectedRuleIds: row.collectedRuleIds, readRuleIds: row.readRuleIds, uvCells: row.uvCells, scrapBlades: row.scrapBlades, nails: row.nails, oil: row.oil, cloth: row.cloth, lanternMarketPurchases: row.lanternMarketPurchases, lanternMarketRelicBoughtNight: row.lanternMarketRelicBoughtNight,
     runStartedAt: row.runStartedAt || row.updatedAt.toISOString(), updatedAt: row.updatedAt.toISOString(),
   };
 }
