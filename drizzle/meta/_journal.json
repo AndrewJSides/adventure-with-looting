@@ -435,6 +435,13 @@
       "when": 1791486205332,
       "tag": "0062_add_blackwater_bay_progress",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "6",
+      "when": 1791489268486,
+      "tag": "0063_add_fishing_and_angler_shop_fields",
+      "breakpoints": true
     }
   ]
 }
