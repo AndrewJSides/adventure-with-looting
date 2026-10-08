@@ -414,6 +414,13 @@
       "when": 1791474525519,
       "tag": "0059_add_sunwraith_persistence",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "6",
+      "when": 1791477992372,
+      "tag": "0060_add_regional_weather_persistence",
+      "breakpoints": true
     }
   ]
 }

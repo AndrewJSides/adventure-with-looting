@@ -162,6 +162,8 @@ export const gameSave = sqliteTable("game_save", {
   holdoutBestWaves: text("holdout_best_waves", { mode: "json" }).$type<Array<{ id: "ember" | "frost" | "mire"; wave: number }>>().notNull().default([]),
   holdoutCompletions: text("holdout_completions", { mode: "json" }).$type<Array<{ id: "ember" | "frost" | "mire"; count: number }>>().notNull().default([]),
   worldDay: integer("world_day").notNull().default(0),
+  regionWeather: text("region_weather", { mode: "json" }).$type<Array<{ regionId: number; kind: "clear" | "rain" | "storm" | "ash" | "blizzard" | "fog" }>>().notNull().default([]),
+  weatherCycleTick: integer("weather_cycle_tick").notNull().default(0),
   harvesterState: integer("harvester_state").notNull().default(0),
   harvesterX: real("harvester_x").notNull().default(0),
   harvesterY: real("harvester_y").notNull().default(0),

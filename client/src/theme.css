@@ -1058,3 +1058,14 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .option-audio input { width:100%; height:36px; margin:0; accent-color:#ed9349; touch-action:none; }
 .option-segment { padding:10px 12px; }.option-segment>div { display:grid; grid-template-columns:repeat(3,1fr); gap:5px; margin-top:10px; }.option-segment button { min-height:44px; border:1px solid #46595c; background:#192429; color:#b8c4c1; font-size:10px; font-weight:900; touch-action:none; }.option-segment button.selected { border-color:#df8b43; background:#60391f; color:#ffe0ad; }
 @media (max-width:410px) { .status-rail { top:8px; }.status-rail-items { width:min(164px,44vw); max-height:62dvh; }.rail-item { min-height:36px; padding:6px 8px; }.options-overlay { padding-inline:12px; }.options-list { gap:6px; }.option-toggle,.option-audio,.option-segment { min-height:58px; } }
+.weather-indicator { position: relative; z-index: 6; display: flex; align-items: center; gap: 7px; min-width: 118px; max-width: 190px; height: 32px; padding: 3px 9px; color: #edf3f2; background: rgba(7,12,16,.78); border: 1px solid rgba(174,192,194,.35); box-shadow: 0 4px 14px rgba(0,0,0,.24); pointer-events: none; }
+.weather-indicator > i { display: grid; place-items: center; width: 24px; height: 24px; flex: 0 0 24px; color: #b9dced; font: 900 20px/1 Georgia,serif; font-style: normal; }
+.weather-indicator > span { min-width: 0; display: grid; gap: 1px; }
+.weather-indicator b,.weather-indicator small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.weather-indicator b { font-size: 10px; line-height: 1; letter-spacing: .055em; text-transform: uppercase; }
+.weather-indicator small { color: #aebcba; font-size: 8px; line-height: 1.2; }
+.weather-indicator.weather-storm { border-color: rgba(166,211,255,.7); }
+.weather-indicator.weather-ash { border-color: rgba(220,112,62,.66); }
+.weather-indicator.weather-blizzard { border-color: rgba(213,241,255,.72); }
+.weather-indicator.weather-fog { border-color: rgba(177,195,189,.6); }
+@media(max-width:430px){.weather-indicator{min-width:108px;max-width:47vw;padding-inline:7px}.weather-indicator > i{width:20px;flex-basis:20px;font-size:17px}}
