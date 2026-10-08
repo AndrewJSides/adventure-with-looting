@@ -172,6 +172,13 @@ export const gameSave = sqliteTable("game_save", {
   activePerks: text("active_perks", { mode: "json" }).$type<Array<{ id: "ironhide" | "swiftstride" | "quickfingers" | "secondWind" | "scavengerLuck"; expiresAt: number }>>().notNull().default([]),
   collectedRuleIds: text("collected_rule_ids", { mode: "json" }).$type<string[]>().notNull().default([]),
   readRuleIds: text("read_rule_ids", { mode: "json" }).$type<string[]>().notNull().default([]),
+  uvCells: integer("uv_cells").notNull().default(0),
+  scrapBlades: integer("scrap_blades").notNull().default(0),
+  nails: integer("nails").notNull().default(0),
+  oil: integer("oil").notNull().default(0),
+  cloth: integer("cloth").notNull().default(0),
+  lanternMarketPurchases: integer("lantern_market_purchases").notNull().default(0),
+  lanternMarketRelicBoughtNight: integer("lantern_market_relic_bought_night").notNull().default(0),
   runStartedAt: text("run_started_at").notNull().default(""),
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
 }, (table) => [uniqueIndex("game_save_owner_key_unique").on(table.ownerKey)]);
