@@ -87,6 +87,9 @@ const saveSchema = z.object({
   headshotKills: z.number().int().min(0).max(999999),
   roomsCleared: z.number().int().min(0).max(999999),
   bossesDefeated: z.number().int().min(0).max(999999),
+  hardcoreMode: z.boolean().default(false),
+  nextRunHardcore: z.boolean().default(false),
+  hardcoreBossRewards: z.number().int().min(0).max(999999).default(0),
   runsStarted: z.number().int().min(1).max(999999),
   openedChestIds: z.array(z.number().int()).max(100),
   claimedPickupIds: z.array(z.number().int()).max(200),
@@ -147,6 +150,10 @@ const writeResponse = z.discriminatedUnion("ok", [
   z.object({ ok: z.literal(true), save: savedSchema }),
   z.object({ ok: z.literal(false), message: z.string() }),
 ]);
+const wipeResponse = z.discriminatedUnion("ok", [
+  z.object({ ok: z.literal(true) }),
+  z.object({ ok: z.literal(false), message: z.string() }),
+]);
 
 const perfSubsystemSchema = z.object({ render: z.number().nonnegative().optional(), terrain: z.number().nonnegative(), streaming: z.number().nonnegative(), entities: z.number().nonnegative(), camera: z.number().nonnegative(), hud: z.number().nonnegative(), collision: z.number().nonnegative(), enemyAi: z.number().nonnegative(), audio: z.number().nonnegative(), save: z.number().nonnegative() });
 const perfChunkLoadEventSchema = z.object({ timestamp: z.number().int().nonnegative(), key: z.string().min(1).max(40), durationMs: z.number().nonnegative().max(10000).optional(), drawCalls: z.number().int().nonnegative().max(100000).optional() });
@@ -165,6 +172,7 @@ const BASE_SAVE: z.infer<typeof saveSchema> = {
   armorName: "Traveler Cloak", armorDefense: 0, charmName: "None", trinketName: "None", gadgetName: "None", flashlightOn: false, uvEmitterOwned: false, uvEmitterOn: false, soundMuted: false, controlScheme: null, critChance: 0.05,
   keys: 0, ironKeys: 0, goldKeys: 0, ancientKeys: 0, vehicleKeyOwned: false, lifesteal: 0, thorns: 0, dashReduction: 0, moveSpeed: 0, pickupRadius: 0,
   items: ["Glock"], storedItems: [], baseStates: [], dungeonProgress: [], dungeonBossesDefeated: [], dungeonLootedChestIds: [], sewerVisited: false, sewerBossDefeated: false, sewerLootedCacheIds: [], respawnBase: "village", rawMeat: 0, cookedMeals: 0, infectionLevel: 0, antibiotics: 0, herbs: 0, antiseptic: 0, gunAmmoState: [{ name: "Glock", magazine: 17, reserve: 68 }], boltCount: 0, woodScraps: 0, planks: 0, barricades: [], questState: "not_started", questTravelOut: false, questTravelBack: false, frontierQuestState: "not_started", npcMetIds: [], npcQuestStates: [], mainStoryState: "not_started", mainStoryChapter: 0, storyIntroSeen: false, veilTruthStage: 0, veilTruthChoice: null, storyFlags: [], ruinedLootedSiteIds: [], visitedBuildingIds: [], activeInteriorId: null, interiorLootedContainerIds: [], interiorDefeatedEnemyIds: [], mallVisited: false, mallBossDefeated: false, mallLootedContainerIds: [], rareLootDrops: [], enemyRespawns: [], kills: 0, headshots: 0, headshotKills: 0, roomsCleared: 0, bossesDefeated: 0, runsStarted: 1,
+  hardcoreMode: false, nextRunHardcore: false, hardcoreBossRewards: 0,
   openedChestIds: [], claimedPickupIds: [], claimedBreakableIds: [], defeatedEnemyIds: [], clearedRoomIds: [], secretOpenedRoomIds: [], exploredCells: [], truckX: 3335, truckY: 14880, truckFuel: 82, truckHp: 180,
   vehicles: [{ id: "rustbucket", x: 3335, y: 14880, hp: 180, fuel: 82, owned: false, inventory: [] }, { id: "motorcycle", x: 1840, y: 15450, hp: 90, fuel: 76, owned: false, inventory: [] }, { id: "mustang", x: 4375, y: 15095, hp: 140, fuel: 70, owned: false, inventory: [] }, { id: "trailrunner", x: 13330, y: 10740, hp: 180, fuel: 64, owned: false, inventory: [] }, { id: "mire-mule", x: 10635, y: 13210, hp: 180, fuel: 55, owned: false, inventory: [] }],
   dogAdopted: false, dogLevel: 1, dogX: 1210, dogY: 15715, dogHp: 64, dogKills: 0,
@@ -186,6 +194,7 @@ function serialize(row: typeof schema.gameSave.$inferSelect): z.infer<typeof sav
     armorName: row.armorName, armorDefense: row.armorDefense, charmName: row.charmName, trinketName: row.trinketName, gadgetName: row.gadgetName, flashlightOn: row.flashlightOn, uvEmitterOwned: row.uvEmitterOwned, uvEmitterOn: row.uvEmitterOn, soundMuted: row.soundMuted, controlScheme: row.controlScheme, critChance: row.critChance,
     keys: row.keys, ironKeys: row.ironKeys, goldKeys: row.goldKeys, ancientKeys: row.ancientKeys, vehicleKeyOwned: row.vehicleKeyOwned, lifesteal: row.lifesteal, thorns: row.thorns, dashReduction: row.dashReduction, moveSpeed: row.moveSpeed, pickupRadius: row.pickupRadius,
     items: row.items, storedItems: row.storedItems, baseStates: row.baseStates, dungeonProgress: row.dungeonProgress, dungeonBossesDefeated: row.dungeonBossesDefeated, dungeonLootedChestIds: row.dungeonLootedChestIds, sewerVisited: row.sewerVisited, sewerBossDefeated: row.sewerBossDefeated, sewerLootedCacheIds: row.sewerLootedCacheIds, respawnBase: row.respawnBase, rawMeat: row.rawMeat, cookedMeals: row.cookedMeals, infectionLevel: row.infectionLevel, antibiotics: row.antibiotics, herbs: row.herbs, antiseptic: row.antiseptic, gunAmmoState: row.gunAmmoState, boltCount: row.boltCount, woodScraps: row.woodScraps, planks: row.planks, barricades: row.barricades, questState: row.questState, questTravelOut: row.questTravelOut, questTravelBack: row.questTravelBack, frontierQuestState: row.frontierQuestState, npcMetIds: row.npcMetIds, npcQuestStates: row.npcQuestStates, mainStoryState: row.mainStoryState, mainStoryChapter: row.mainStoryChapter, storyIntroSeen: row.storyIntroSeen, veilTruthStage: row.veilTruthStage, veilTruthChoice: row.veilTruthChoice, storyFlags: row.storyFlags, ruinedLootedSiteIds: row.ruinedLootedSiteIds, visitedBuildingIds: row.visitedBuildingIds, activeInteriorId: row.activeInteriorId, interiorLootedContainerIds: row.interiorLootedContainerIds, interiorDefeatedEnemyIds: row.interiorDefeatedEnemyIds, mallVisited: row.mallVisited, mallBossDefeated: row.mallBossDefeated, mallLootedContainerIds: row.mallLootedContainerIds, rareLootDrops: row.rareLootDrops, enemyRespawns: row.enemyRespawns, kills: row.kills, headshots: row.headshots, headshotKills: row.headshotKills, roomsCleared: row.roomsCleared, bossesDefeated: row.bossesDefeated,
+    hardcoreMode: row.hardcoreMode, nextRunHardcore: row.nextRunHardcore, hardcoreBossRewards: row.hardcoreBossRewards,
     runsStarted: row.runsStarted, openedChestIds: row.openedChestIds, claimedPickupIds: row.claimedPickupIds,
     claimedBreakableIds: row.claimedBreakableIds, defeatedEnemyIds: row.defeatedEnemyIds, clearedRoomIds: row.clearedRoomIds,
     secretOpenedRoomIds: row.secretOpenedRoomIds, exploredCells: row.exploredCells, truckX: row.truckX, truckY: row.truckY, truckFuel: row.truckFuel, truckHp: row.truckHp, vehicles: row.vehicles.map(vehicle => ({ ...vehicle, inventory: Array.isArray(vehicle.inventory) ? vehicle.inventory.slice(0, 4) : [] })),
@@ -306,16 +315,15 @@ export const Actions = {
   }),
 
   resetGame: defineAction({
-
-    request: z.object({}), response: writeResponse,
-    async handler(ctx): Promise<z.infer<typeof writeResponse>> {
+    request: z.object({ hardcore: z.boolean().default(false) }), response: writeResponse,
+    async handler(ctx, args): Promise<z.infer<typeof writeResponse>> {
       const ownerKey = viewerKey(ctx);
       if (!ownerKey) return { ok: false, message: "Sign in to start a synced run." };
       const db = ctx.db<typeof schema>();
       const existing = await db.select().from(schema.gameSave).where(eq(schema.gameSave.ownerKey, ownerKey)).limit(1);
       const runsStarted = (existing[0]?.runsStarted ?? 0) + 1;
       const now = new Date();
-      const fresh = { ...BASE_SAVE, runsStarted, runStartedAt: now.toISOString() };
+      const fresh = { ...BASE_SAVE, hardcoreMode: args.hardcore, nextRunHardcore: args.hardcore, runsStarted, runStartedAt: now.toISOString() };
       await db.insert(schema.gameSave).values({ ownerKey, ...fresh, updatedAt: now })
         .onConflictDoUpdate({ target: schema.gameSave.ownerKey, set: { ...fresh, updatedAt: now } });
       const rows = await db.select().from(schema.gameSave).where(eq(schema.gameSave.ownerKey, ownerKey)).limit(1);
@@ -323,6 +331,17 @@ export const Actions = {
       if (!row) return { ok: false, message: "The new run could not be confirmed. Try again." };
       ctx.invalidateQueries();
       return { ok: true, save: serialize(row) };
+    },
+  }),
+
+  wipeHardcoreRun: defineAction({
+    request: z.object({}), response: wipeResponse,
+    async handler(ctx): Promise<z.infer<typeof wipeResponse>> {
+      const ownerKey = viewerKey(ctx);
+      if (!ownerKey) return { ok: true };
+      await ctx.db<typeof schema>().delete(schema.gameSave).where(eq(schema.gameSave.ownerKey, ownerKey));
+      ctx.invalidateQueries();
+      return { ok: true };
     },
   }),
 } satisfies ActionsModule;

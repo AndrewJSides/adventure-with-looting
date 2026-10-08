@@ -344,6 +344,20 @@
       "when": 1791427406454,
       "tag": "0049_add_holdout_progress",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "6",
+      "when": 1791436329982,
+      "tag": "0050_add_doc_yarrow_perk_elixirs",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "6",
+      "when": 1791437967187,
+      "tag": "0051_add_hardcore_mode",
+      "breakpoints": true
     }
   ]
 }
