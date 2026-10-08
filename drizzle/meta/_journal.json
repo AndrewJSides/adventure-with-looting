@@ -365,6 +365,13 @@
       "when": 1791441719138,
       "tag": "0052_add_farmhouse_origin",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "6",
+      "when": 1791445593941,
+      "tag": "0053_add_harvester_persistence",
+      "breakpoints": true
     }
   ]
 }
