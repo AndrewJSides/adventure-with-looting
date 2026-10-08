@@ -855,3 +855,50 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .forge-compare{display:grid;grid-template-columns:1fr 18px 1fr;align-items:center;gap:5px;padding:8px;background:#121615}.forge-compare>span{display:grid;gap:2px}.forge-compare small{color:#8d9b94;font-size:7px;font-weight:900;letter-spacing:.1em}.forge-compare b{color:#fff2d4;font-size:13px}.forge-compare em{min-height:23px;color:#d19a67;font-size:9px;font-style:normal;line-height:1.25}.forge-compare>i{color:#b87339;font-style:normal;text-align:center}
 .forge-weapons section>button{min-height:52px;padding:7px 10px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;border:1px solid #d77a32;background:#6d331d;color:#fff0d0;text-align:left;touch-action:none}.forge-weapons section>button span{font-size:10px;font-weight:900;letter-spacing:.08em}.forge-weapons section>button small{color:#f0c792;font-size:9px}.forge-weapons section>button:disabled{opacity:.42;background:#302b25;border-color:#5b5145}.forge-max{min-height:40px;display:grid;place-items:center;border:1px solid #b28f41;color:#efca6d;font-size:9px;font-weight:900;letter-spacing:.06em;text-align:center}
 @media(max-width:430px){.ember-forge{top:100px;max-height:62dvh;width:min(318px,calc(100% - 20px));padding:9px}.forge-heading strong{font-size:16px}.forge-weapons>section{padding:8px}.forge-compare{padding:7px}.forge-weapons section>button{min-height:50px}}
+
+
+/* Hold the Line — compact, off-center combat readout and earned-reward panel. */
+.holdout-hud {
+  position: absolute;
+  z-index: 13;
+  top: 86px;
+  right: 12px;
+  width: 132px;
+  padding: 7px 9px;
+  background: rgba(10, 15, 15, .9);
+  border: 1px solid rgba(224, 163, 85, .7);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, .34);
+  pointer-events: none;
+  text-align: left;
+}
+.holdout-hud span, .holdout-hud strong, .holdout-hud b { display: block; }
+.holdout-hud span { color: #e0a355; font-size: 7px; font-weight: 900; letter-spacing: .13em; }
+.holdout-hud strong { margin-top: 3px; color: #fff2d5; font-size: 13px; }
+.holdout-hud b { margin-top: 2px; color: #aebdb8; font-size: 8px; font-variant-numeric: tabular-nums; }
+.holdout-launch { border-color: #d8a556 !important; background: #34271a !important; }
+.holdout-launch > span { color: #ffc867 !important; }
+.holdout-reward {
+  position: absolute;
+  z-index: 30;
+  left: 14px;
+  bottom: 18%;
+  width: min(68%, 288px);
+  padding: 13px;
+  color: #f4ede1;
+  background: rgba(10, 15, 16, .96);
+  border: 1px solid #d7a24e;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .54);
+  pointer-events: auto;
+}
+.holdout-reward > span { color: #d7a24e; font-size: 8px; font-weight: 900; letter-spacing: .14em; }
+.holdout-reward > strong { display: block; margin-top: 3px; font-size: 17px; }
+.holdout-reward > p { margin: 2px 0 9px; color: #9dacaa; font-size: 10px; }
+.holdout-reward > div { display: grid; gap: 2px; padding: 7px 0; border-top: 1px solid rgba(215, 162, 78, .22); }
+.holdout-reward > div b { color: #d7a24e; font-size: 7px; letter-spacing: .1em; }
+.holdout-reward > div em { color: #f3e8d2; font-size: 10px; font-style: normal; }
+.holdout-reward > small { display: block; margin-top: 5px; color: #8d9b98; font-size: 8px; }
+.holdout-reward > button { width: 100%; min-height: 38px; margin-top: 10px; color: #16120c; background: #e0ad5a; border: 0; font-size: 10px; font-weight: 900; letter-spacing: .08em; touch-action: none; }
+@media (max-width: 520px) {
+  .holdout-hud { top: 78px; right: 8px; width: 122px; }
+  .holdout-reward { left: 10px; bottom: 19%; width: min(72%, 274px); }
+}

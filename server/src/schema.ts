@@ -135,6 +135,8 @@ export const gameSave = sqliteTable("game_save", {
   chestsOpened: integer("chests_opened").notNull().default(0),
   bloodMoons: integer("blood_moons").notNull().default(0),
   bloodMoonsSurvived: integer("blood_moons_survived").notNull().default(0),
+  holdoutBestWaves: text("holdout_best_waves", { mode: "json" }).$type<Array<{ id: "ember" | "frost" | "mire"; wave: number }>>().notNull().default([]),
+  holdoutCompletions: text("holdout_completions", { mode: "json" }).$type<Array<{ id: "ember" | "frost" | "mire"; count: number }>>().notNull().default([]),
   volatileKills: integer("volatile_kills").notNull().default(0),
   volatileEyes: integer("volatile_eyes").notNull().default(0),
   volatileTrophyOwned: integer("volatile_trophy_owned", { mode: "boolean" }).notNull().default(false),
