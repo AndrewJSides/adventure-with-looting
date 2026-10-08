@@ -116,6 +116,7 @@ export const gameSave = sqliteTable("game_save", {
   mallLootedContainerIds: text("mall_looted_container_ids", { mode: "json" }).$type<number[]>().notNull().default([]),
   rareLootDrops: text("rare_loot_drops", { mode: "json" }).$type<Array<{ id: number; itemId: string; x: number; y: number }>>().notNull().default([]),
   kills: integer("kills").notNull().default(0),
+  xp: integer("xp").notNull().default(0),
   headshots: integer("headshots").notNull().default(0),
   headshotKills: integer("headshot_kills").notNull().default(0),
   roomsCleared: integer("rooms_cleared").notNull().default(0),
