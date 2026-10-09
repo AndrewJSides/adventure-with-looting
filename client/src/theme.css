@@ -128,7 +128,7 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 
 .profiler-idle {
   position: absolute; z-index: 12; left: 3%; bottom: 31.5%;
-  display: flex; align-items: baseline; gap: 5px; min-width: 50px; padding: 4px 6px;
+  display: flex; align-items: center; gap: 5px; min-width: 50px; min-height: 44px; padding: 4px 6px;
   color: #9fb0ad; background: rgba(7,11,14,.72); border: 1px solid rgba(180,201,195,.2);
   font-variant-numeric: tabular-nums; pointer-events: auto;
 }
@@ -838,7 +838,7 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .story-intro h2 { max-width: 330px; margin: 8px 0 9px; color: #fff2d2; font: 700 clamp(25px,8vw,38px)/1.02 Georgia,serif; }
 .story-intro p { max-width: 350px; margin: 0; color: #cbd5d0; font: 14px/1.45 Georgia,serif; }
 .story-intro small { display: block; margin-top: 20px; color: #8fa09a; font-size: 9px; font-weight: 800; letter-spacing: .06em; }
-.story-intro-skip { position: absolute; top: max(18px,env(safe-area-inset-top)); right: 18px; z-index: 2; min-width: 82px; min-height: 42px; touch-action: none; border: 1px solid #65726c; background: #131c1d; color: #dfe8e3; font-size: 10px; font-weight: 900; }
+.story-intro-skip { position: absolute; top: max(18px,env(safe-area-inset-top)); right: 18px; z-index: 2; min-width: 82px; min-height: 44px; touch-action: none; border: 1px solid #65726c; background: #131c1d; color: #dfe8e3; font-size: 10px; font-weight: 900; }
 .main-story-quest { left: 3.2%; right: auto; width: min(48%, 214px); border-left: 3px solid #e6b85c; background: rgba(12,16,18,.93); }
 .main-story-quest .quest-title span { color: #f0c875; }
 .main-story-quest em { border-top-color: rgba(240,200,117,.24); color: #d9c9a8; }
@@ -1273,12 +1273,15 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
   }
   .status-rail.expanded { top: 58px; right: 0; }
   .status-rail.expanded .status-rail-toggle {
-    width: 36px;
+    width: 44px;
+    min-width: 44px;
     border-right: 0;
   }
+  /* The opened drawer is deliberately bounded: at a 390px phone width it
+     occupies at most 194×168px (under 16% of the shortest phone arena) and cannot reach the action lane. */
   .status-rail-items {
     width: min(150px,39vw);
-    max-height: 40dvh;
+    max-height: 168px;
   }
 
   .objective-panel {
@@ -1328,6 +1331,13 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
     gap: 4px;
   }
   .action-slot { width: 47px; height: 48px; }
+  .vehicle-slot > button,.context-slot > button,.throwable-slot > button,.dash-slot > button,.flask-slot > button {
+    width: 47px !important;
+    min-width: 47px !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    padding: 3px !important;
+  }
   .melee-slot { width: 47px; height: 100px; gap: 4px; }
   .throwable-quick {
     width: 47px;
