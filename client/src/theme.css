@@ -40,7 +40,6 @@ html, body, #root, [data-generated-space-root], .hatch-space-root[data-hatch-spa
   overflow: hidden;
   overscroll-behavior: none;
   overscroll-behavior-x: none;
-  touch-action: none;
 }
 body { background: var(--bg); color: var(--text); }
 .game-page, .game-page * {
@@ -51,6 +50,7 @@ body { background: var(--bg); color: var(--text); }
 }
 .game-page ::selection { color: inherit; background: transparent; }
 .game-page { touch-action: none; }
+.game-page.menu-open { touch-action: pan-y; }
 button { font: inherit; }
 button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .sr-status { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
@@ -405,7 +405,7 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
   text-align: center;
   z-index: 5;
 }
-.menu-overlay { justify-content: flex-start; overflow-y: auto; padding-top: 18px; background: linear-gradient(180deg,rgba(5,10,13,.08),rgba(4,9,11,.96) 48%),radial-gradient(circle at 72% 13%,rgba(126,38,35,.43),transparent 31%),linear-gradient(145deg,#18302a 0%,#0c1518 52%,#1e1211 100%); }
+.menu-overlay { justify-content: flex-start; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; padding-top: 18px; padding-bottom: max(28px, env(safe-area-inset-bottom)); background: linear-gradient(180deg,rgba(5,10,13,.08),rgba(4,9,11,.96) 48%),radial-gradient(circle at 72% 13%,rgba(126,38,35,.43),transparent 31%),linear-gradient(145deg,#18302a 0%,#0c1518 52%,#1e1211 100%); }
 .world-art { position: relative; flex: 0 0 166px; width: min(100%,380px); margin: -1px 0 13px; overflow: hidden; border-bottom: 1px solid rgba(229,179,101,.48); background: radial-gradient(ellipse at 50% 102%,rgba(89,115,78,.5),transparent 55%),linear-gradient(180deg,rgba(10,24,31,.15),rgba(8,13,15,.82)); box-shadow: inset 0 -44px 38px rgba(2,7,8,.58); }
 .world-art::before { content:""; position:absolute; left:-8%; right:-8%; bottom:29px; height:66px; background:#17231f; clip-path:polygon(0 80%,8% 54%,15% 65%,25% 31%,32% 58%,43% 25%,51% 63%,62% 42%,71% 68%,82% 36%,90% 55%,100% 26%,100% 100%,0 100%); opacity:.82; }
 .world-art-moon { position:absolute; right:42px; top:9px; width:60px; height:60px; border-radius:50%; background:radial-gradient(circle at 36% 34%,#ffe0ab 0,#d97955 58%,#893b3f 100%); box-shadow:0 0 30px rgba(213,84,64,.32); }
