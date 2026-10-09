@@ -1,44 +1,34 @@
 # Ground textures
 
-## What is here
+## Runtime assets
 
-`dirt-seamless.png` is sourced CC0 art used around `VILLAGE_CENTER`.
-
-The 14 `biome-NN-<slug>.png` files are 250×250 seamless, full-colour terrain textures.
-They are colour-graded derivatives of four CC0 OpenGameArt textures (grass, grit, rock,
-and snow); exact source pages and byte URLs are recorded in `DATA-PLAN.md`.
+The 18 `biome-NN-*.png` files are 512×512 full-colour derivatives of downloaded
+Pexels photographs. Each derivative keeps only photo pixels (crop, mirror, resize,
+colour grade); no AI or procedural synthesis is used. The exact source pages, downloaded
+byte locators, and Pexels license are recorded in `DATA-PLAN.md`.
 
 ## Runtime pipeline
 
-`BIOME_TEXTURE_URLS` in `App.tsx` keys textures by region id, loads them lazily, builds
-normalized canvas copies, and calls `resetGroundChunkCache()` after each load. Ground
-chunks use one fixed orientation on a world-aligned 192-unit lattice: adjacent copies
-meet edge-to-edge, without random offsets, rotations, alpha changes, or overlap bands.
-The final blit uses `source-over` because these are full-colour assets.
+`BIOME_TEXTURE_URLS` maps every world region (1–18) to its own texture. Assets load
+lazily and reset the ground chunk cache when ready. The world layer uses 384-world-unit
+square blits on a world-aligned lattice. Each 512px asset is a mirrored 2×2 construction,
+so every outer edge matches exactly. The mirrored construction enlarges the visual repeat period while exact world alignment keeps
+texture phase stable across chunk boundaries. Rotation variants are intentionally disabled: a
+90°-rotated neighbor does not share the same edge ordering and can reopen a seam.
 
-All final images passed the edge-difference seam check used by
-`scripts/gen-placeholder-textures.py`. The placeholder generator remains available as a
-diagnostic/reference utility, but running it will overwrite this sourced art.
+Chunks clip to their exact 640×640 bounds and are blitted once, so no overlap band is
+used. Deadlight Mall, Saint Mercy, Blackwater interiors, and Harlan Airfield also use
+their matching owned photo texture beneath existing authored structure detail.
 
-## Replacement requirements
+## Measured seam checks
 
-- Keep the exact filenames and 250×250 PNG dimensions.
-- Use seamless art with commercial-compatible provenance; this build requires CC0.
-- Own the bytes locally under this directory. Do not hotlink assets.
-- For grayscale replacements, reconsider the composite mode and alpha rather than
-  assuming the current full-colour tuning is appropriate.
+All 18 final files are 512×512 RGB PNGs. Mean absolute RGB difference is `0.00` for
+both left/right and top/bottom outer-edge comparisons on every file. The runtime stride
+is 384 world units and ground texture opacity is `.44`.
 
-## Tuning
+## Do not regress
 
-| Constant | Current effect |
-|---|---|
-| `BIOME_TEXTURE_STRIDE` | 192 world units between blits; the texture is normalized to the same size so edges meet exactly. |
-| `BIOME_TEXTURE_ALPHA` | Uniform `.32` across every tile; avoiding per-tile alpha changes removes visible rectangular blocks. |
-
-The Hearthglen camp uses the same normalized texture as a single repeating canvas
-pattern clipped to the camp ellipse, rather than overlapping randomized rectangles.
-
-Each texture blit is one draw call during incremental chunk construction. Toggle
-**Ground tex** in the profiler effect row (Minimal Mode also disables it) to compare the
-WORST FRAME readout with textures on and off. The driving build budget remains capped by
-`GROUND_CHUNK_DRIVING_DRAW_BUDGET`.
+- Do not add procedural texture generators; the former placeholder generator was removed.
+- Replacement texture input must be a downloaded real photo with verified free-use license.
+- Keep identical 512×512 output dimensions and exact edge continuity.
+- Own all bytes locally; never hotlink runtime texture assets.
