@@ -154,6 +154,11 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .profiler-live small, .profiler-live b { display: block; font-variant-numeric: tabular-nums; }
 .profiler-live small { color: #718680; font-size: 5px; font-weight: 900; letter-spacing: .04em; }
 .profiler-live b { margin-top: 1px; color: #dce7e4; font-size: 8px; }
+.profiler-drive-live { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 0 8px 6px; }
+.profiler-drive-live span { min-width: 0; padding: 3px 2px; background: rgba(111,211,169,.045); text-align: center; }
+.profiler-drive-live small, .profiler-drive-live b { display: block; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.profiler-drive-live small { color: #6f8982; font-size: 5px; font-weight: 900; letter-spacing: .04em; }
+.profiler-drive-live b { margin-top: 1px; color: #cbe0da; font-size: 7px; }
 .minimal-mode-toggle { display: flex; align-items: center; justify-content: space-between; width: calc(100% - 16px); min-height: 27px; margin: 0 8px 5px; padding: 4px 7px; color: #9fb0ad; background: #151e21; border: 1px solid #43514e; font-size: 7px; font-weight: 900; letter-spacing: .08em; }
 .minimal-mode-toggle.active { color: #0c2119; background: #6fd3a9; border-color: #a4f1d0; }
 .effect-switches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 0 8px 8px; }
@@ -170,6 +175,16 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .profiler-subsystems span { overflow: hidden; color: #7f9590; font-size: 6px; font-weight: 800; letter-spacing: .03em; white-space: nowrap; text-overflow: ellipsis; }
 .profiler-subsystems b { color: #dce7e4; font-size: 7px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .profiler-subsystems .hotspot span, .profiler-subsystems .hotspot b { color: #efb16d; }
+.profiler-drive-probe { margin-top: 8px; padding-top: 7px; border-top: 1px solid rgba(111,211,169,.28); }
+.profiler-drive-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
+.profiler-drive-head span { color: #8fd8bc; font-size: 7px; font-weight: 900; letter-spacing: .08em; }
+.profiler-drive-head button { min-height: 24px; padding: 3px 8px; color: #dce7e4; background: #172126; border: 1px solid #53635f; font-size: 6px; font-weight: 900; }
+.profiler-drive-scenario { display: grid; grid-template-columns: 1.4fr 1fr; gap: 2px 8px; padding: 5px 0; border-top: 1px solid rgba(149,182,174,.12); }
+.profiler-drive-scenario > strong { color: #dce7e4; font-size: 7px; letter-spacing: .04em; }
+.profiler-drive-scenario > small { color: #718680; font-size: 6px; text-align: right; }
+.profiler-drive-scenario > span { display: flex; justify-content: space-between; gap: 4px; color: #78908a; font-size: 6px; }
+.profiler-drive-scenario > span b { color: #c9d8d4; font-size: 6px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.profiler-drive-probe > small { display: block; margin-top: 4px; color: #718680; font-size: 6px; line-height: 1.4; }
 .profiler-history polyline { fill: none; stroke: #6fd3a9; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
 .profiler-guide { stroke-width: 1; vector-effect: non-scaling-stroke; }
 .profiler-guide.sixty { stroke: rgba(111,211,169,.28); }
