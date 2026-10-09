@@ -1216,3 +1216,149 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
   .gun-ammo,.bolt-ammo { width: 56px; min-width: 56px; min-height: 52px; flex-basis: 52px; }
   .dash-button,.melee-button,.flask-button,.talk-button,.fast-travel-button,.trunk-button,.locked-chest-button,.adopt-dog-button,.vehicle-button { width: 56px; height: 56px; min-width: 56px; min-height: 56px; }
 }
+
+
+/* Phone HUD recovery — keep the playfield dominant and reveal detail on demand. */
+@media (max-width: 620px) {
+  .world-map {
+    top: 8px;
+    right: 58px;
+    width: 44px;
+    height: 44px;
+    padding: 3px;
+    background: rgba(7,11,14,.82);
+  }
+  .world-map .map-field { height: 36px; }
+  .world-map .map-field > :not(b):not(.map-viewport) { display: none; }
+  .world-map .map-field b {
+    left: 50% !important;
+    top: 50% !important;
+    width: 7px;
+    height: 7px;
+  }
+  .world-map .map-viewport {
+    left: 7px !important;
+    top: 7px !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .status-rail { top: 8px; right: 7px; }
+  .status-rail-toggle {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 4px;
+    border-right: 1px solid rgba(221,177,95,.56);
+  }
+  .status-rail-toggle span {
+    writing-mode: horizontal-tb;
+    transform: none;
+    font-size: 6px;
+    letter-spacing: .07em;
+  }
+  .status-rail-toggle b { font-size: 14px; }
+  .status-rail-toggle small {
+    position: absolute;
+    top: -5px;
+    right: -4px;
+    width: 16px;
+    height: 16px;
+    font-size: 8px;
+  }
+  .status-rail.expanded { top: 58px; right: 0; }
+  .status-rail.expanded .status-rail-toggle {
+    width: 36px;
+    border-right: 0;
+  }
+  .status-rail-items {
+    width: min(150px,39vw);
+    max-height: 40dvh;
+  }
+
+  .objective-panel {
+    top: 8px;
+    left: 8px;
+    width: min(52%,188px);
+    max-width: calc(100% - 116px);
+    padding: 5px 7px;
+  }
+  .objective-panel strong {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .quest-panel,.main-story-quest {
+    left: 8px;
+    width: min(52%,188px);
+    max-width: 188px;
+    max-height: 64px;
+    padding: 6px 7px;
+    overflow: hidden;
+    transform: none !important;
+  }
+  .main-story-quest { top: 58px; }
+  .quest-panel em,.main-story-quest em {
+    display: -webkit-box;
+    margin-top: 4px;
+    padding-top: 4px;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .quest-panel:not(.main-story-quest) ~ .quest-panel:not(.main-story-quest) { display: none; }
+
+  .controls { height: 24%; }
+  .joystick { width: 104px; height: 104px; }
+  .joystick-ring { inset: 6px; }
+  .joystick-knob { width: 48px; height: 48px; left: 28px; top: 28px; border-width: 5px; }
+  .action-stack {
+    right: 4px;
+    bottom: 4px;
+    width: 200px;
+    height: 100px;
+    grid-template-columns: repeat(4,47px);
+    grid-template-rows: repeat(2,48px);
+    gap: 4px;
+  }
+  .action-slot { width: 47px; height: 48px; }
+  .melee-slot { width: 47px; height: 100px; gap: 4px; }
+  .throwable-quick {
+    width: 47px;
+    min-width: 47px;
+    height: 46px;
+    min-height: 46px;
+    padding: 3px;
+    grid-template-columns: 10px minmax(0,1fr) auto;
+    gap: 2px;
+  }
+  .throwable-quick span { font-size: 12px; }
+  .throwable-quick b { font-size: 6px; }
+  .throwable-quick small { font-size: 7px; }
+  .gun-ammo,.bolt-ammo {
+    width: 47px;
+    min-width: 47px;
+    min-height: 44px;
+    flex-basis: 44px;
+    padding: 3px 2px;
+  }
+  .gun-ammo strong,.bolt-ammo strong { font-size: 13px; }
+  .gun-ammo > span { font-size: 7px; }
+  .gun-ammo small,.bolt-ammo small { font-size: 5px; }
+  .dash-button,.melee-button,.flask-button,.talk-button,.fast-travel-button,.trunk-button,.locked-chest-button,.adopt-dog-button,.vehicle-button {
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
+    min-height: 46px;
+  }
+  .dash-button span,.melee-button span { font-size: 20px; line-height: 17px; }
+  .flask-button span,.talk-button span,.fast-travel-button span,.trunk-button span,.locked-chest-button span { font-size: 17px; line-height: 15px; }
+  .dash-button small,.melee-button small,.flask-button small,.talk-button small,.fast-travel-button small,.trunk-button small,.locked-chest-button small,.vehicle-button small { font-size: 7px; }
+  .vehicle-button span { font-size: 18px; line-height: 16px; }
+}
