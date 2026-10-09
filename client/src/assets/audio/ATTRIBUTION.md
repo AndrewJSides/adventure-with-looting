@@ -10,5 +10,6 @@ Downloaded 2026-10-09 for personal-use game audio replacement.
 - `night-horror-drone-cc0.ogg` — “Abandoned passages” by congusbongus — CC0 1.0 — https://opengameart.org/node/143243
 - `loot-chime-cc0.wav` — “Plingy Coin” by Fupi — CC0 1.0 — https://opengameart.org/node/118372
 - `chest-chime-cc0.mp3` — “Completion sound.” by Brandon Morris — CC0 1.0 — https://opengameart.org/content/completion-sound
+- `rain-loop-cc0.wav` — “rain sound loop no thunder” by orb1t — CC0 1.0 — https://freesound.org/people/orb1t/sounds/723703/ — locally crossfaded into a seamless 26.691-second loop from the public MP3 preview; no generated audio.
 
 Freesound files are the public MP3 preview derivatives of the credited originals. OpenGameArt files are the original downloadable files.

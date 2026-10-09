@@ -52,6 +52,23 @@ and biome 08 TB 2.70—support edge discontinuity as one seam source. The fixed 
 orientation and 192-unit repeat also support obvious repetition. The overlap part of the
 hypothesis was disproved by the draw bounds; no speculative overlap fix was added.
 
+### Full-world coverage correction (2026-10-09)
+
+The player’s reference screenshot showed the photo-derived Mosslight texture on the right,
+but the flat procedural base on the left. Inspection confirmed the cause: the texture pass
+skipped every 384-unit lattice cell whose center fell outside a named region. It also
+silently redirected region IDs 15–18 to Old Greyhaven (14), leaving four downloaded,
+licensed biome photographs unused.
+
+The runtime now uses the owned Mosslight grass photograph as the fallback for every
+unnamed world cell and resolves all 18 region IDs directly. The Hearthglen village overlay
+also no longer paints an opaque flat-color radial fill over its downloaded photo; its
+photo-derived dirt layer remains beneath structures and authored detail. This makes photo
+texture coverage continuous across the world while preserving each named biome’s dedicated
+photo, the existing measured seam continuity, tile size, opacity, cache behavior, and
+mobile draw-call count. No generated or synthetic texture was added; the fallback reuses
+the same locally owned Pexels grass photograph and license already documented below.
+
 ### Replacement sources and measurements
 
 The replacement set has 18 locally owned 512×512 RGB PNGs. Every file is derived only
