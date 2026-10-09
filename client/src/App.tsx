@@ -2313,7 +2313,9 @@ function drawWorld(ctx:CanvasRenderingContext2D,world:World,save:PersistedSave,t
   renderDepthItems.length=0;
   const vehicleMounted=activeEffectFlags.vehicles&&hasMountedVehicle(world.vehicles);
   if(!world.activeInterior){
-    if(save.origin==="farmhouse"&&isInRenderView(FARMHOUSE.x,FARMHOUSE.y,520))pushRenderDepth("farmhouse",FARMHOUSE.y-FARMHOUSE.h/2,FARMHOUSE);
+    // The farmhouse is a permanent world structure: its collision walls are always active,
+    // so its exterior must remain visible even when the current run began in Hearthglen.
+    if(isInRenderView(FARMHOUSE.x,FARMHOUSE.y,520))pushRenderDepth("farmhouse",FARMHOUSE.y-FARMHOUSE.h/2,FARMHOUSE);
     if(isInRenderView(VILLAGE_CENTER.x,VILLAGE_CENTER.y,900))for(const house of VILLAGE_HOUSES)if(isInRenderView(house.x,house.y,Math.max(house.w,house.h)))pushRenderDepth("house",house.y+house.h/2+26,house);
     if(isInRenderView(4695,14945,140))pushRenderDepth("stall",14992,null);const boxLocation=mysteryBoxLocation(save);if(isInRenderView(boxLocation.x,boxLocation.y,150))pushRenderDepth("boxkeeper",boxLocation.y+52,boxLocation);const docLocation=yarrowLocation(save);if(isInRenderView(docLocation.x,docLocation.y,170))pushRenderDepth("yarrow",docLocation.y+58,docLocation);
     for(const state of world.npcStates)if((state.id!=="imogen"||world.activeInterior===HOSPITAL_BUILDING_ID)&&isInRenderView(state.x,state.y,100))pushRenderDepth("npc",state.y+38,state);
