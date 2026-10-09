@@ -1,5 +1,16 @@
 # Ground textures
 
+## Replacement in progress: photo-scanned Poly Haven textures
+
+`bun scripts/fetch-ground-textures.ts` replaces all 18 `biome-NN-*.png` files with
+CC0 photo-scans from [Poly Haven](https://polyhaven.com) (one distinct scan per region,
+mostly top-down), processed identically: native seamless tile (no mirroring), ambient
+occlusion at half strength, 1x/2x/4x repeats so ground detail is at a similar scale in
+every region, box-filtered to 512x512, brightness nudged toward a per-region target. It
+writes `SOURCES.md` (asset, scanner, licence, link) beside the files. Same file names
+and size, so `App.tsx` imports do not change. Needs internet access to api.polyhaven.com
+and dl.polyhaven.org. Once it has run, the sections below describe the old files.
+
 ## Runtime assets
 
 The 18 `biome-NN-*.png` files are 512×512 full-colour derivatives of downloaded
