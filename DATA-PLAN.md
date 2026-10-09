@@ -113,3 +113,68 @@ terrain-only edit. The player-supplied truck sheet remains visual-shape referenc
   **Why rejected**: The user explicitly chose option 1, the top-down action roguelite.
 - **Tried**: External character, vehicle, or landmark art.
   **Why rejected**: Character sheets were drawn in-repository and dedicated external art was unnecessary; the only imported visuals are the owned local CC0 terrain textures and the user-supplied vehicle reference.
+
+
+## Recorded-audio replacement pass (2026-10-09)
+
+### Before: synthesized Web Audio inventory
+
+| Sound path | Previous synthesis | Trigger and preserved level/spatial behavior |
+|---|---|---|
+| Swing, gun, crossbow, reload, hit, headshot, death, hurt | 2–3 square/triangle oscillators per cue, 46–1560 Hz, 130 ms envelopes | Existing combat/reload/player-damage calls; `.06` peak; no distance attenuation |
+| Thunder | Generated 1.35 s noise buffer plus 64→31 Hz sine rumble | Lightning event; `.13` noise peak + `.07` rumble |
+| Harvester scythe | 1700→3150 Hz saw + 940→1850 Hz square through 2800 Hz bandpass | Telegraph; 1500-unit cutoff; `.055 × (1 − distance/1700)`, floor `.006`; stereo pan clamped ±`.75` |
+| Sunwraith chime | Three staggered sine oscillators at 523.25/659.25/783.99 Hz | Spawn cue; `.055` peak, 1.8 s decay |
+| Fogmariner bell | Two sine fundamentals plus triangle harmonics | Maritime event; `.08` peak, 2.8 s decay |
+| Fire, water, wind, village proximity beds | Generated random-noise buffers, filters, and a 148 Hz village oscillator | Same live falloff: fire `.065` / 300 units; water `.045` / 540; wind `.032` / 480; village `.024` / 620 |
+| Footsteps | 90 ms generated noise burst through terrain-dependent bandpass | Moving on foot; `.055` dirt / `.038` other; unchanged 215–470 ms cadence |
+| Vehicle engine/start/exhaust | Per-vehicle tone + rumble oscillators, synthesized starter, pulse modulation, synthesized exhaust thump | Mount/start and throttle updates; same per-vehicle profile volumes, throttle gain, low-pass cutoff, motorcycle/mustang pulse timing, start duration, and exhaust cadence |
+| Distant threat | 72→36 Hz saw rumble plus optional 330→105 Hz screech | Threat ≥ `.28`; 2800 ms throttle; `.045 + threat × .06` |
+| Ambient bed/phrases | 55/82.41/110 Hz oscillators, generated filtered wind, repeating triangle-note phrase | First-touch unlock; existing ambient master and day/night gain updates |
+| Chainsaw rev | 94 Hz saw + 188 Hz square through 780 Hz bandpass | Chainsaw weapon fire; `.12` peak, 200 ms |
+
+No synthesized dog bark or UI click path existed. Pickup, chest/victory, roar, zombie vocalizations, night drone, and rain were already routed to recorded files and were preserved.
+
+### After: locally owned recorded files
+
+| Local file | Source recording | License | Duration | Format | Size |
+|---|---|---|---:|---|---:|
+| `swing-cc0.ogg` | https://freesound.org/people/velcronator/sounds/733888/ | CC0 1.0 | 0.541 s | OGG Vorbis, mono 44.1 kHz | 7,134 B |
+| `gun-cc-by.ogg` | https://freesound.org/people/Geoff-Bremner-Audio/sounds/698687/ | CC BY 4.0 | 1.100 s | OGG Vorbis, mono 44.1 kHz | 10,917 B |
+| `crossbow-cc0.ogg` | https://freesound.org/people/Lunevix/sounds/246015/ | CC0 1.0 | 0.558 s | OGG Vorbis, mono 44.1 kHz | 7,222 B |
+| `reload-cc0.ogg` | https://freesound.org/people/Filmsounduser/sounds/804823/ | CC0 1.0 | 1.020 s | OGG Vorbis, mono 44.1 kHz | 10,520 B |
+| `scythe-scrape-cc0.ogg` | https://freesound.org/people/HOrvi64/sounds/832317/ | CC0 1.0 | 0.800 s | OGG Vorbis, mono 44.1 kHz | 9,483 B |
+| `sun-bells-cc-by.ogg` | https://freesound.org/people/UncleSigmund/sounds/245767/ | CC BY 4.0 | 1.800 s | OGG Vorbis, mono 44.1 kHz | 19,841 B |
+| `fog-bell-cc-by.ogg` | https://freesound.org/people/PeteBarry/sounds/464856/ | CC BY 4.0 | 2.800 s | OGG Vorbis, mono 44.1 kHz | 18,759 B |
+| `thunder-cc0.ogg` | https://freesound.org/people/nick121087/sounds/319122/ | CC0 1.0 | 2.300 s | OGG Vorbis, mono 44.1 kHz | 18,284 B |
+| `footstep-cc-by.ogg` | https://freesound.org/people/Mossy4/sounds/388289/ | CC BY 4.0 | 0.140 s | OGG Vorbis, mono 44.1 kHz | 4,674 B |
+| `fire-loop-cc0.ogg` | https://freesound.org/people/Sauron974/sounds/204348/?page=5 | CC0 1.0 | 7.500 s | OGG Vorbis, mono 44.1 kHz | 58,768 B |
+| `water-loop-cc0.ogg` | https://freesound.org/people/SamsterBirdies/sounds/578524/ | CC0 1.0 | 7.500 s | OGG Vorbis, mono 44.1 kHz | 63,932 B |
+| `wind-loop-cc-by.ogg` | https://freesound.org/people/JavierSerrat/sounds/488360/?page=1 | CC BY 4.0 | 7.500 s | OGG Vorbis, mono 44.1 kHz | 51,940 B |
+| `village-loop-cc0.ogg` | https://freesound.org/people/KikeVilaplana/sounds/566891/ | CC0 1.0 | 7.500 s | OGG Vorbis, mono 44.1 kHz | 51,684 B |
+| `engine-loop-cc0.ogg` | https://freesound.org/people/hikkanen/sounds/659093/ | CC0 1.0 | 4.500 s | OGG Vorbis, mono 44.1 kHz | 38,342 B |
+| `engine-start-cc-by.ogg` | https://freesound.org/people/tim.kahn/sounds/106014/ | CC BY 4.0 | 1.150 s | OGG Vorbis, mono 44.1 kHz | 12,454 B |
+| `chainsaw-cc0.ogg` | https://freesound.org/people/Vocalphobic/sounds/149293/ | CC0 1.0 | 0.240 s | OGG Vorbis, mono 44.1 kHz | 5,029 B |
+
+Existing real zombie hit/death recordings are reused for generic hit, hurt, and death cues; the rifle recording is reused for headshots. The recorded thunder excerpt is reused for the distant-threat cue at its original threshold, cooldown, and gain formula. The existing CC0 night drone replaces the synthesized ambient bed and repeating note phrase.
+
+Exact public preview derivatives downloaded for this pass:
+
+- https://cdn.freesound.org/previews/733/733888_6703998-lq.mp3
+- https://cdn.freesound.org/previews/698/698687_10643461-lq.mp3
+- https://cdn.freesound.org/previews/246/246015_4517415-lq.mp3
+- https://cdn.freesound.org/previews/804/804823_16580571-lq.mp3
+- https://cdn.freesound.org/previews/832/832317_14023482-lq.mp3
+- https://cdn.freesound.org/previews/245/245767_95609-lq.mp3
+- https://cdn.freesound.org/previews/464/464856_5696249-lq.mp3
+- https://cdn.freesound.org/previews/319/319122_3840537-lq.mp3
+- https://cdn.freesound.org/previews/388/388289_2064400-lq.mp3
+- https://cdn.freesound.org/previews/204/204348_152878-lq.mp3
+- https://cdn.freesound.org/previews/578/578524_5487341-hq.mp3
+- https://cdn.freesound.org/previews/488/488360_3518208-lq.mp3
+- https://cdn.freesound.org/previews/566/566891_8938826-lq.mp3
+- https://cdn.freesound.org/previews/659/659093_14437982-lq.mp3
+- https://cdn.freesound.org/previews/106/106014_7037-lq.mp3
+- https://cdn.freesound.org/previews/149/149293_2513936-lq.mp3
+
+All files are bundled under `client/src/assets/audio/`; no runtime request goes to Freesound. Long recordings were reduced to compact mono OGG excerpts. Fire, water, wind, village, and engine loops were crossfaded locally. One-shot windows were selected by measured RMS/peak analysis, not generated or synthesized.
