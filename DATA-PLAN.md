@@ -86,14 +86,14 @@ Photo sources and use (downloaded resolution → final resolution; all **Pexels 
 - Asphalt (Harlan Airfield): https://www.pexels.com/photo/asphalt-surface-11254991/ — 750×750 → 512×512; bytes: https://images.pexels.com/photos/11254991/pexels-photo-11254991.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1
 - Tile floor (Deadlight Mall and Saint Mercy): https://www.pexels.com/photo/white-and-blue-concrete-blocks-4752996/ — 1200×800 → 512×512; bytes: http://images.pexels.com/photos/4752996/pexels-photo-4752996.jpeg?auto=compress&cs=tinysrgb&dpr=1&h=750&w=1260
 
-The new textures use one common 512px output density and a 384-world-unit runtime stride
-(1.33 px/world, within 2.4% of the old 1.30 px/world). The mirrored 2×2 construction
-gives a measured mean absolute RGB difference of `0.00` on both opposing edge pairs for
-all 18 files, down from old maxima of .90 LR and 3.40 TB. Runtime rotation variants are
-disabled because cross-rotated neighbors do not preserve edge ordering; stable world
-alignment and exact chunk clipping prevent pops and overlap double-draw. Visual repetition
-is reduced by doubling the full-tile world period from 192 to 384 units while the richer
-photo detail replaces the low-variance noise.
+The final textures use one common 1024px output density and a 1024-world-unit runtime
+stride (1 px/world). Each photo derivative is sampled once across that larger period with
+a smooth periodic displacement, moving the repeat outside the normal play view without
+introducing non-photo pixels. Opposing edges remain byte-identical: measured maximum
+per-channel difference is `0` on both edge pairs for all 18 files. The renderer uses one
+world-aligned lattice, exact chunk clipping, and a 180-world-unit world-coordinate feather
+where named biome photos replace the Mosslight fallback. This prevents grid-shaped biome
+boundaries, chunk seams, overlap double-draw, and phase pops during movement.
 
 `dirt-seamless.png` remains Heathal’s 250×250 CC0 photograph-derived dirt art from
 OpenGameArt for the village-specific legacy path: https://opengameart.org/content/texture-pack-seamless-dirtpng

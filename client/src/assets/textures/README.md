@@ -2,33 +2,22 @@
 
 ## Runtime assets
 
-The 18 `biome-NN-*.png` files are 512×512 full-colour derivatives of downloaded
-Pexels photographs. Each derivative keeps only photo pixels (crop, mirror, resize,
-colour grade); no AI or procedural synthesis is used. The exact source pages, downloaded
-byte locators, and Pexels license are recorded in `DATA-PLAN.md`.
+The 18 `biome-NN-*.png` files are 1024×1024 full-colour derivatives of downloaded Pexels photographs. Each derivative contains only photo pixels transformed by crop, mirror, resize, colour grade, and a smooth periodic displacement; no AI or procedural image synthesis is used. Exact per-file source pages and licenses are recorded in `ATTRIBUTION.md`, with byte locators retained in `DATA-PLAN.md`.
 
 ## Runtime pipeline
 
-`BIOME_TEXTURE_URLS` maps every world region (1–18) to its own texture. Assets load
-lazily and reset the ground chunk cache when ready. The world layer uses 384-world-unit
-square blits on a world-aligned lattice. Each 512px asset is a mirrored 2×2 construction,
-so every outer edge matches exactly. The mirrored construction enlarges the visual repeat period while exact world alignment keeps
-texture phase stable across chunk boundaries. Rotation variants are intentionally disabled: a
-90°-rotated neighbor does not share the same edge ordering and can reopen a seam.
+`BIOME_TEXTURE_URLS` maps every world region (1–18) to its own texture. Assets load lazily and reset the ground chunk cache when ready. The world layer uses 1024-world-unit square blits on one world-aligned lattice, moving a full repeat outside the normal play view while keeping one consistent scale across all biomes.
 
-Chunks clip to their exact 640×640 bounds and are blitted once, so no overlap band is
-used. Deadlight Mall, Saint Mercy, Blackwater interiors, and Harlan Airfield also use
-their matching owned photo texture beneath existing authored structure detail.
+Every image has byte-identical opposing edges. A photographed Mosslight texture covers unnamed terrain; named biome photos are composited above it through a 180-world-unit radial feather. The feather is calculated in world coordinates on the chunk scratch canvas, so adjacent 640×640 ground chunks render the same boundary pixels without overlap, gaps, double draw, or phase changes. Interiors retain their matching photo texture beneath authored structure detail.
 
 ## Measured seam checks
 
-All 18 final files are 512×512 RGB PNGs. Mean absolute RGB difference is `0.00` for
-both left/right and top/bottom outer-edge comparisons on every file. The runtime stride
-is 384 world units and ground texture opacity is `.44`.
+All 18 files are 1024×1024 RGB PNGs. Maximum per-channel difference is `0` for both left/right and top/bottom outer-edge comparisons on every file. Runtime stride is 1024 world units, base photo opacity is `.48`, and biome replacement opacity is `.82` with a 180-world-unit feather.
 
 ## Do not regress
 
-- Do not add procedural texture generators; the former placeholder generator was removed.
-- Replacement texture input must be a downloaded real photo with verified free-use license.
-- Keep identical 512×512 output dimensions and exact edge continuity.
+- Do not add procedural texture generators or generated images.
+- Replacement input must be a downloaded real photo with a verified free-use license.
+- Keep identical 1024×1024 output dimensions, exact opposing edges, and one consistent world scale.
+- Keep texture phase and biome feathering world-aligned across chunk boundaries.
 - Own all bytes locally; never hotlink runtime texture assets.
