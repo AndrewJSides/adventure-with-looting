@@ -148,6 +148,7 @@ export const gameSave = sqliteTable("game_save", {
   dogY: real("dog_y").notNull().default(15715),
   dogHp: real("dog_hp").notNull().default(64),
   dogKills: integer("dog_kills").notNull().default(0),
+  dogCommandMode: text("dog_command_mode", { enum: ["assist", "auto", "passive", "stay"] }).notNull().default("auto"),
   zombieDogKills: integer("zombie_dog_kills").notNull().default(0),
   zombieCrowKills: integer("zombie_crow_kills").notNull().default(0),
   packHuntBonuses: integer("pack_hunt_bonuses").notNull().default(0),
