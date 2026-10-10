@@ -6,13 +6,13 @@ The 18 `biome-NN-*.png` files are 1024×1024 full-colour derivatives of download
 
 ## Runtime pipeline
 
-`BIOME_TEXTURE_URLS` maps every world region (1–18) to its own texture. Assets load lazily and reset the ground chunk cache when ready. The world layer uses 1024-world-unit square blits on one world-aligned lattice, moving a full repeat outside the normal play view while keeping one consistent scale across all biomes.
+`BIOME_TEXTURE_URLS` maps every world region (1–18) to its own texture. Assets load lazily and reset the ground chunk cache when ready. The world layer uses 512-world-unit square blits on one world-aligned lattice, increasing photo detail while keeping one consistent scale across all biomes.
 
 Every image has byte-identical opposing edges. A photographed Mosslight texture covers unnamed terrain; named biome photos are composited above it through a 180-world-unit radial feather. The feather is calculated in world coordinates on the chunk scratch canvas, so adjacent 640×640 ground chunks render the same boundary pixels without overlap, gaps, double draw, or phase changes. Interiors retain their matching photo texture beneath authored structure detail.
 
 ## Measured seam checks
 
-All 18 files are 1024×1024 RGB PNGs. Maximum per-channel difference is `0` for both left/right and top/bottom outer-edge comparisons on every file. Runtime stride is 1024 world units, base photo opacity is `.48`, and biome replacement opacity is `.82` with a 180-world-unit feather.
+All 18 files are 1024×1024 RGB PNGs. Maximum per-channel difference is `0` for both left/right and top/bottom outer-edge comparisons on every file. Runtime stride is 512 world units, base photo opacity is `.85`, and biome replacement opacity is `1` with a 180-world-unit feather.
 
 ## Do not regress
 
