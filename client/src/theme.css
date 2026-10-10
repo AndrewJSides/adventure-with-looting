@@ -149,6 +149,8 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .profiler-stats small { margin-bottom: 2px; color: #7f9590; font-size: 6px; font-weight: 900; letter-spacing: .1em; }
 .profiler-stats strong { color: #dce7e4; font-size: 10px; font-variant-numeric: tabular-nums; }
 .profiler-stats i { color: #879b96; font-size: 6px; font-style: normal; font-weight: 700; }
+.profiler-build { display: flex; align-items: center; gap: 6px; min-width: 0; padding: 0 8px 5px; color: #718680; font-size: 5px; letter-spacing: .08em; }
+.profiler-build b { min-width: 0; overflow: hidden; color: #a9bbb6; font-size: 6px; font-variant-numeric: tabular-nums; letter-spacing: 0; text-overflow: ellipsis; white-space: nowrap; }
 .profiler-live { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; padding: 0 8px 6px; }
 .profiler-live span { min-width: 0; padding: 3px 1px; background: rgba(255,255,255,.035); text-align: center; }
 .profiler-live small, .profiler-live b { display: block; font-variant-numeric: tabular-nums; }
