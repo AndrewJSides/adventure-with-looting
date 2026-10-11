@@ -1413,3 +1413,70 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
   .dash-button small,.melee-button small,.flask-button small,.talk-button small,.fast-travel-button small,.trunk-button small,.locked-chest-button small,.vehicle-button small { font-size: 7px; }
   .vehicle-button span { font-size: 18px; line-height: 16px; }
 }
+
+
+/* Keep the expanded profiler in its own narrow mobile lane, clear of the
+   cargo control. Dense rows reflow vertically; the panel remains scrollable. */
+@media (max-width: 430px) {
+  .profiler-overlay.expanded { width: min(35%, 140px); }
+  .profiler-overlay.expanded .profiler-stats { grid-template-columns: 1fr 1fr; row-gap: 5px; }
+  .profiler-overlay.expanded .profiler-live { grid-template-columns: repeat(3, 1fr); }
+  .profiler-overlay.expanded .profiler-drive-live { grid-template-columns: 1fr 1fr; }
+  .profiler-overlay.expanded .effect-switches { grid-template-columns: 1fr 1fr; }
+  .profiler-overlay.expanded .profiler-subsystems { grid-template-columns: 1fr; }
+  .profiler-overlay.expanded .profiler-drive-scenario { grid-template-columns: 1fr; }
+  .profiler-overlay.expanded .profiler-drive-scenario > small { text-align: left; }
+  .profiler-overlay.expanded .profiler-peak-head { flex-wrap: wrap; }
+  .profiler-overlay.expanded .profiler-peak-head button { margin-left: 0; }
+  .profiler-overlay.expanded .profiler-recording { align-items: flex-start; flex-direction: column; }
+  .profiler-overlay.expanded .profiler-recordings > button { align-items: flex-start; flex-direction: column; }
+}
+
+/* Phone HUD lanes: objectives, vehicle telemetry, and the opened status drawer
+   each own a non-intersecting column at the 390px gameplay viewport. */
+@media (max-width: 430px) {
+  .objective-panel,
+  .quest-panel,
+  .main-story-quest {
+    left: 8px;
+    width: 132px;
+    max-width: 132px;
+  }
+
+  .quest-panel,
+  .main-story-quest {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .quest-panel em,
+  .main-story-quest em {
+    display: block;
+    overflow: visible;
+    -webkit-line-clamp: unset;
+  }
+
+  .vehicle-hud {
+    left: 148px;
+    width: 96px;
+  }
+
+  .status-rail.expanded {
+    top: 8px;
+    right: 7px;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .status-rail.expanded .status-rail-toggle {
+    order: 0;
+    border-right: 1px solid rgba(221,177,95,.56);
+  }
+
+  .status-rail.expanded .status-rail-items {
+    order: 1;
+    width: 134px;
+    max-height: 168px;
+    border-right: 1px solid rgba(221,177,95,.42);
+  }
+}
