@@ -1346,6 +1346,17 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
     -webkit-line-clamp: 2;
   }
   .quest-panel:not(.main-story-quest) ~ .quest-panel:not(.main-story-quest) { display: none; }
+  /* Keep transient gameplay notices in the reserved upper-right lane instead of
+     laying a centered banner over the objective stack. */
+  .game-notice {
+    top: 58px;
+    right: 7px;
+    left: auto;
+    max-width: calc(100% - 210px);
+    padding: 6px 8px;
+    transform: none;
+    text-align: left;
+  }
 
   .controls { height: 24%; }
   .joystick { width: 104px; height: 104px; }
