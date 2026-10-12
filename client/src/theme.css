@@ -1346,10 +1346,10 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
     -webkit-line-clamp: 2;
   }
   .quest-panel:not(.main-story-quest) ~ .quest-panel:not(.main-story-quest) { display: none; }
-  /* Keep transient gameplay notices in the reserved upper-right lane instead of
-     laying a centered banner over the objective stack. */
+  /* Keep transient notices below the conditional status, companion, and
+     vehicle lanes instead of laying over the objective stack or active HUD. */
   .game-notice {
-    top: 58px;
+    top: 146px;
     right: 7px;
     left: auto;
     max-width: calc(100% - 210px);
@@ -1418,7 +1418,7 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 /* Keep the expanded profiler in its own narrow mobile lane, clear of the
    cargo control. Dense rows reflow vertically; the panel remains scrollable. */
 @media (max-width: 430px) {
-  .profiler-overlay.expanded { width: min(35%, 140px); }
+  .profiler-overlay.expanded { width: min(134px, calc(100% - 226px)); }
   .profiler-overlay.expanded .profiler-stats { grid-template-columns: 1fr 1fr; row-gap: 5px; }
   .profiler-overlay.expanded .profiler-live { grid-template-columns: repeat(3, 1fr); }
   .profiler-overlay.expanded .profiler-drive-live { grid-template-columns: 1fr 1fr; }
@@ -1479,4 +1479,8 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
     max-height: 168px;
     border-right: 1px solid rgba(221,177,95,.42);
   }
+
+  /* Expanded status owns the full upper-right drawer lane. Keep the companion
+     panel directly below its 220px maximum footprint. */
+  .status-rail.expanded ~ .dog-hud { top: 222px; }
 }
