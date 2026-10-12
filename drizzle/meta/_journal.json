@@ -470,6 +470,13 @@
       "when": 1791646092281,
       "tag": "0067_add_companion_command_mode",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "6",
+      "when": 1791775709327,
+      "tag": "0068_add_world_scale_marker",
+      "breakpoints": true
     }
   ]
 }
