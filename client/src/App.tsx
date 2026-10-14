@@ -2613,7 +2613,7 @@ export function App(){
     return()=>{run.remove();output.remove();};
   },[]);
 
-  /*
+    /*
    * Audit-only biome-transition seam probe. The player route never installs
    * these globals or performs this sampling work. See .harness/BIOME-SEAM-PROBE.md.
    */
