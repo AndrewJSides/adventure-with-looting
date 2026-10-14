@@ -933,6 +933,11 @@ const WEATHER:Record<WeatherKind,WeatherDefinition>={
   fog:{label:"Fog Bank",icon:"≋",visibility:.48,hearing:1,playerSpeed:1,enemySpeed:1,heavy:false},
 };
 const WEATHER_CYCLES:Record<number,readonly WeatherKind[]>={1:["clear","rain","storm","rain"],8:["fog","clear","fog"],10:["ash","clear","ash"],12:["blizzard","clear","blizzard"],13:["rain","storm","clear","rain"],17:["rain","storm","fog","rain"],18:["fog","clear","fog","rain"]};
+const WEATHER_CROSSFADE_SECONDS=4;
+const RAIN_PEAK_GAIN:Record<"rain"|"storm",number>={rain:.04,storm:.055};
+function isRainWeather(kind:WeatherKind):kind is "rain"|"storm"{return kind==="rain"||kind==="storm";}
+function rainPeakGain(kind:WeatherKind):number{return isRainWeather(kind)?RAIN_PEAK_GAIN[kind]:0;}
+function updateWeatherBlend(world:World,dt:number):void{const target=!world.dungeon&&!world.activeInterior&&isRainWeather(world.currentWeather)?1:0,step=Math.max(0,dt)/WEATHER_CROSSFADE_SECONDS;world.weatherRainIntensity=target>world.weatherRainIntensity?Math.min(target,world.weatherRainIntensity+step):Math.max(target,world.weatherRainIntensity-step);}
 function defaultWeatherForRegion(regionId:number):WeatherKind{return regionId===1||regionId===13?"rain":regionId===10?"ash":regionId===12?"blizzard":regionId===8?"fog":regionId===17?"rain":regionId===18?"fog":"clear";}
 function weatherForRegion(save:PersistedSave,regionId:number):WeatherKind{return save.regionWeather.find(state=>state.regionId===regionId)?.kind??defaultWeatherForRegion(regionId);}
 function nextWeatherForRegion(regionId:number,tick:number):WeatherKind{const cycle=WEATHER_CYCLES[regionId]??(["clear","clear","rain","clear","storm"] as const);return cycle[Math.abs(tick)%cycle.length]??"clear";}
