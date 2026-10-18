@@ -1876,7 +1876,7 @@ function buildFeatheredGroundPatch(width:number,height:number,feather:number,col
 const TRADER_PARKING={left:8570,right:8930,top:29910,bottom:30410,roadX:8760,roadY:29210} as const;
 let traderParkingGroundCache:HTMLCanvasElement|null=null;
 function traderParkingGround():HTMLCanvasElement|null{if(traderParkingGroundCache)return traderParkingGroundCache;const parking=TRADER_PARKING,width=parking.right-parking.left,height=parking.bottom-parking.top,centerX=width/2;traderParkingGroundCache=buildFeatheredGroundPatch(width,height,92,"#5c4931",ctx=>{ctx.beginPath();ctx.moveTo(14,6);ctx.quadraticCurveTo(-10,height/2,9,height-8);ctx.quadraticCurveTo(centerX,height+13,width-8,height-5);ctx.quadraticCurveTo(width+11,height/2,width-12,8);ctx.quadraticCurveTo(centerX,-12,14,6);ctx.closePath();});return traderParkingGroundCache;}
-function drawTraderParking(ctx:CanvasRenderingContext2D):void{const parking=TRADER_PARKING,centerX=(parking.left+parking.right)/2;ctx.save();ctx.lineCap="round";for(const [width,alpha] of [[230,.025],[190,.045],[150,.08],[118,.16],[88,.42],[62,.78]] as const){ctx.strokeStyle=`rgba(92,73,49,${alpha})`;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(parking.roadX,parking.roadY);ctx.quadraticCurveTo(8690,29580,centerX,parking.top+38);ctx.stroke();}ctx.strokeStyle="rgba(35,27,20,.28)";ctx.lineWidth=7;for(const offset of [-29,29]){ctx.beginPath();ctx.moveTo(parking.roadX+offset,parking.roadY);ctx.quadraticCurveTo(8690+offset,29580,centerX+offset,parking.top+48);ctx.stroke();}const patch=traderParkingGround();if(patch){const feather=92,padding=Math.ceil(feather*1.75);ctx.drawImage(patch,parking.left-padding,parking.top-padding);}ctx.strokeStyle="#3b281b";ctx.lineWidth=12;ctx.lineCap="round";for(const x of [parking.left+34,parking.right-34]){ctx.beginPath();ctx.moveTo(x,parking.top+62);ctx.lineTo(x,parking.bottom-52);ctx.stroke();if(!awlProbe90State.omitParkingHighlights){ctx.strokeStyle="#80603a";ctx.lineWidth=3;ctx.stroke();}ctx.strokeStyle="#3b281b";ctx.lineWidth=12;}ctx.fillStyle="rgba(236,205,144,.7)";ctx.font="900 10px system-ui";ctx.textAlign="center";ctx.fillText("TRADER PARKING",centerX,parking.bottom-28);ctx.restore();}
+function drawTraderParking(ctx:CanvasRenderingContext2D):void{const parking=TRADER_PARKING,centerX=(parking.left+parking.right)/2;ctx.save();ctx.lineCap="round";for(const [width,alpha] of [[230,.025],[190,.045],[150,.08],[118,.16],[88,.42],[62,.78]] as const){ctx.strokeStyle=`rgba(92,73,49,${alpha})`;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(parking.roadX,parking.roadY);ctx.quadraticCurveTo(8690,29580,centerX,parking.top+38);ctx.stroke();}ctx.strokeStyle="rgba(35,27,20,.28)";ctx.lineWidth=7;for(const offset of [-29,29]){ctx.beginPath();ctx.moveTo(parking.roadX+offset,parking.roadY);ctx.quadraticCurveTo(8690+offset,29580,centerX+offset,parking.top+48);ctx.stroke();}const patch=traderParkingGround();if(patch){const feather=92,padding=Math.ceil(feather*1.75);ctx.drawImage(patch,parking.left-padding,parking.top-padding);}ctx.strokeStyle="#3b281b";ctx.lineWidth=12;ctx.lineCap="round";for(const x of [parking.left+34,parking.right-34]){ctx.beginPath();ctx.moveTo(x,parking.top+62);ctx.lineTo(x,parking.bottom-52);ctx.stroke();ctx.strokeStyle="#80603a";ctx.lineWidth=3;ctx.stroke();ctx.strokeStyle="#3b281b";ctx.lineWidth=12;}ctx.fillStyle="rgba(236,205,144,.7)";ctx.font="900 10px system-ui";ctx.textAlign="center";ctx.fillText("TRADER PARKING",centerX,parking.bottom-28);ctx.restore();}
 const GROUND_CHUNK_SIZE=640,GROUND_CHUNK_LOOK_AHEAD=1.25,GROUND_CHUNK_CACHE_LIMIT=32,GROUND_CANVAS_POOL_LIMIT=4,GROUND_CHUNK_BUILD_BUDGET_MS=3.5,GROUND_CHUNK_DRIVING_BUDGET_MS=1.15,GROUND_CHUNK_DRAW_BUDGET=180,GROUND_CHUNK_DRIVING_DRAW_BUDGET=72,GROUND_REGION_TINT_SCALE=32,GROUND_TILE_BATCH_SIZE=24;
 const SPECIAL_REGION_INDICES=[9,10,11] as const,GROUND_WET_COLORS=["#4b735e","#638873","#395f51"] as const,GROUND_GRASS_COLORS=["#4f7e45","#6f9a53","#3d6d3d"] as const;
 type GroundChunkPhase="base"|"regions"|"special"|"tiles"|"road"|"village"|"done";
@@ -1896,11 +1896,8 @@ function chunkIntersects(entry:GroundChunkEntry,x:number,y:number,r:number):bool
 function queueGroundChunk(originX:number,originY:number,priority:number):GroundChunkEntry{const key=`${originX}:${originY}`,existing=groundChunkCache.get(key);if(existing){existing.lastUsed=++groundChunkUseSequence;existing.priority=Math.min(existing.priority,priority);return existing;}const canvas=acquireGroundCanvas(),rawCtx=canvas.getContext("2d");if(!rawCtx)throw new Error("Terrain canvas is unavailable");const ctx=instrumentCanvasDrawCalls(rawCtx),entry:GroundChunkEntry={key,originX,originY,canvas,ctx,phase:"base",phaseIndex:0,tileIndex:0,baseReady:false,queued:true,priority,lastUsed:++groundChunkUseSequence,totalBuildMs:0,totalDrawCalls:0};groundChunkCache.set(key,entry);groundChunkQueue.push(entry);activeChunksQueuedThisFrame+=1;activeChunkQueuePeak=Math.max(activeChunkQueuePeak,pendingGroundChunkCount());return entry;}
 let groundBlendScratch:HTMLCanvasElement|null=null;
 function getGroundBlendScratch():HTMLCanvasElement|null{if(!groundBlendScratch){groundBlendScratch=document.createElement("canvas");groundBlendScratch.width=GROUND_CHUNK_SIZE;groundBlendScratch.height=GROUND_CHUNK_SIZE;}return groundBlendScratch;}
-/* PROBE90 audit-only state (removed by exact revert): layer enable gate, feathered-grid ablation, Probe #50 parking highlight omission. */
-const awlProbe90State={layerEnabled:true,featherGrid1024:false,omitParkingHighlights:true};
-function drawTextureLattice(ctx:CanvasRenderingContext2D,textures:HTMLCanvasElement[],originX:number,originY:number):void{const raw=textures[0],feathered=textures[1];if(!raw||!feathered)return;const half=BIOME_TEXTURE_STRIDE/2,startX=Math.floor((originX-half)/BIOME_TEXTURE_STRIDE)*BIOME_TEXTURE_STRIDE+half,startY=Math.floor((originY-half)/BIOME_TEXTURE_STRIDE)*BIOME_TEXTURE_STRIDE+half,endX=originX+GROUND_CHUNK_SIZE,endY=originY+GROUND_CHUNK_SIZE;for(let y=startY;y<endY;y+=BIOME_TEXTURE_STRIDE)for(let x=startX;x<endX;x+=BIOME_TEXTURE_STRIDE)ctx.drawImage(raw,x-originX,y-originY,BIOME_TEXTURE_STRIDE,BIOME_TEXTURE_STRIDE);if(awlProbe90State.featherGrid1024){const stride2=BIOME_TEXTURE_STRIDE*2,gridX=Math.floor(originX/stride2)*stride2,gridY=Math.floor(originY/stride2)*stride2;for(let y=gridY;y<endY;y+=stride2)for(let x=gridX;x<endX;x+=stride2)ctx.drawImage(feathered,x-originX,y-originY,stride2,stride2);}else{const alignedX=Math.floor(originX/BIOME_TEXTURE_STRIDE)*BIOME_TEXTURE_STRIDE,alignedY=Math.floor(originY/BIOME_TEXTURE_STRIDE)*BIOME_TEXTURE_STRIDE;for(let y=alignedY;y<endY;y+=BIOME_TEXTURE_STRIDE)for(let x=alignedX;x<endX;x+=BIOME_TEXTURE_STRIDE)ctx.drawImage(feathered,x-originX,y-originY,BIOME_TEXTURE_STRIDE,BIOME_TEXTURE_STRIDE);}}
+function drawTextureLattice(ctx:CanvasRenderingContext2D,textures:HTMLCanvasElement[],originX:number,originY:number):void{const raw=textures[0],feathered=textures[1];if(!raw||!feathered)return;const half=BIOME_TEXTURE_STRIDE/2,startX=Math.floor((originX-half)/BIOME_TEXTURE_STRIDE)*BIOME_TEXTURE_STRIDE+half,startY=Math.floor((originY-half)/BIOME_TEXTURE_STRIDE)*BIOME_TEXTURE_STRIDE+half,endX=originX+GROUND_CHUNK_SIZE,endY=originY+GROUND_CHUNK_SIZE;for(let y=startY;y<endY;y+=BIOME_TEXTURE_STRIDE)for(let x=startX;x<endX;x+=BIOME_TEXTURE_STRIDE)ctx.drawImage(raw,x-originX,y-originY,BIOME_TEXTURE_STRIDE,BIOME_TEXTURE_STRIDE);const alignedX=Math.floor(originX/BIOME_TEXTURE_STRIDE)*BIOME_TEXTURE_STRIDE,alignedY=Math.floor(originY/BIOME_TEXTURE_STRIDE)*BIOME_TEXTURE_STRIDE;for(let y=alignedY;y<endY;y+=BIOME_TEXTURE_STRIDE)for(let x=alignedX;x<endX;x+=BIOME_TEXTURE_STRIDE)ctx.drawImage(feathered,x-originX,y-originY,BIOME_TEXTURE_STRIDE,BIOME_TEXTURE_STRIDE);}
 function drawBiomeTextureLayer(entry:GroundChunkEntry):void{
-  if(!awlProbe90State.layerEnabled)return;
   if(!activeEffectFlags.groundTexture)return;
   const {ctx,originX,originY}=entry,fallback=getBiomeTextureVariants(1);if(!fallback)return;
   ctx.save();ctx.globalCompositeOperation="source-over";ctx.globalAlpha=BIOME_TEXTURE_ALPHA;drawTextureLattice(ctx,fallback,originX,originY);ctx.restore();
@@ -1908,8 +1905,8 @@ function drawBiomeTextureLayer(entry:GroundChunkEntry):void{
   for(const region of REGIONS){if(region.id===1||!chunkIntersects(entry,region.x,region.y,region.radius))continue;const texture=getBiomeTextureVariants(region.id);if(!texture)continue;scratchCtx.setTransform(1,0,0,1,0,0);scratchCtx.globalAlpha=1;scratchCtx.globalCompositeOperation="source-over";scratchCtx.clearRect(0,0,GROUND_CHUNK_SIZE,GROUND_CHUNK_SIZE);drawTextureLattice(scratchCtx,texture,originX,originY);scratchCtx.globalCompositeOperation="destination-in";const localX=region.x-originX,localY=region.y-originY,feather=Math.min(region.radius*.42,BIOME_EDGE_FEATHER),inner=Math.max(0,region.radius-feather),mask=scratchCtx.createRadialGradient(localX,localY,inner,localX,localY,region.radius);mask.addColorStop(0,"rgba(0,0,0,1)");mask.addColorStop(.2,"rgba(0,0,0,.94)");mask.addColorStop(.5,"rgba(0,0,0,.5)");mask.addColorStop(.8,"rgba(0,0,0,.06)");mask.addColorStop(1,"rgba(0,0,0,0)");scratchCtx.fillStyle=mask;scratchCtx.fillRect(0,0,GROUND_CHUNK_SIZE,GROUND_CHUNK_SIZE);ctx.save();ctx.globalAlpha=BIOME_REPLACEMENT_ALPHA;ctx.drawImage(scratch,0,0);ctx.restore();
   }
 }
-function drawGroundTile(entry:GroundChunkEntry,index:number):void{const {ctx,originX,originY}=entry,tile=48,startX=Math.floor(originX/tile)*tile,startY=Math.floor(originY/tile)*tile,columns=Math.ceil((GROUND_CHUNK_SIZE+tile)/tile),x=startX+(index%columns)*tile,y=startY+Math.floor(index/columns)*tile;if(y>=originY+GROUND_CHUNK_SIZE+tile){entry.phase="road";return;}const h=terrainHash(x/tile,y/tile),h2=terrainHash(x/tile,y/tile,7),jitterX=(h-.5)*34,jitterY=(h2-.5)*34,px=x+jitterX,py=y+jitterY,lx=px-originX,ly=py-originY,region=regionAtPoint(px,py),village=Boolean(region?.village),wet=region?.id===3||region?.id===8||region?.id===11,scorched=Boolean(region?.volcanic)||region?.id===7,frostTile=region?.id===12,urban=region?.id===14;if(index===0)drawBiomeTextureLayer(entry);if(lx<-20||ly<-20||lx>GROUND_CHUNK_SIZE+20||ly>GROUND_CHUNK_SIZE+20)return;
-if(urban){ctx.fillStyle=h>.55?"rgba(91,91,86,.5)":"rgba(68,68,65,.52)";ctx.fillRect(lx-23,ly-23,46,46);if(h2>.42){ctx.strokeStyle="rgba(28,28,27,.48)";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(lx-18,ly-7);ctx.lineTo(lx-3,ly+2);ctx.lineTo(lx+15,ly-4);ctx.stroke();}return;}if(village||h<.23){ctx.fillStyle=village?(h>.55?"rgba(112,82,48,.34)":"rgba(60,43,29,.3)"):"rgba(92,75,48,.2)";ctx.beginPath();ctx.ellipse(lx,ly,5+h*10,2.5+h2*5,h*Math.PI,0,Math.PI*2);ctx.fill();if(h2>.62){ctx.fillStyle=village?"rgba(182,152,103,.44)":"rgba(127,120,91,.32)";ctx.beginPath();ctx.ellipse(lx+8,ly-3,2.2+h*2,1.6+h2,0,0,Math.PI*2);ctx.fill();ctx.fillStyle="rgba(30,27,22,.25)";ctx.beginPath();ctx.arc(lx-6,ly+4,1.4+h2*1.6,0,Math.PI*2);ctx.fill();}}if(!village&&!scorched&&!frostTile){const base=wet?GROUND_WET_COLORS:GROUND_GRASS_COLORS,color=base[Math.floor(h*base.length)]??base[0];ctx.strokeStyle=color;ctx.globalAlpha=wet?.32:.48;ctx.lineWidth=1.2+h2*1.1;const blades=2+Math.floor(h*4);for(let blade=0;blade<blades;blade+=1){const bx=lx+(blade-(blades-1)/2)*3.1,lean=(terrainHash(x/tile,y/tile,blade+11)-.5)*7,height=5+terrainHash(x/tile,y/tile,blade+21)*11;ctx.beginPath();ctx.moveTo(bx,ly+5);ctx.quadraticCurveTo(bx+lean*.35,ly-height*.45,bx+lean+Math.sin(h*9)*.7,ly-height);ctx.stroke();}ctx.globalAlpha=1;if(h>.83){ctx.fillStyle=wet?"rgba(153,193,157,.28)":"rgba(126,166,89,.38)";ctx.beginPath();ctx.ellipse(lx-5,ly+2,8,3,-.35,0,Math.PI*2);ctx.fill();}}if(scorched&&h>.5){ctx.strokeStyle="rgba(42,24,20,.48)";ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(lx-7,ly+4);ctx.lineTo(lx,ly-3);ctx.lineTo(lx+8,ly+1);ctx.stroke();}if(frostTile&&h>.38){ctx.fillStyle="rgba(238,251,252,.38)";ctx.beginPath();ctx.ellipse(lx,ly,6+h*5,2+h2*2,h,0,Math.PI*2);ctx.fill();}}
+function drawGroundTile(entry:GroundChunkEntry,index:number):void{const {ctx,originX,originY}=entry,tile=48,startX=Math.floor(originX/tile)*tile,startY=Math.floor(originY/tile)*tile,columns=Math.ceil((GROUND_CHUNK_SIZE+tile)/tile),x=startX+(index%columns)*tile,y=startY+Math.floor(index/columns)*tile;if(y>=originY+GROUND_CHUNK_SIZE+tile){entry.phase="road";return;}const h=terrainHash(x/tile,y/tile),h2=terrainHash(x/tile,y/tile,7),jitterX=(h-.5)*34,jitterY=(h2-.5)*34,px=x+jitterX,py=y+jitterY,lx=px-originX,ly=py-originY,region=regionAtPoint(px,py),village=Boolean(region?.village),wet=region?.id===3||region?.id===8||region?.id===11,scorched=Boolean(region?.volcanic)||region?.id===7,frostTile=region?.id===12,urban=region?.id===14;if(lx<-20||ly<-20||lx>GROUND_CHUNK_SIZE+20||ly>GROUND_CHUNK_SIZE+20)return;
+if(index===0)drawBiomeTextureLayer(entry);if(urban){ctx.fillStyle=h>.55?"rgba(91,91,86,.5)":"rgba(68,68,65,.52)";ctx.fillRect(lx-23,ly-23,46,46);if(h2>.42){ctx.strokeStyle="rgba(28,28,27,.48)";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(lx-18,ly-7);ctx.lineTo(lx-3,ly+2);ctx.lineTo(lx+15,ly-4);ctx.stroke();}return;}if(village||h<.23){ctx.fillStyle=village?(h>.55?"rgba(112,82,48,.34)":"rgba(60,43,29,.3)"):"rgba(92,75,48,.2)";ctx.beginPath();ctx.ellipse(lx,ly,5+h*10,2.5+h2*5,h*Math.PI,0,Math.PI*2);ctx.fill();if(h2>.62){ctx.fillStyle=village?"rgba(182,152,103,.44)":"rgba(127,120,91,.32)";ctx.beginPath();ctx.ellipse(lx+8,ly-3,2.2+h*2,1.6+h2,0,0,Math.PI*2);ctx.fill();ctx.fillStyle="rgba(30,27,22,.25)";ctx.beginPath();ctx.arc(lx-6,ly+4,1.4+h2*1.6,0,Math.PI*2);ctx.fill();}}if(!village&&!scorched&&!frostTile){const base=wet?GROUND_WET_COLORS:GROUND_GRASS_COLORS,color=base[Math.floor(h*base.length)]??base[0];ctx.strokeStyle=color;ctx.globalAlpha=wet?.32:.48;ctx.lineWidth=1.2+h2*1.1;const blades=2+Math.floor(h*4);for(let blade=0;blade<blades;blade+=1){const bx=lx+(blade-(blades-1)/2)*3.1,lean=(terrainHash(x/tile,y/tile,blade+11)-.5)*7,height=5+terrainHash(x/tile,y/tile,blade+21)*11;ctx.beginPath();ctx.moveTo(bx,ly+5);ctx.quadraticCurveTo(bx+lean*.35,ly-height*.45,bx+lean+Math.sin(h*9)*.7,ly-height);ctx.stroke();}ctx.globalAlpha=1;if(h>.83){ctx.fillStyle=wet?"rgba(153,193,157,.28)":"rgba(126,166,89,.38)";ctx.beginPath();ctx.ellipse(lx-5,ly+2,8,3,-.35,0,Math.PI*2);ctx.fill();}}if(scorched&&h>.5){ctx.strokeStyle="rgba(42,24,20,.48)";ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(lx-7,ly+4);ctx.lineTo(lx,ly-3);ctx.lineTo(lx+8,ly+1);ctx.stroke();}if(frostTile&&h>.38){ctx.fillStyle="rgba(238,251,252,.38)";ctx.beginPath();ctx.ellipse(lx,ly,6+h*5,2+h2*2,h,0,Math.PI*2);ctx.fill();}}
 function stepGroundChunk(entry:GroundChunkEntry,deadline:number,drawCallDeadline:number):void{const {ctx,originX,originY}=entry;if(entry.phase==="base"){ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation="source-over";ctx.clearRect(0,0,GROUND_CHUNK_SIZE,GROUND_CHUNK_SIZE);ctx.save();ctx.translate(-originX,-originY);const floor=ctx.createLinearGradient(0,0,0,WORLD_H);floor.addColorStop(0,"#142d20");floor.addColorStop(.55,"#1c422b");floor.addColorStop(1,"#2b5735");ctx.fillStyle=floor;ctx.fillRect(originX,originY,GROUND_CHUNK_SIZE,GROUND_CHUNK_SIZE);ctx.restore();entry.phase="regions";return;}if(entry.phase==="regions"){const tintMap=getGroundRegionTintMap(),sourceW=Math.max(0,Math.min(GROUND_CHUNK_SIZE,WORLD_W-originX))/GROUND_REGION_TINT_SCALE,sourceH=Math.max(0,Math.min(GROUND_CHUNK_SIZE,WORLD_H-originY))/GROUND_REGION_TINT_SCALE;if(tintMap&&sourceW>0&&sourceH>0){ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(tintMap,originX/GROUND_REGION_TINT_SCALE,originY/GROUND_REGION_TINT_SCALE,sourceW,sourceH,0,0,sourceW*GROUND_REGION_TINT_SCALE,sourceH*GROUND_REGION_TINT_SCALE);ctx.restore();}entry.phase="special";entry.phaseIndex=0;return;}if(entry.phase==="special"){const regionIndex=SPECIAL_REGION_INDICES[entry.phaseIndex];if(regionIndex===undefined){entry.phase="tiles";entry.phaseIndex=0;return;}entry.phaseIndex+=1;const region=REGIONS[regionIndex];if(!region||!chunkIntersects(entry,region.x,region.y,region.radius+180))return;ctx.save();ctx.translate(-originX,-originY);if(regionIndex===9)drawVolcanicTerrain(ctx,0);else if(regionIndex===10)drawMoonfangArena(ctx,0);else drawFrostfallTerrain(ctx);ctx.restore();return;}if(entry.phase==="tiles"){for(let count=0;count<GROUND_TILE_BATCH_SIZE&&entry.phase==="tiles";count+=1){drawGroundTile(entry,entry.tileIndex);entry.tileIndex+=1;if(performance.now()>=deadline||activeDrawCallCount>=drawCallDeadline)break;}return;}if(entry.phase==="road"){ctx.save();ctx.translate(-originX,-originY);drawWorldRoad(ctx);drawTraderParking(ctx);ctx.restore();entry.phase="village";return;}if(entry.phase==="village"){if(chunkIntersects(entry,VILLAGE_CENTER.x,VILLAGE_CENTER.y,900))drawVillageGroundChunk(entry);entry.phase="done";entry.baseReady=true;entry.queued=false;}}
 function groundChunkPhasePriority(entry:GroundChunkEntry):number{return entry.phase==="base"||entry.phase==="regions"||entry.phase==="special"?0:1;}
 function takeNextGroundChunk():GroundChunkEntry|undefined{let bestIndex=-1,best:GroundChunkEntry|undefined,bestPhasePriority=Infinity,write=0;for(let read=0;read<groundChunkQueue.length;read+=1){const entry=groundChunkQueue[read];if(!entry||!entry.queued||groundChunkCache.get(entry.key)!==entry||entry.phase==="done")continue;groundChunkQueue[write]=entry;const phasePriority=groundChunkPhasePriority(entry);if(!best||phasePriority<bestPhasePriority||(phasePriority===bestPhasePriority&&(entry.priority<best.priority||(entry.priority===best.priority&&entry.lastUsed<best.lastUsed)))){best=entry;bestIndex=write;bestPhasePriority=phasePriority;}write+=1;}groundChunkQueue.length=write;if(bestIndex<0)return undefined;const last=groundChunkQueue.pop();if(last&&bestIndex<groundChunkQueue.length)groundChunkQueue[bestIndex]=last;return best;}
@@ -2548,164 +2545,6 @@ export function App(){
   const changeMode=useCallback((next:Mode)=>{inputRef.current={x:0,y:0};keysRef.current.clear();joyPointerRef.current=null;heldFireRef.current.active=false;heldFireRef.current.pointerId=null;heldMeleeRef.current.active=false;heldMeleeRef.current.pointerId=null;if(barricadeTimerRef.current!==null){window.clearTimeout(barricadeTimerRef.current);barricadeTimerRef.current=null;}setJoystick({x:0,y:0});modeRef.current=next;setMode(next);},[]);
   const showSurvivorTip=useCallback((rule?:SurvivalRule,label:SurvivorTip["label"]="SURVIVOR’S RULE")=>{const chosen=rule??SURVIVOR_LOADING_TIPS[Math.floor(Math.random()*SURVIVOR_LOADING_TIPS.length)]??SURVIVOR_RULES[0];if(!chosen)return;if(survivorTipTimerRef.current!==null)window.clearTimeout(survivorTipTimerRef.current);setSurvivorTip({rule:chosen,label});survivorTipTimerRef.current=window.setTimeout(()=>{setSurvivorTip(null);survivorTipTimerRef.current=null;},label==="RULE TABLET FOUND"?3600:2400);},[]);
   useEffect(()=>()=>{if(survivorTipTimerRef.current!==null)window.clearTimeout(survivorTipTimerRef.current);},[]);
-  /*
-   * PROBE90 audit-only harness (removed by exact revert). Gated to
-   * /hatch-audit-* like the pre-existing audit probes; never installs globals
-   * or runs work on the player route. Fixed-center tonal-step harness of
-   * Probes #60-#89: pinned integer sampler at window (8570, 30160), the
-   * Probe #61 moved call site in all configurations, Probe #50 parking
-   * configuration, and ONE variable — the feathered tiling's grid inside
-   * drawTextureLattice (aligned 1024-px stride at 1024x1024 per draw).
-   */
-  useEffect(()=>{
-    if(!window.location.pathname.includes("/hatch-audit-"))return;
-    type Probe90Row={tangent:number;delta:number;maxStep:number;ratio:number;ampFraction:number;stepPos:number;spike:boolean;uniformZeroDelta:boolean};
-    type Probe90Config={name:string;layerEnabled:boolean;featherGrid1024:boolean;textureReady:boolean;textureWaitFrames:number;canvasRect:number[];queueInitial:number;allBaseAtDrain:boolean;drainSteps:number;queueRemaining:number;liveVariance:number;liveUniques:number;variance:number;uniques:number;frameRawSha256:string;framePngSha256:string;chunkSha256:Record<string,string>;count:number;spikeTangents:number[];rows:Probe90Row[];formattedRows:string[]};
-    type Probe90Readout={status:string;buildId:string;shaSelfTest:{abc:string;empty:string};configs:Record<string,Probe90Config>;anchorCheck:Record<string,unknown>;nolatticeCheck:Record<string,unknown>;stability:Record<string,unknown>;gate:Record<string,unknown>};
-    type Probe90Window=typeof window&{__AWL_RUN_TONAL_STEP_PROBE90__?:()=>Promise<Probe90Readout>;__AWL_READ_TONAL_STEP_PROBE90__?:()=>Probe90Readout|null};
-    const target=window as Probe90Window;
-    const u=(v:number|undefined):number=>v??0;
-    const SHA_K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
-    const sha256Hex=(data:Uint8Array):string=>{
-      const H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
-      const bitLen=data.length*8,total=Math.ceil((data.length+9)/64)*64,msg=new Uint8Array(total);
-      msg.set(data);msg[data.length]=0x80;
-      const dv=new DataView(msg.buffer);dv.setUint32(total-4,bitLen>>>0);dv.setUint32(total-8,Math.floor(bitLen/4294967296));
-      const w:number[]=[];for(let i=0;i<64;i++)w.push(0);
-      const rotr=(x:number,n:number):number=>(x>>>n)|(x<<(32-n));
-      for(let off=0;off<total;off+=64){
-        for(let t=0;t<16;t++)w[t]=dv.getUint32(off+t*4);
-        for(let t=16;t<64;t++){const s0=rotr(u(w[t-15]),7)^rotr(u(w[t-15]),18)^(u(w[t-15])>>>3),s1=rotr(u(w[t-2]),17)^rotr(u(w[t-2]),19)^(u(w[t-2])>>>10);w[t]=(u(w[t-16])+s0+u(w[t-7])+s1)|0;}
-        let a=u(H[0]),b=u(H[1]),c=u(H[2]),d=u(H[3]),e=u(H[4]),f=u(H[5]),g=u(H[6]),h=u(H[7]);
-        for(let t=0;t<64;t++){const S1=rotr(e,6)^rotr(e,11)^rotr(e,25),ch=(e&f)^(~e&g),t1=(h+S1+ch+u(SHA_K[t])+u(w[t]))|0,S0=rotr(a,2)^rotr(a,13)^rotr(a,22),mj=(a&b)^(a&c)^(b&c),t2=(S0+mj)|0;h=g;g=f;f=e;e=(d+t1)|0;d=c;c=b;b=a;a=(t1+t2)|0;}
-        H[0]=(u(H[0])+a)|0;H[1]=(u(H[1])+b)|0;H[2]=(u(H[2])+c)|0;H[3]=(u(H[3])+d)|0;H[4]=(u(H[4])+e)|0;H[5]=(u(H[5])+f)|0;H[6]=(u(H[6])+g)|0;H[7]=(u(H[7])+h)|0;
-      }
-      return H.map(x=>(x>>>0).toString(16).padStart(8,"0")).join("");
-    };
-    const PUBLISHED_ANCHOR={variance:183.50935390924718,uniques:142,raw:"ac853589cc4c4b9be0dca36b2433a8ac5629ebac5085cd32f9978dabb6623d09",png:"f8188ad80cc25ff1c30568a64a3d70e922520fa6cb759a045e238161277840fd",chunks:{"7680:29440":"0a1c49f1293efa7c643c80344333adb5db6cd06b14c82abd0df0ec642910a020","8320:29440":"9d61f566ca02a94fdad88ecdd31b7037155e2da7b3dd61bd80f5efa99f505cf3","7680:30080":"c5bd027fe8ef1b476d02def976f5b71aab75f6feedce4d6ec7acbea3e4697030","8320:30080":"51c06e0d3c4fff3d282904e895819aa465a46f0a2888ffbe1d2e2fe4702d2b9b"},rows:["| -190 | 38.556 | 18.137 | 11.290 | 0.470 | -0.5 | **yes** |", "| -180 | 58.383 | 22.463 | 9.234 | 0.385 | -10.5 | **yes** |", "| -170 | 30.822 | 27.371 | 21.313 | 0.888 | -2.5 | **yes** |", "| -160 | 48.589 | 33.300 | 16.448 | 0.685 | -2.5 | **yes** |", "| -150 | 53.329 | 23.653 | 10.645 | 0.444 | +0.5 | **yes** |", "| -140 | 56.894 | 29.583 | 12.479 | 0.520 | -4.5 | **yes** |", "| -130 | 26.784 | 18.479 | 16.558 | 0.690 | +8.5 | **yes** |", "| -120 | 40.469 | 26.490 | 15.710 | 0.655 | -11.5 | **yes** |", "| -110 | 29.926 | 16.354 | 13.116 | 0.546 | +1.5 | **yes** |", "| -100 | 36.670 | 19.767 | 12.937 | 0.539 | +5.5 | **yes** |", "| -90 | 39.942 | 21.582 | 12.968 | 0.540 | -2.5 | **yes** |", "| -80 | 22.631 | 16.006 | 16.974 | 0.707 | +8.5 | **yes** |", "| +80 | 25.322 | 12.283 | 11.642 | 0.485 | +10.5 | **yes** |", "| +90 | 27.697 | 17.718 | 15.353 | 0.640 | +4.5 | **yes** |", "| +100 | 32.311 | 16.305 | 12.111 | 0.505 | -10.5 | **yes** |", "| +110 | 36.338 | 24.419 | 16.128 | 0.672 | -11.5 | **yes** |", "| +120 | 38.942 | 14.484 | 8.927 | 0.372 | +8.5 | **yes** |", "| +130 | 40.785 | 19.001 | 11.181 | 0.466 | +9.5 | **yes** |", "| +140 | 35.452 | 17.528 | 11.866 | 0.494 | -4.5 | **yes** |", "| +150 | 37.953 | 21.414 | 13.541 | 0.564 | +9.5 | **yes** |", "| +160 | 37.627 | 23.670 | 15.098 | 0.629 | +8.5 | **yes** |", "| +170 | 50.052 | 28.870 | 13.843 | 0.577 | -4.5 | **yes** |", "| +180 | 37.268 | 19.257 | 12.401 | 0.517 | +8.5 | **yes** |", "| +190 | 47.601 | 23.126 | 11.660 | 0.486 | +0.5 | **yes** |"]};
-    const PUBLISHED_NOLATTICE={variance:33.85943631403277,uniques:115,raw:"9f3031d44ff58128fdc48c8b4c68c5681e761961c941a79d196fb18ca60253ce",png:"e30de0d8b2ada2df4abab10c12e45c715af37adcaaf739d51b22ee59fc2e554d",chunks:{"7680:29440":"66a0870444b3273981516ec348112257be9eb8d7d0cc69c8561d37d84fbc54a7","8320:29440":"06a99c92cfb8680fa6da6b3b9b59ffae5377355612f1c71fd5f2c27ced4289b3","7680:30080":"158cdb5997eaea4bad134cdbf74d62ab508bb10b660d40faf2ceb62aee42822b","8320:30080":"61c74a3659325d4ae359e42e8817f0671da1dcb6d03769c599b63f48fc4739e2"},rows:["| -190 | 0.886 | 0.587 | 15.901 | 0.663 | -8.5 | no |", "| -180 | 20.001 | 11.696 | 14.034 | 0.585 | +3.5 | **yes** |", "| -170 | 1.783 | 1.772 | 23.852 | 0.994 | +9.5 | **yes** |", "| -160 | 1.299 | 1.000 | 18.476 | 0.770 | +9.5 | no |", "| -150 | 1.473 | 0.886 | 14.436 | 0.601 | -2.5 | no |", "| -140 | 1.587 | 1.000 | 15.123 | 0.630 | -5.5 | no |", "| -130 | 1.196 | 0.701 | 14.067 | 0.586 | +10.5 | no |", "| -120 | 19.507 | 17.621 | 21.680 | 0.903 | -11.5 | **yes** |", "| -110 | 1.794 | 1.000 | 13.378 | 0.557 | -5.5 | no |", "| -100 | 1.207 | 0.886 | 17.617 | 0.734 | +7.5 | no |", "| -90 | 1.392 | 0.772 | 13.310 | 0.555 | -0.5 | no |", "| -80 | 10.811 | 9.316 | 20.681 | 0.862 | +10.5 | **yes** |", "| +80 | 1.919 | 0.587 | 7.341 | 0.306 | -4.5 | no |", "| +90 | 8.822 | 4.245 | 11.548 | 0.481 | +10.5 | **yes** |", "| +100 | 1.620 | 0.886 | 13.126 | 0.547 | -5.5 | no |", "| +110 | 1.299 | 1.000 | 18.476 | 0.770 | -0.5 | no |", "| +120 | 18.469 | 15.675 | 20.369 | 0.849 | +8.5 | **yes** |", "| +130 | 1.196 | 0.886 | 17.779 | 0.741 | +8.5 | no |", "| +140 | 1.310 | 0.886 | 16.232 | 0.676 | -5.5 | no |", "| +150 | 1.011 | 0.587 | 13.935 | 0.581 | -11.5 | no |", "| +160 | 1.783 | 0.886 | 11.926 | 0.497 | -10.5 | no |", "| +170 | 9.892 | 9.892 | 24.000 | 1.000 | -4.5 | **yes** |", "| +180 | 1.114 | 0.587 | 12.646 | 0.527 | -2.5 | no |", "| +190 | 0.886 | 0.473 | 12.813 | 0.534 | +11.5 | no |"]};
-    const PRODUCTION_SPIKES=[-180,-170,-120,-80,90,120,170];
-    const TANGENTS=[-190,-180,-170,-160,-150,-140,-130,-120,-110,-100,-90,-80,80,90,100,110,120,130,140,150,160,170,180,190];
-    const WINDOW_CHUNKS:ReadonlyArray<readonly [number,number]>=[[7680,29440],[8320,29440],[7680,30080],[8320,30080]];
-    const nextFrame=():Promise<void>=>new Promise<void>(resolve=>{requestAnimationFrame(()=>resolve());});
-    const roundedLumaStats=(data:Uint8ClampedArray):{variance:number;uniques:number}=>{
-      const n=data.length/4,vals:number[]=[];const seen=new Set<number>();let sum=0;
-      for(let i=0;i<n;i++){const v=Math.round(.299*u(data[i*4])+.587*u(data[i*4+1])+.114*u(data[i*4+2]));vals.push(v);seen.add(v);sum+=v;}
-      const mean=sum/n;let sq=0;for(const v of vals){const d=v-mean;sq+=d*d;}
-      return{variance:sq/n,uniques:seen.size};
-    };
-    const scoreRow=(tangent:number,values:number[]):Probe90Row=>{
-      const delta=Math.max(...values)-Math.min(...values);
-      let maxStep=0,stepIdx=0;
-      for(let i=1;i<values.length;i++){const s=Math.abs(u(values[i])-u(values[i-1]));if(s>maxStep){maxStep=s;stepIdx=i-1;}}
-      const uniformZeroDelta=delta===0,ratio=uniformZeroDelta?0:maxStep/(delta/24),ampFraction=uniformZeroDelta?0:maxStep/delta;
-      const spike=!uniformZeroDelta&&ratio>=4&&ampFraction>=0.15&&maxStep>=1.5;
-      return{tangent,delta,maxStep,ratio,ampFraction,stepPos:stepIdx-11.5,spike,uniformZeroDelta};
-    };
-    const fmtRow=(r:Probe90Row):string=>`| ${r.tangent>0?`+${r.tangent}`:`${r.tangent}`} | ${r.delta.toFixed(3)} | ${r.maxStep.toFixed(3)} | ${r.ratio.toFixed(3)} | ${r.ampFraction.toFixed(3)} | ${r.stepPos>=0?"+":""}${r.stepPos.toFixed(1)} | ${r.spike?"**yes**":"no"} |`;
-    const runConfig=async(spec:{name:string;layerEnabled:boolean;featherGrid1024:boolean}):Promise<Probe90Config>=>{
-      awlProbe90State.layerEnabled=spec.layerEnabled;
-      awlProbe90State.featherGrid1024=spec.featherGrid1024;
-      awlProbe90State.omitParkingHighlights=true;
-      const world=worldRef.current;
-      world.dungeon=null;ACTIVE_DUNGEON=null;world.activeInterior=null;ACTIVE_INTERIOR_ID=null;
-      world.enemies=[];world.projectiles=[];world.vehicle.mounted=false;
-      world.player.x=8570;world.player.y=30160;world.player.invuln=999999;
-      world.camera.zoom=1;world.camera.x=8210;world.camera.y=29660;
-      world.zone=regionAtPoint(8570,30160)?.id??world.zone;
-      modeRef.current="playing";setMode("playing");inputRef.current={x:0,y:0};
-      ensureBiomeTexturesLoaded();
-      let waitFrames=0;while(!biomeTexturesReady&&waitFrames<900){await nextFrame();waitFrames+=1;}
-      const textureReady=biomeTexturesReady;
-      const canvas=canvasRef.current,rect=canvas?canvas.getBoundingClientRect():null;
-      const canvasRect=rect?[Math.round(rect.x),Math.round(rect.y),Math.round(rect.width),Math.round(rect.height)]:[];
-      resetGroundChunkCache();
-      const viewW=VIEW_W/world.camera.zoom,viewH=VIEW_H/world.camera.zoom;
-      groundVisibleEntries.length=0;
-      setGroundChunkBounds(visibleChunkBounds,world.camera.x,world.camera.y,viewW,viewH);
-      for(let row=visibleChunkBounds.minRow;row<=visibleChunkBounds.maxRow;row+=1)for(let col=visibleChunkBounds.minCol;col<=visibleChunkBounds.maxCol;col+=1)groundVisibleEntries.push(queueGroundChunk(col*GROUND_CHUNK_SIZE,row*GROUND_CHUNK_SIZE,0));
-      queueNearbyWayfireDestination(world,viewW,viewH);
-      trimGroundChunkCache();
-      const queueInitial=pendingGroundChunkCount();
-      const allBaseAtDrain=groundChunkQueue.every(entry=>!entry.queued||entry.phase==="base");
-      let drainSteps=0;
-      while(drainSteps<1000){const entry=takeNextGroundChunk();if(!entry)break;stepGroundChunk(entry,Number.POSITIVE_INFINITY,Number.POSITIVE_INFINITY);drainSteps+=1;if(entry.queued)groundChunkQueue.push(entry);}
-      const queueRemaining=pendingGroundChunkCount();
-      for(let i=0;i<180;i++)await nextFrame();
-      let liveVariance=0,liveUniques=0;
-      if(canvas){const liveCtx=canvas.getContext("2d");if(liveCtx){const liveStats=roundedLumaStats(liveCtx.getImageData(0,0,canvas.width,canvas.height).data);liveVariance=liveStats.variance;liveUniques=liveStats.uniques;}}
-      const mosaic=document.createElement("canvas");mosaic.width=720;mosaic.height=1000;
-      const mctx=mosaic.getContext("2d"),chunkSha256:Record<string,string>={};
-      for(const [ox,oy] of WINDOW_CHUNKS){const entry=groundChunkCache.get(`${ox}:${oy}`);if(!entry)continue;if(mctx)mctx.drawImage(entry.canvas,ox-8210,oy-29660);const ectx=entry.canvas.getContext("2d");if(ectx)chunkSha256[`${ox}:${oy}`]=sha256Hex(new Uint8Array(ectx.getImageData(0,0,GROUND_CHUNK_SIZE,GROUND_CHUNK_SIZE).data.buffer));}
-      const comp=document.createElement("canvas");comp.width=390;comp.height=540;
-      const cctx=comp.getContext("2d");
-      let variance=0,uniques=0,frameRawSha256="";const rows:Probe90Row[]=[];
-      if(cctx){cctx.imageSmoothingEnabled=true;cctx.imageSmoothingQuality="high";cctx.drawImage(mosaic,0,0,720,1000,0,0,390,540);const img=cctx.getImageData(0,0,390,540),stats=roundedLumaStats(img.data);variance=stats.variance;uniques=stats.uniques;frameRawSha256=sha256Hex(new Uint8Array(img.data.buffer));
-        const lumaAt=(x:number,y:number):number=>{const idx=(y*390+x)*4;return .299*u(img.data[idx])+.587*u(img.data[idx+1])+.114*u(img.data[idx+2]);};
-        for(const t of TANGENTS){const vals:number[]=[];for(let off=-12;off<=12;off++)vals.push(lumaAt(195+off,270+t));rows.push(scoreRow(t,vals));}}
-      const framePngSha256=await new Promise<string>(resolve=>{comp.toBlob(blob=>{if(!blob){resolve("");return;}void blob.arrayBuffer().then(buf=>resolve(sha256Hex(new Uint8Array(buf))));},"image/png");});
-      const spikeTangents=rows.filter(r=>r.spike).map(r=>r.tangent);
-      return{name:spec.name,layerEnabled:spec.layerEnabled,featherGrid1024:spec.featherGrid1024,textureReady,textureWaitFrames:waitFrames,canvasRect,queueInitial,allBaseAtDrain,drainSteps,queueRemaining,liveVariance,liveUniques,variance,uniques,frameRawSha256,framePngSha256,chunkSha256,count:spikeTangents.length,spikeTangents,rows,formattedRows:rows.map(fmtRow)};
-    };
-    const compareConfig=(cfg:Probe90Config,pub:{variance:number;uniques:number;raw:string;png:string;chunks:Record<string,string>;rows:string[]}):Record<string,unknown>=>{
-      let rowMismatches=0,fieldMismatches=0;
-      cfg.formattedRows.forEach((row,i)=>{const published=pub.rows[i]??"";if(row!==published){rowMismatches+=1;const a=row.split("|"),b=published.split("|");a.forEach((cell,j)=>{if(cell!==(b[j]??""))fieldMismatches+=1;});}});
-      return{varianceMatch:cfg.variance===pub.variance,uniquesMatch:cfg.uniques===pub.uniques,frameRawMatch:cfg.frameRawSha256===pub.raw,framePngMatch:cfg.framePngSha256===pub.png,chunkHashesMatch:JSON.stringify(cfg.chunkSha256)===JSON.stringify(pub.chunks),rowMismatches,fieldMismatches};
-    };
-    const controls=document.createElement("div");
-    controls.id="maro-tonal-step-probe90";
-    controls.style.cssText="position:fixed;left:8px;top:8px;z-index:10001;display:flex;gap:6px;align-items:flex-start";
-    const runButton=document.createElement("button");
-    runButton.textContent="Run tonal-step probe 90";
-    runButton.setAttribute("aria-label","Run tonal-step probe 90");
-    const output=document.createElement("output");
-    output.id="maro-tonal-step-probe90-output";
-    output.setAttribute("aria-live","polite");
-    output.style.cssText="pointer-events:none;max-width:min(360px,calc(100vw - 16px));padding:7px 9px;background:rgba(5,10,12,.92);border:1px solid #87958c;color:#eef5ef;font:700 11px/1.35 ui-monospace,monospace;white-space:pre-wrap;word-break:break-all";
-    controls.append(runButton,output);
-    document.body.append(controls);
-    let readout:Probe90Readout|null=null,runPromise:Promise<Probe90Readout>|null=null;
-    const execute=():Promise<Probe90Readout>=>{
-      if(runPromise)return runPromise;
-      runPromise=(async():Promise<Probe90Readout>=>{
-        const shaSelfTest={abc:sha256Hex(new TextEncoder().encode("abc")),empty:sha256Hex(new Uint8Array(0))};
-        const configs:Record<string,Probe90Config>={};
-        const anchor=await runConfig({name:"anchor",layerEnabled:true,featherGrid1024:false});
-        configs["anchor"]=anchor;
-        const anchorCheck=compareConfig(anchor,PUBLISHED_ANCHOR);
-        let nolatticeCheck:Record<string,unknown>={},stability:Record<string,unknown>={},gate:Record<string,unknown>={};
-        let status="done";
-        if(anchor.canvasRect.join(",")!=="0,101,390,540"){status="inconclusive-canvas-rect";gate={branch:"inconclusive",reason:"rounded canvas rect violation",canvasRect:anchor.canvasRect};}
-        else{
-          const feather=await runConfig({name:"feather1024",layerEnabled:true,featherGrid1024:true});
-          configs["feather1024"]=feather;
-          const nolattice=await runConfig({name:"nolattice",layerEnabled:false,featherGrid1024:false});
-          configs["nolattice"]=nolattice;
-          const featherRerun=await runConfig({name:"feather1024rerun",layerEnabled:true,featherGrid1024:true});
-          configs["feather1024rerun"]=featherRerun;
-          const anchorRerun=await runConfig({name:"anchorererun",layerEnabled:true,featherGrid1024:false});
-          configs["anchorererun"]=anchorRerun;
-          nolatticeCheck=compareConfig(nolattice,PUBLISHED_NOLATTICE);
-          const rowsEqual=(a:Probe90Config,b:Probe90Config):boolean=>JSON.stringify(a.rows)===JSON.stringify(b.rows);
-          stability={feather1024RerunRowsIdentical:rowsEqual(feather,featherRerun),feather1024RerunVarianceMatch:feather.variance===featherRerun.variance,feather1024RerunFrameHashesMatch:feather.frameRawSha256===featherRerun.frameRawSha256&&feather.framePngSha256===featherRerun.framePngSha256,feather1024RerunChunkHashesMatch:JSON.stringify(feather.chunkSha256)===JSON.stringify(featherRerun.chunkSha256),anchorRerunRowsIdentical:rowsEqual(anchor,anchorRerun),anchorRerunVarianceMatch:anchor.variance===anchorRerun.variance,anchorRerunFrameHashesMatch:anchor.frameRawSha256===anchorRerun.frameRawSha256&&anchor.framePngSha256===anchorRerun.framePngSha256,anchorRerunChunkHashesMatch:JSON.stringify(anchor.chunkSha256)===JSON.stringify(anchorRerun.chunkSha256)};
-          const prodSet=new Set(PRODUCTION_SPIKES),subset=feather.spikeTangents.every(t=>prodSet.has(t)),membershipUnchanged=feather.spikeTangents.length===anchor.spikeTangents.length&&feather.spikeTangents.every(t=>anchor.spikeTangents.includes(t));
-          let branch="c";if(feather.count<=8&&subset)branch="a";else if(feather.count>=12&&membershipUnchanged)branch="b";
-          gate={branch,feather1024Count:feather.count,feather1024SpikeTangents:feather.spikeTangents,subsetOfNolatticeSpikes:subset,spikeMembershipUnchanged:membershipUnchanged};
-          const allConfigs=Object.values(configs);
-          if(allConfigs.some(c=>c.rows.length>0&&c.rows.every(r=>r.uniformZeroDelta)))status="inconclusive-uniform-zero-delta";
-          else if(anchorCheck["rowMismatches"]!==0||anchorCheck["varianceMatch"]!==true||anchorCheck["frameRawMatch"]!==true)status="anchor-mismatch";
-        }
-        readout={status,buildId:BUILD_ID,shaSelfTest,configs,anchorCheck,nolatticeCheck,stability,gate};
-        return readout;
-      })();
-      return runPromise;
-    };
-    target.__AWL_RUN_TONAL_STEP_PROBE90__=execute;
-    target.__AWL_READ_TONAL_STEP_PROBE90__=()=>readout;
-    runButton.onclick=()=>{output.textContent="PROBE90 running";void execute().then(result=>{const feather=result.configs["feather1024"];output.textContent=`PROBE90 ${result.status} · feather1024 ${feather?feather.count:-1}/24 · gate ${String(result.gate["branch"]??"?")} ${JSON.stringify(result)}`;}).catch(error=>{output.textContent=`PROBE90 error ${error instanceof Error?error.message:String(error)}`;});};
-    return()=>{controls.remove();delete target.__AWL_RUN_TONAL_STEP_PROBE90__;delete target.__AWL_READ_TONAL_STEP_PROBE90__;};
-  },[]);
-
   useEffect(()=>{
     type AuditPhase="dawn"|"day"|"dusk"|"night";
     type AuditWindow=typeof window&{
