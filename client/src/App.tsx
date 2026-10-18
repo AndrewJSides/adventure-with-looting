@@ -1855,6 +1855,10 @@ function drawBloodMoonSky(ctx:CanvasRenderingContext2D,world:World,time:number):
   if(!world.bloodMoonActive||dayCycleState(world.timeOfDay).phase!=="night")return;
   ctx.save();ctx.globalCompositeOperation="source-over";ctx.fillStyle="rgba(112,6,15,.24)";ctx.fillRect(0,0,VIEW_W,VIEW_H);const pulse=1+Math.sin(time/430)*.035,x=VIEW_W-72,y=79,r=31*pulse,halo=ctx.createRadialGradient(x,y,4,x,y,62);halo.addColorStop(0,"rgba(255,112,104,.68)");halo.addColorStop(.45,"rgba(194,25,38,.28)");halo.addColorStop(1,"rgba(122,0,18,0)");ctx.fillStyle=halo;ctx.beginPath();ctx.arc(x,y,62,0,Math.PI*2);ctx.fill();ctx.fillStyle="#c82e3c";ctx.shadowColor="#ff4052";ctx.shadowBlur=20;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle="rgba(82,5,17,.34)";ctx.beginPath();ctx.arc(x-10,y-7,7,0,Math.PI*2);ctx.arc(x+11,y+8,5,0,Math.PI*2);ctx.fill();ctx.restore();
 }
+/* PROBE79 audit-only configuration (temporary; removed in full by the probe revert).
+   Defaults are the production values; the tonal-step harness flips them per scored
+   configuration, read at chunk-build / variant-build time. */
+const awlProbe79={layerEnabled:true,normalizePerimeter:true,movedCallSite:true,omitParkingHighlights:true};
 function normalizeTexturePerimeterLuminance(ctx:CanvasRenderingContext2D,size:number):void{
   const image=ctx.getImageData(0,0,size,size),pixels=image.data,band=Math.max(2,Math.round(size*.12)),last=size-1;
   const luminance=(offset:number)=>pixels[offset]!*0.2126+pixels[offset+1]!*0.7152+pixels[offset+2]!*0.0722;
@@ -1863,7 +1867,7 @@ function normalizeTexturePerimeterLuminance(ctx:CanvasRenderingContext2D,size:nu
   for(let depth=0;depth<band;depth+=1){const t=depth/(band-1),strength=1-t*t*(3-2*t);for(let y=0;y<size;y+=1)matchPair((y*size+depth)*4,(y*size+last-depth)*4,strength);}
   ctx.putImageData(image,0,0);
 }
-function buildTextureVariants(image:HTMLImageElement):HTMLCanvasElement[]{const size=Math.max(1,Math.min(1024,image.naturalWidth||1024)),raw=document.createElement("canvas"),feathered=document.createElement("canvas");raw.width=size;raw.height=size;feathered.width=size;feathered.height=size;const rawCtx=raw.getContext("2d"),featheredCtx=feathered.getContext("2d");if(!rawCtx||!featheredCtx)return[];rawCtx.drawImage(image,0,0,size,size);normalizeTexturePerimeterLuminance(rawCtx,size);featheredCtx.drawImage(raw,0,0);featheredCtx.globalCompositeOperation="destination-in";const xMask=featheredCtx.createLinearGradient(0,0,size,0);xMask.addColorStop(0,"rgba(0,0,0,0)");xMask.addColorStop(.12,"rgba(0,0,0,1)");xMask.addColorStop(.88,"rgba(0,0,0,1)");xMask.addColorStop(1,"rgba(0,0,0,0)");featheredCtx.fillStyle=xMask;featheredCtx.fillRect(0,0,size,size);const yMask=featheredCtx.createLinearGradient(0,0,0,size);yMask.addColorStop(0,"rgba(0,0,0,0)");yMask.addColorStop(.12,"rgba(0,0,0,1)");yMask.addColorStop(.88,"rgba(0,0,0,1)");yMask.addColorStop(1,"rgba(0,0,0,0)");featheredCtx.fillStyle=yMask;featheredCtx.fillRect(0,0,size,size);featheredCtx.globalCompositeOperation="source-over";return[raw,feathered];}
+function buildTextureVariants(image:HTMLImageElement):HTMLCanvasElement[]{const size=Math.max(1,Math.min(1024,image.naturalWidth||1024)),raw=document.createElement("canvas"),feathered=document.createElement("canvas");raw.width=size;raw.height=size;feathered.width=size;feathered.height=size;const rawCtx=raw.getContext("2d"),featheredCtx=feathered.getContext("2d");if(!rawCtx||!featheredCtx)return[];rawCtx.drawImage(image,0,0,size,size);if(awlProbe79.normalizePerimeter)normalizeTexturePerimeterLuminance(rawCtx,size);featheredCtx.drawImage(raw,0,0);featheredCtx.globalCompositeOperation="destination-in";const xMask=featheredCtx.createLinearGradient(0,0,size,0);xMask.addColorStop(0,"rgba(0,0,0,0)");xMask.addColorStop(.12,"rgba(0,0,0,1)");xMask.addColorStop(.88,"rgba(0,0,0,1)");xMask.addColorStop(1,"rgba(0,0,0,0)");featheredCtx.fillStyle=xMask;featheredCtx.fillRect(0,0,size,size);const yMask=featheredCtx.createLinearGradient(0,0,0,size);yMask.addColorStop(0,"rgba(0,0,0,0)");yMask.addColorStop(.12,"rgba(0,0,0,1)");yMask.addColorStop(.88,"rgba(0,0,0,1)");yMask.addColorStop(1,"rgba(0,0,0,0)");featheredCtx.fillStyle=yMask;featheredCtx.fillRect(0,0,size,size);featheredCtx.globalCompositeOperation="source-over";return[raw,feathered];}
 function buildVillageDirtTexture():HTMLCanvasElement|null{if(villageDirtCache)return villageDirtCache;const hearthglenVariants=getBiomeTextureVariants(6),hearthglen=hearthglenVariants?.[0];if(!hearthglen)return null;const {x,y}=VILLAGE_CENTER,canvas=document.createElement("canvas");canvas.width=1640;canvas.height=1360;const ctx=canvas.getContext("2d");if(!ctx)return null;ctx.translate(820-x,680-y);const pattern=ctx.createPattern(hearthglen,"repeat");if(pattern){ctx.globalCompositeOperation="source-over";ctx.globalAlpha=.36;ctx.fillStyle=pattern;ctx.fillRect(x-820,y-680,1640,1360);}const edge=ctx.createRadialGradient(x,y,390,x,y,790);edge.addColorStop(0,"rgba(74,59,41,.04)");edge.addColorStop(.72,"rgba(57,46,34,.15)");edge.addColorStop(1,"rgba(40,34,28,.62)");ctx.globalAlpha=1;ctx.fillStyle=edge;ctx.fillRect(x-820,y-680,1640,1360);ctx.globalCompositeOperation="destination-in";const feather=ctx.createRadialGradient(x,y,500,x,y,800);feather.addColorStop(0,"rgba(0,0,0,1)");feather.addColorStop(.38,"rgba(0,0,0,.96)");feather.addColorStop(.7,"rgba(0,0,0,.46)");feather.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=feather;ctx.beginPath();ctx.ellipse(x,y,820,680,0,0,Math.PI*2);ctx.fill();ctx.globalCompositeOperation="source-over";villageDirtCache=canvas;return canvas;}
 function drawVillageDirtTexture(ctx:CanvasRenderingContext2D):void{const texture=buildVillageDirtTexture();if(texture)ctx.drawImage(texture,VILLAGE_CENTER.x-820,VILLAGE_CENTER.y-680);}
 const VILLAGE_GROUND_LEFT=VILLAGE_CENTER.x-900,VILLAGE_GROUND_TOP=VILLAGE_CENTER.y-750,VILLAGE_GROUND_WIDTH=1800,VILLAGE_GROUND_HEIGHT=1500;
@@ -1876,7 +1880,7 @@ function buildFeatheredGroundPatch(width:number,height:number,feather:number,col
 const TRADER_PARKING={left:8570,right:8930,top:29910,bottom:30410,roadX:8760,roadY:29210} as const;
 let traderParkingGroundCache:HTMLCanvasElement|null=null;
 function traderParkingGround():HTMLCanvasElement|null{if(traderParkingGroundCache)return traderParkingGroundCache;const parking=TRADER_PARKING,width=parking.right-parking.left,height=parking.bottom-parking.top,centerX=width/2;traderParkingGroundCache=buildFeatheredGroundPatch(width,height,92,"#5c4931",ctx=>{ctx.beginPath();ctx.moveTo(14,6);ctx.quadraticCurveTo(-10,height/2,9,height-8);ctx.quadraticCurveTo(centerX,height+13,width-8,height-5);ctx.quadraticCurveTo(width+11,height/2,width-12,8);ctx.quadraticCurveTo(centerX,-12,14,6);ctx.closePath();});return traderParkingGroundCache;}
-function drawTraderParking(ctx:CanvasRenderingContext2D):void{const parking=TRADER_PARKING,centerX=(parking.left+parking.right)/2;ctx.save();ctx.lineCap="round";for(const [width,alpha] of [[230,.025],[190,.045],[150,.08],[118,.16],[88,.42],[62,.78]] as const){ctx.strokeStyle=`rgba(92,73,49,${alpha})`;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(parking.roadX,parking.roadY);ctx.quadraticCurveTo(8690,29580,centerX,parking.top+38);ctx.stroke();}ctx.strokeStyle="rgba(35,27,20,.28)";ctx.lineWidth=7;for(const offset of [-29,29]){ctx.beginPath();ctx.moveTo(parking.roadX+offset,parking.roadY);ctx.quadraticCurveTo(8690+offset,29580,centerX+offset,parking.top+48);ctx.stroke();}const patch=traderParkingGround();if(patch){const feather=92,padding=Math.ceil(feather*1.75);ctx.drawImage(patch,parking.left-padding,parking.top-padding);}ctx.strokeStyle="#3b281b";ctx.lineWidth=12;ctx.lineCap="round";for(const x of [parking.left+34,parking.right-34]){ctx.beginPath();ctx.moveTo(x,parking.top+62);ctx.lineTo(x,parking.bottom-52);ctx.stroke();ctx.strokeStyle="#80603a";ctx.lineWidth=3;ctx.stroke();ctx.strokeStyle="#3b281b";ctx.lineWidth=12;}ctx.fillStyle="rgba(236,205,144,.7)";ctx.font="900 10px system-ui";ctx.textAlign="center";ctx.fillText("TRADER PARKING",centerX,parking.bottom-28);ctx.restore();}
+function drawTraderParking(ctx:CanvasRenderingContext2D):void{const parking=TRADER_PARKING,centerX=(parking.left+parking.right)/2;ctx.save();ctx.lineCap="round";for(const [width,alpha] of [[230,.025],[190,.045],[150,.08],[118,.16],[88,.42],[62,.78]] as const){ctx.strokeStyle=`rgba(92,73,49,${alpha})`;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(parking.roadX,parking.roadY);ctx.quadraticCurveTo(8690,29580,centerX,parking.top+38);ctx.stroke();}ctx.strokeStyle="rgba(35,27,20,.28)";ctx.lineWidth=7;for(const offset of [-29,29]){ctx.beginPath();ctx.moveTo(parking.roadX+offset,parking.roadY);ctx.quadraticCurveTo(8690+offset,29580,centerX+offset,parking.top+48);ctx.stroke();}const patch=traderParkingGround();if(patch){const feather=92,padding=Math.ceil(feather*1.75);ctx.drawImage(patch,parking.left-padding,parking.top-padding);}ctx.strokeStyle="#3b281b";ctx.lineWidth=12;ctx.lineCap="round";for(const x of [parking.left+34,parking.right-34]){ctx.beginPath();ctx.moveTo(x,parking.top+62);ctx.lineTo(x,parking.bottom-52);ctx.stroke();if(!awlProbe79.omitParkingHighlights){ctx.strokeStyle="#80603a";ctx.lineWidth=3;ctx.stroke();}ctx.strokeStyle="#3b281b";ctx.lineWidth=12;}ctx.fillStyle="rgba(236,205,144,.7)";ctx.font="900 10px system-ui";ctx.textAlign="center";ctx.fillText("TRADER PARKING",centerX,parking.bottom-28);ctx.restore();}
 const GROUND_CHUNK_SIZE=640,GROUND_CHUNK_LOOK_AHEAD=1.25,GROUND_CHUNK_CACHE_LIMIT=32,GROUND_CANVAS_POOL_LIMIT=4,GROUND_CHUNK_BUILD_BUDGET_MS=3.5,GROUND_CHUNK_DRIVING_BUDGET_MS=1.15,GROUND_CHUNK_DRAW_BUDGET=180,GROUND_CHUNK_DRIVING_DRAW_BUDGET=72,GROUND_REGION_TINT_SCALE=32,GROUND_TILE_BATCH_SIZE=24;
 const SPECIAL_REGION_INDICES=[9,10,11] as const,GROUND_WET_COLORS=["#4b735e","#638873","#395f51"] as const,GROUND_GRASS_COLORS=["#4f7e45","#6f9a53","#3d6d3d"] as const;
 type GroundChunkPhase="base"|"regions"|"special"|"tiles"|"road"|"village"|"done";
@@ -1898,6 +1902,7 @@ let groundBlendScratch:HTMLCanvasElement|null=null;
 function getGroundBlendScratch():HTMLCanvasElement|null{if(!groundBlendScratch){groundBlendScratch=document.createElement("canvas");groundBlendScratch.width=GROUND_CHUNK_SIZE;groundBlendScratch.height=GROUND_CHUNK_SIZE;}return groundBlendScratch;}
 function drawTextureLattice(ctx:CanvasRenderingContext2D,textures:HTMLCanvasElement[],originX:number,originY:number):void{const raw=textures[0],feathered=textures[1];if(!raw||!feathered)return;const half=BIOME_TEXTURE_STRIDE/2,startX=Math.floor((originX-half)/BIOME_TEXTURE_STRIDE)*BIOME_TEXTURE_STRIDE+half,startY=Math.floor((originY-half)/BIOME_TEXTURE_STRIDE)*BIOME_TEXTURE_STRIDE+half,endX=originX+GROUND_CHUNK_SIZE,endY=originY+GROUND_CHUNK_SIZE;for(let y=startY;y<endY;y+=BIOME_TEXTURE_STRIDE)for(let x=startX;x<endX;x+=BIOME_TEXTURE_STRIDE)ctx.drawImage(raw,x-originX,y-originY,BIOME_TEXTURE_STRIDE,BIOME_TEXTURE_STRIDE);const alignedX=Math.floor(originX/BIOME_TEXTURE_STRIDE)*BIOME_TEXTURE_STRIDE,alignedY=Math.floor(originY/BIOME_TEXTURE_STRIDE)*BIOME_TEXTURE_STRIDE;for(let y=alignedY;y<endY;y+=BIOME_TEXTURE_STRIDE)for(let x=alignedX;x<endX;x+=BIOME_TEXTURE_STRIDE)ctx.drawImage(feathered,x-originX,y-originY,BIOME_TEXTURE_STRIDE,BIOME_TEXTURE_STRIDE);}
 function drawBiomeTextureLayer(entry:GroundChunkEntry):void{
+  if(!awlProbe79.layerEnabled)return;
   if(!activeEffectFlags.groundTexture)return;
   const {ctx,originX,originY}=entry,fallback=getBiomeTextureVariants(1);if(!fallback)return;
   ctx.save();ctx.globalCompositeOperation="source-over";ctx.globalAlpha=BIOME_TEXTURE_ALPHA;drawTextureLattice(ctx,fallback,originX,originY);ctx.restore();
@@ -1905,8 +1910,8 @@ function drawBiomeTextureLayer(entry:GroundChunkEntry):void{
   for(const region of REGIONS){if(region.id===1||!chunkIntersects(entry,region.x,region.y,region.radius))continue;const texture=getBiomeTextureVariants(region.id);if(!texture)continue;scratchCtx.setTransform(1,0,0,1,0,0);scratchCtx.globalAlpha=1;scratchCtx.globalCompositeOperation="source-over";scratchCtx.clearRect(0,0,GROUND_CHUNK_SIZE,GROUND_CHUNK_SIZE);drawTextureLattice(scratchCtx,texture,originX,originY);scratchCtx.globalCompositeOperation="destination-in";const localX=region.x-originX,localY=region.y-originY,feather=Math.min(region.radius*.42,BIOME_EDGE_FEATHER),inner=Math.max(0,region.radius-feather),mask=scratchCtx.createRadialGradient(localX,localY,inner,localX,localY,region.radius);mask.addColorStop(0,"rgba(0,0,0,1)");mask.addColorStop(.2,"rgba(0,0,0,.94)");mask.addColorStop(.5,"rgba(0,0,0,.5)");mask.addColorStop(.8,"rgba(0,0,0,.06)");mask.addColorStop(1,"rgba(0,0,0,0)");scratchCtx.fillStyle=mask;scratchCtx.fillRect(0,0,GROUND_CHUNK_SIZE,GROUND_CHUNK_SIZE);ctx.save();ctx.globalAlpha=BIOME_REPLACEMENT_ALPHA;ctx.drawImage(scratch,0,0);ctx.restore();
   }
 }
-function drawGroundTile(entry:GroundChunkEntry,index:number):void{const {ctx,originX,originY}=entry,tile=48,startX=Math.floor(originX/tile)*tile,startY=Math.floor(originY/tile)*tile,columns=Math.ceil((GROUND_CHUNK_SIZE+tile)/tile),x=startX+(index%columns)*tile,y=startY+Math.floor(index/columns)*tile;if(y>=originY+GROUND_CHUNK_SIZE+tile){entry.phase="road";return;}const h=terrainHash(x/tile,y/tile),h2=terrainHash(x/tile,y/tile,7),jitterX=(h-.5)*34,jitterY=(h2-.5)*34,px=x+jitterX,py=y+jitterY,lx=px-originX,ly=py-originY,region=regionAtPoint(px,py),village=Boolean(region?.village),wet=region?.id===3||region?.id===8||region?.id===11,scorched=Boolean(region?.volcanic)||region?.id===7,frostTile=region?.id===12,urban=region?.id===14;if(lx<-20||ly<-20||lx>GROUND_CHUNK_SIZE+20||ly>GROUND_CHUNK_SIZE+20)return;
-if(index===0)drawBiomeTextureLayer(entry);if(urban){ctx.fillStyle=h>.55?"rgba(91,91,86,.5)":"rgba(68,68,65,.52)";ctx.fillRect(lx-23,ly-23,46,46);if(h2>.42){ctx.strokeStyle="rgba(28,28,27,.48)";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(lx-18,ly-7);ctx.lineTo(lx-3,ly+2);ctx.lineTo(lx+15,ly-4);ctx.stroke();}return;}if(village||h<.23){ctx.fillStyle=village?(h>.55?"rgba(112,82,48,.34)":"rgba(60,43,29,.3)"):"rgba(92,75,48,.2)";ctx.beginPath();ctx.ellipse(lx,ly,5+h*10,2.5+h2*5,h*Math.PI,0,Math.PI*2);ctx.fill();if(h2>.62){ctx.fillStyle=village?"rgba(182,152,103,.44)":"rgba(127,120,91,.32)";ctx.beginPath();ctx.ellipse(lx+8,ly-3,2.2+h*2,1.6+h2,0,0,Math.PI*2);ctx.fill();ctx.fillStyle="rgba(30,27,22,.25)";ctx.beginPath();ctx.arc(lx-6,ly+4,1.4+h2*1.6,0,Math.PI*2);ctx.fill();}}if(!village&&!scorched&&!frostTile){const base=wet?GROUND_WET_COLORS:GROUND_GRASS_COLORS,color=base[Math.floor(h*base.length)]??base[0];ctx.strokeStyle=color;ctx.globalAlpha=wet?.32:.48;ctx.lineWidth=1.2+h2*1.1;const blades=2+Math.floor(h*4);for(let blade=0;blade<blades;blade+=1){const bx=lx+(blade-(blades-1)/2)*3.1,lean=(terrainHash(x/tile,y/tile,blade+11)-.5)*7,height=5+terrainHash(x/tile,y/tile,blade+21)*11;ctx.beginPath();ctx.moveTo(bx,ly+5);ctx.quadraticCurveTo(bx+lean*.35,ly-height*.45,bx+lean+Math.sin(h*9)*.7,ly-height);ctx.stroke();}ctx.globalAlpha=1;if(h>.83){ctx.fillStyle=wet?"rgba(153,193,157,.28)":"rgba(126,166,89,.38)";ctx.beginPath();ctx.ellipse(lx-5,ly+2,8,3,-.35,0,Math.PI*2);ctx.fill();}}if(scorched&&h>.5){ctx.strokeStyle="rgba(42,24,20,.48)";ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(lx-7,ly+4);ctx.lineTo(lx,ly-3);ctx.lineTo(lx+8,ly+1);ctx.stroke();}if(frostTile&&h>.38){ctx.fillStyle="rgba(238,251,252,.38)";ctx.beginPath();ctx.ellipse(lx,ly,6+h*5,2+h2*2,h,0,Math.PI*2);ctx.fill();}}
+function drawGroundTile(entry:GroundChunkEntry,index:number):void{const {ctx,originX,originY}=entry,tile=48,startX=Math.floor(originX/tile)*tile,startY=Math.floor(originY/tile)*tile,columns=Math.ceil((GROUND_CHUNK_SIZE+tile)/tile),x=startX+(index%columns)*tile,y=startY+Math.floor(index/columns)*tile;if(y>=originY+GROUND_CHUNK_SIZE+tile){entry.phase="road";return;}const h=terrainHash(x/tile,y/tile),h2=terrainHash(x/tile,y/tile,7),jitterX=(h-.5)*34,jitterY=(h2-.5)*34,px=x+jitterX,py=y+jitterY,lx=px-originX,ly=py-originY,region=regionAtPoint(px,py),village=Boolean(region?.village),wet=region?.id===3||region?.id===8||region?.id===11,scorched=Boolean(region?.volcanic)||region?.id===7,frostTile=region?.id===12,urban=region?.id===14;if(index===0&&awlProbe79.movedCallSite)drawBiomeTextureLayer(entry);if(lx<-20||ly<-20||lx>GROUND_CHUNK_SIZE+20||ly>GROUND_CHUNK_SIZE+20)return;
+if(index===0&&!awlProbe79.movedCallSite)drawBiomeTextureLayer(entry);if(urban){ctx.fillStyle=h>.55?"rgba(91,91,86,.5)":"rgba(68,68,65,.52)";ctx.fillRect(lx-23,ly-23,46,46);if(h2>.42){ctx.strokeStyle="rgba(28,28,27,.48)";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(lx-18,ly-7);ctx.lineTo(lx-3,ly+2);ctx.lineTo(lx+15,ly-4);ctx.stroke();}return;}if(village||h<.23){ctx.fillStyle=village?(h>.55?"rgba(112,82,48,.34)":"rgba(60,43,29,.3)"):"rgba(92,75,48,.2)";ctx.beginPath();ctx.ellipse(lx,ly,5+h*10,2.5+h2*5,h*Math.PI,0,Math.PI*2);ctx.fill();if(h2>.62){ctx.fillStyle=village?"rgba(182,152,103,.44)":"rgba(127,120,91,.32)";ctx.beginPath();ctx.ellipse(lx+8,ly-3,2.2+h*2,1.6+h2,0,0,Math.PI*2);ctx.fill();ctx.fillStyle="rgba(30,27,22,.25)";ctx.beginPath();ctx.arc(lx-6,ly+4,1.4+h2*1.6,0,Math.PI*2);ctx.fill();}}if(!village&&!scorched&&!frostTile){const base=wet?GROUND_WET_COLORS:GROUND_GRASS_COLORS,color=base[Math.floor(h*base.length)]??base[0];ctx.strokeStyle=color;ctx.globalAlpha=wet?.32:.48;ctx.lineWidth=1.2+h2*1.1;const blades=2+Math.floor(h*4);for(let blade=0;blade<blades;blade+=1){const bx=lx+(blade-(blades-1)/2)*3.1,lean=(terrainHash(x/tile,y/tile,blade+11)-.5)*7,height=5+terrainHash(x/tile,y/tile,blade+21)*11;ctx.beginPath();ctx.moveTo(bx,ly+5);ctx.quadraticCurveTo(bx+lean*.35,ly-height*.45,bx+lean+Math.sin(h*9)*.7,ly-height);ctx.stroke();}ctx.globalAlpha=1;if(h>.83){ctx.fillStyle=wet?"rgba(153,193,157,.28)":"rgba(126,166,89,.38)";ctx.beginPath();ctx.ellipse(lx-5,ly+2,8,3,-.35,0,Math.PI*2);ctx.fill();}}if(scorched&&h>.5){ctx.strokeStyle="rgba(42,24,20,.48)";ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(lx-7,ly+4);ctx.lineTo(lx,ly-3);ctx.lineTo(lx+8,ly+1);ctx.stroke();}if(frostTile&&h>.38){ctx.fillStyle="rgba(238,251,252,.38)";ctx.beginPath();ctx.ellipse(lx,ly,6+h*5,2+h2*2,h,0,Math.PI*2);ctx.fill();}}
 function stepGroundChunk(entry:GroundChunkEntry,deadline:number,drawCallDeadline:number):void{const {ctx,originX,originY}=entry;if(entry.phase==="base"){ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation="source-over";ctx.clearRect(0,0,GROUND_CHUNK_SIZE,GROUND_CHUNK_SIZE);ctx.save();ctx.translate(-originX,-originY);const floor=ctx.createLinearGradient(0,0,0,WORLD_H);floor.addColorStop(0,"#142d20");floor.addColorStop(.55,"#1c422b");floor.addColorStop(1,"#2b5735");ctx.fillStyle=floor;ctx.fillRect(originX,originY,GROUND_CHUNK_SIZE,GROUND_CHUNK_SIZE);ctx.restore();entry.phase="regions";return;}if(entry.phase==="regions"){const tintMap=getGroundRegionTintMap(),sourceW=Math.max(0,Math.min(GROUND_CHUNK_SIZE,WORLD_W-originX))/GROUND_REGION_TINT_SCALE,sourceH=Math.max(0,Math.min(GROUND_CHUNK_SIZE,WORLD_H-originY))/GROUND_REGION_TINT_SCALE;if(tintMap&&sourceW>0&&sourceH>0){ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(tintMap,originX/GROUND_REGION_TINT_SCALE,originY/GROUND_REGION_TINT_SCALE,sourceW,sourceH,0,0,sourceW*GROUND_REGION_TINT_SCALE,sourceH*GROUND_REGION_TINT_SCALE);ctx.restore();}entry.phase="special";entry.phaseIndex=0;return;}if(entry.phase==="special"){const regionIndex=SPECIAL_REGION_INDICES[entry.phaseIndex];if(regionIndex===undefined){entry.phase="tiles";entry.phaseIndex=0;return;}entry.phaseIndex+=1;const region=REGIONS[regionIndex];if(!region||!chunkIntersects(entry,region.x,region.y,region.radius+180))return;ctx.save();ctx.translate(-originX,-originY);if(regionIndex===9)drawVolcanicTerrain(ctx,0);else if(regionIndex===10)drawMoonfangArena(ctx,0);else drawFrostfallTerrain(ctx);ctx.restore();return;}if(entry.phase==="tiles"){for(let count=0;count<GROUND_TILE_BATCH_SIZE&&entry.phase==="tiles";count+=1){drawGroundTile(entry,entry.tileIndex);entry.tileIndex+=1;if(performance.now()>=deadline||activeDrawCallCount>=drawCallDeadline)break;}return;}if(entry.phase==="road"){ctx.save();ctx.translate(-originX,-originY);drawWorldRoad(ctx);drawTraderParking(ctx);ctx.restore();entry.phase="village";return;}if(entry.phase==="village"){if(chunkIntersects(entry,VILLAGE_CENTER.x,VILLAGE_CENTER.y,900))drawVillageGroundChunk(entry);entry.phase="done";entry.baseReady=true;entry.queued=false;}}
 function groundChunkPhasePriority(entry:GroundChunkEntry):number{return entry.phase==="base"||entry.phase==="regions"||entry.phase==="special"?0:1;}
 function takeNextGroundChunk():GroundChunkEntry|undefined{let bestIndex=-1,best:GroundChunkEntry|undefined,bestPhasePriority=Infinity,write=0;for(let read=0;read<groundChunkQueue.length;read+=1){const entry=groundChunkQueue[read];if(!entry||!entry.queued||groundChunkCache.get(entry.key)!==entry||entry.phase==="done")continue;groundChunkQueue[write]=entry;const phasePriority=groundChunkPhasePriority(entry);if(!best||phasePriority<bestPhasePriority||(phasePriority===bestPhasePriority&&(entry.priority<best.priority||(entry.priority===best.priority&&entry.lastUsed<best.lastUsed)))){best=entry;bestIndex=write;bestPhasePriority=phasePriority;}write+=1;}groundChunkQueue.length=write;if(bestIndex<0)return undefined;const last=groundChunkQueue.pop();if(last&&bestIndex<groundChunkQueue.length)groundChunkQueue[bestIndex]=last;return best;}
@@ -2669,6 +2674,172 @@ export function App(){
     const target=window as typeof window&{__AWL_RUN_BIOME_SEAM_PROBE__?:(options?:{bearingRotationDegrees?:number})=>Promise<unknown>};
     const controls=document.getElementById("terrain-lattice-probes");if(!controls)return;
     const run=document.createElement("button"),output=document.createElement("output");run.type="button";run.textContent="Run seam probe";run.setAttribute("aria-label","Run biome-transition seam probe");output.id="biome-seam-density-output";output.setAttribute("aria-live","polite");output.style.cssText="position:fixed;left:8px;right:8px;bottom:166px;z-index:10001;max-height:34vh;overflow:auto;padding:6px;background:#050807;color:#c9ffd0;font:9px/1.25 monospace;white-space:pre-wrap;opacity:.96;pointer-events:none";output.textContent="BIOME SEAM DENSITY · ready";run.onclick=()=>{const invoke=target.__AWL_RUN_BIOME_SEAM_PROBE__;if(!invoke){output.textContent="BIOME SEAM DENSITY · probe unavailable";return;}run.disabled=true;output.textContent="BIOME SEAM DENSITY · running transition and control bands…";void invoke({bearingRotationDegrees:-6}).then(report=>{output.textContent=`BIOME SEAM DENSITY ${JSON.stringify(report)}`;}).catch(error=>{output.textContent=`BIOME SEAM DENSITY · ${error instanceof Error?error.message:"probe failed"}`;}).finally(()=>{run.disabled=false;});};controls.append(run);document.body.append(output);return()=>{run.remove();output.remove();};
+  },[]);
+
+  /*
+   * PROBE79 audit-only tonal-step harness (temporary; removed in full by the
+   * probe revert). Fixed-center Maro window sampler of Probes #60–#78: pinned
+   * integer sampler, single-step 720x1000 -> 390x540 composite of the four
+   * window chunk canvases, corrected float-coefficient Rec.601 luma, queue
+   * drain 10 -> 0 via exactly 180 production stepGroundChunk steps before 180
+   * warm-up frames. The single ablated variable is the perimeter-luminance
+   * normalization inside buildTextureVariants (awlProbe79.normalizePerimeter).
+   */
+  useEffect(()=>{
+    if(!window.location.pathname.includes("/hatch-audit-"))return;
+    type Probe79Row=[number,number,number,number,number,number,number];
+    type Probe79Config={name:string;layerEnabled:boolean;normalizePerimeter:boolean;textureWaitFrames:number;queueBefore:number;queueAfter:number;drainSteps:number;visibleVariance:number;visibleUnique:number;variance:number;unique:number;frameRawSha256:string;framePngSha256:string;chunkSha256:Record<string,string>;count:number;anyUniformZeroDelta:boolean;rows:Probe79Row[];publishedMismatches:number|null};
+    type Probe79Report={buildId:string;viewport:{width:number;height:number;devicePixelRatio:number};canvasRect:{x:number;y:number;width:number;height:number};sha256SelfTest:{abc:boolean;empty:boolean};scorerSha256:string;configs:Probe79Config[]};
+    const target=window as typeof window&{__AWL_RUN_TONAL_STEP_PROBE79__?:()=>Promise<Probe79Report>;__AWL_READ_TONAL_STEP_PROBE79__?:()=>Probe79Report|null};
+    let lastReport:Probe79Report|null=null;
+    const TANGENTS=[-190,-180,-170,-160,-150,-140,-130,-120,-110,-100,-90,-80,80,90,100,110,120,130,140,150,160,170,180,190];
+    const PUBLISHED_ANCHOR:Probe79Row[]=[[-190,38.556,18.137,11.29,0.47,-0.5,1],[-180,58.383,22.463,9.234,0.385,-10.5,1],[-170,30.822,27.371,21.313,0.888,-2.5,1],[-160,48.589,33.3,16.448,0.685,-2.5,1],[-150,53.329,23.653,10.645,0.444,0.5,1],[-140,56.894,29.583,12.479,0.52,-4.5,1],[-130,26.784,18.479,16.558,0.69,8.5,1],[-120,40.469,26.49,15.71,0.655,-11.5,1],[-110,29.926,16.354,13.116,0.546,1.5,1],[-100,36.67,19.767,12.937,0.539,5.5,1],[-90,39.942,21.582,12.968,0.54,-2.5,1],[-80,22.631,16.006,16.974,0.707,8.5,1],[80,25.322,12.283,11.642,0.485,10.5,1],[90,27.697,17.718,15.353,0.64,4.5,1],[100,32.311,16.305,12.111,0.505,-10.5,1],[110,36.338,24.419,16.128,0.672,-11.5,1],[120,38.942,14.484,8.927,0.372,8.5,1],[130,40.785,19.001,11.181,0.466,9.5,1],[140,35.452,17.528,11.866,0.494,-4.5,1],[150,37.953,21.414,13.541,0.564,9.5,1],[160,37.627,23.67,15.098,0.629,8.5,1],[170,50.052,28.87,13.843,0.577,-4.5,1],[180,37.268,19.257,12.401,0.517,8.5,1],[190,47.601,23.126,11.66,0.486,0.5,1]];
+    const PUBLISHED_NOLATTICE:Probe79Row[]=[[-190,0.886,0.587,15.901,0.663,-8.5,0],[-180,20.001,11.696,14.034,0.585,3.5,1],[-170,1.783,1.772,23.852,0.994,9.5,1],[-160,1.299,1,18.476,0.77,9.5,0],[-150,1.473,0.886,14.436,0.601,-2.5,0],[-140,1.587,1,15.123,0.63,-5.5,0],[-130,1.196,0.701,14.067,0.586,10.5,0],[-120,19.507,17.621,21.68,0.903,-11.5,1],[-110,1.794,1,13.378,0.557,-5.5,0],[-100,1.207,0.886,17.617,0.734,7.5,0],[-90,1.392,0.772,13.31,0.555,-0.5,0],[-80,10.811,9.316,20.681,0.862,10.5,1],[80,1.919,0.587,7.341,0.306,-4.5,0],[90,8.822,4.245,11.548,0.481,10.5,1],[100,1.62,0.886,13.126,0.547,-5.5,0],[110,1.299,1,18.476,0.77,-0.5,0],[120,18.469,15.675,20.369,0.849,8.5,1],[130,1.196,0.886,17.779,0.741,8.5,0],[140,1.31,0.886,16.232,0.676,-5.5,0],[150,1.011,0.587,13.935,0.581,-11.5,0],[160,1.783,0.886,11.926,0.497,-10.5,0],[170,9.892,9.892,24,1,-4.5,1],[180,1.114,0.587,12.646,0.527,-2.5,0],[190,0.886,0.473,12.813,0.534,11.5,0]];
+    const sha256Hex=(bytes:Uint8Array):string=>{
+      const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+      const H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+      const rotr=(x:number,n:number)=>((x>>>n)|(x<<(32-n)))>>>0;
+      const totalLen=Math.ceil((bytes.length+9)/64)*64;
+      const padded=new Uint8Array(totalLen);
+      padded.set(bytes);
+      padded[bytes.length]=0x80;
+      const view=new DataView(padded.buffer);
+      view.setUint32(totalLen-4,(bytes.length<<3)>>>0);
+      view.setUint32(totalLen-8,Math.floor(bytes.length/536870912));
+      const w:number[]=[];
+      for(let i=0;i<64;i+=1)w.push(0);
+      for(let block=0;block<totalLen;block+=64){
+        for(let i=0;i<16;i+=1)w[i]=view.getUint32(block+i*4);
+        for(let i=16;i<64;i+=1){const x=w[i-15]??0,y=w[i-2]??0;const s0=(rotr(x,7)^rotr(x,18)^(x>>>3))>>>0;const s1=(rotr(y,17)^rotr(y,19)^(y>>>10))>>>0;w[i]=((w[i-16]??0)+s0+(w[i-7]??0)+s1)>>>0;}
+        let a=H[0]??0,b=H[1]??0,c=H[2]??0,d=H[3]??0,e=H[4]??0,f=H[5]??0,g=H[6]??0,h=H[7]??0;
+        for(let i=0;i<64;i+=1){const S1=(rotr(e,6)^rotr(e,11)^rotr(e,25))>>>0;const ch=((e&f)^(~e&g))>>>0;const t1=(h+S1+ch+(K[i]??0)+(w[i]??0))>>>0;const S0=(rotr(a,2)^rotr(a,13)^rotr(a,22))>>>0;const maj=((a&b)^(a&c)^(b&c))>>>0;const t2=(S0+maj)>>>0;h=g;g=f;f=e;e=(d+t1)>>>0;d=c;c=b;b=a;a=(t1+t2)>>>0;}
+        H[0]=((H[0]??0)+a)>>>0;H[1]=((H[1]??0)+b)>>>0;H[2]=((H[2]??0)+c)>>>0;H[3]=((H[3]??0)+d)>>>0;H[4]=((H[4]??0)+e)>>>0;H[5]=((H[5]??0)+f)>>>0;H[6]=((H[6]??0)+g)>>>0;H[7]=((H[7]??0)+h)>>>0;
+      }
+      return H.map(v=>v.toString(16).padStart(8,"0")).join("");
+    };
+    const round3=(v:number)=>Math.round(v*1000)/1000;
+    const roundedLumaStats=(data:Uint8ClampedArray):{variance:number;unique:number}=>{
+      const count=data.length/4;
+      const lumas=new Float64Array(count);
+      let sum=0;
+      for(let p=0,i=0;p<data.length;p+=4,i+=1){const luma=Math.round(.299*(data[p]??0)+.587*(data[p+1]??0)+.114*(data[p+2]??0));lumas[i]=luma;sum+=luma;}
+      const mean=sum/count;
+      let squared=0;const seen=new Set<number>();
+      for(let i=0;i<count;i+=1){const luma=lumas[i]??0;const deviation=luma-mean;squared+=deviation*deviation;seen.add(luma);}
+      return {variance:squared/count,unique:seen.size};
+    };
+    const scoreRow=(tangent:number,values:number[]):Probe79Row=>{
+      let min=Infinity,max=-Infinity;
+      for(const v of values){if(v<min)min=v;if(v>max)max=v;}
+      const delta=max-min;
+      let maxStep=0,stepIndex=0;
+      for(let i=1;i<values.length;i+=1){const step=Math.abs((values[i]??0)-(values[i-1]??0));if(step>maxStep){maxStep=step;stepIndex=i;}}
+      const uniformZeroDelta=delta===0;
+      const ratio=uniformZeroDelta?0:maxStep/(delta/24);
+      const ampFraction=uniformZeroDelta?0:maxStep/delta;
+      const spike=!uniformZeroDelta&&ratio>=4&&ampFraction>=0.15&&maxStep>=1.5;
+      return [tangent,round3(delta),round3(maxStep),round3(ratio),round3(ampFraction),stepIndex-12.5,spike?1:0];
+    };
+    const countFieldMismatches=(rows:Probe79Row[],published:Probe79Row[]):number=>{
+      let mismatches=0;
+      for(let r=0;r<24;r+=1){const row=rows[r],pub=published[r];if(!row||!pub){mismatches+=7;continue;}for(let f=0;f<7;f+=1)if(row[f]!==pub[f])mismatches+=1;}
+      return mismatches;
+    };
+    const nextFrame=()=>new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));
+    const CENTER={x:8570,y:30160};
+    const captureVisible=():{variance:number;unique:number}=>{
+      const source=canvasRef.current;if(!source)throw new Error("Gameplay canvas unavailable");
+      const sample=document.createElement("canvas");sample.width=390;sample.height=540;
+      const context=sample.getContext("2d",{willReadFrequently:true});if(!context)throw new Error("2D sampling context unavailable");
+      context.imageSmoothingEnabled=true;context.imageSmoothingQuality="high";
+      context.drawImage(source,0,0,390,540);
+      return roundedLumaStats(context.getImageData(0,0,390,540).data);
+    };
+    const runConfig=async(name:string,layerEnabled:boolean,normalizePerimeter:boolean):Promise<Probe79Config>=>{
+      awlProbe79.layerEnabled=layerEnabled;
+      awlProbe79.normalizePerimeter=normalizePerimeter;
+      let textureWaitFrames=0;
+      while(!ensureBiomeTexturesLoaded()){await nextFrame();textureWaitFrames+=1;if(textureWaitFrames>900)throw new Error("Biome textures never became ready");}
+      for(const [regionId,image] of biomeTextureImages){biomeTextureVariants.set(regionId,image.naturalWidth>0?buildTextureVariants(image):[]);}
+      villageDirtCache=null;villageGroundCache=null;
+      const world=worldRef.current;
+      world.dungeon=null;ACTIVE_DUNGEON=null;world.activeInterior=null;ACTIVE_INTERIOR_ID=null;
+      world.enemies=[];world.projectiles=[];world.sparks=[];world.damageNumbers=[];world.goreDecals=[];
+      world.player.invuln=999999;world.player.x=CENTER.x;world.player.y=CENTER.y;
+      world.zone=regionAtPoint(CENTER.x,CENTER.y)?.id??world.zone;
+      world.vehicle.mounted=false;world.camera.zoom=1;
+      world.camera.x=CENTER.x-VIEW_W/2;world.camera.y=CENTER.y-VIEW_H/2;
+      world.timeOfDay=.38;world.lastDayPhase=dayCycleState(.38).phase;
+      world.currentWeather="clear";world.weatherRainIntensity=0;world.weatherRainBlendFrom=0;world.weatherRainBlendTarget=0;world.weatherShiftAt=Number.POSITIVE_INFINITY;world.lightningFlash=0;world.shake=0;
+      modeRef.current="playing";setMode("playing");inputRef.current={x:0,y:0};
+      resetGroundChunkCache();
+      setHud(current=>({...current,zone:world.zone,x:CENTER.x,y:CENTER.y,driving:false,weather:"clear",timeOfDay:.38,dayPhase:dayCycleState(.38).phase}));
+      for(const queued of groundChunkQueue)queued.priority=2;
+      groundVisibleEntries.length=0;
+      setGroundChunkBounds(visibleChunkBounds,world.camera.x,world.camera.y,VIEW_W,VIEW_H);
+      for(let row=visibleChunkBounds.minRow;row<=visibleChunkBounds.maxRow;row+=1)for(let col=visibleChunkBounds.minCol;col<=visibleChunkBounds.maxCol;col+=1)groundVisibleEntries.push(queueGroundChunk(col*GROUND_CHUNK_SIZE,row*GROUND_CHUNK_SIZE,0));
+      queueNearbyWayfireDestination(world,VIEW_W,VIEW_H);
+      trimGroundChunkCache();
+      const queueBefore=pendingGroundChunkCount();
+      let drainSteps=0;
+      for(let step=0;step<180;step+=1){const entry=takeNextGroundChunk();if(!entry)break;const beforePhase=entry.phase;stepGroundChunk(entry,Number.POSITIVE_INFINITY,Number.POSITIVE_INFINITY);drainSteps+=1;if(beforePhase!=="done"&&entry.phase==="done"){/* completed this step */}else if(entry.queued)groundChunkQueue.push(entry);}
+      const queueAfter=pendingGroundChunkCount();
+      for(let frame=0;frame<180;frame+=1)await nextFrame();
+      const visible=captureVisible();
+      const mosaic=document.createElement("canvas");mosaic.width=720;mosaic.height=1000;
+      const mosaicCtx=mosaic.getContext("2d");if(!mosaicCtx)throw new Error("Mosaic context unavailable");
+      const chunkSha256:Record<string,string>={};
+      const chunkKeys=["7680:29440","8320:29440","7680:30080","8320:30080"];
+      for(const key of chunkKeys){const entry=groundChunkCache.get(key);if(!entry)throw new Error(`Window chunk ${key} missing`);mosaicCtx.drawImage(entry.canvas,entry.originX-(CENTER.x-360),entry.originY-(CENTER.y-500));const entryCtx=entry.canvas.getContext("2d");if(!entryCtx)throw new Error("Chunk context unavailable");chunkSha256[key]=sha256Hex(new Uint8Array(entryCtx.getImageData(0,0,GROUND_CHUNK_SIZE,GROUND_CHUNK_SIZE).data.buffer));}
+      const composite=document.createElement("canvas");composite.width=390;composite.height=540;
+      const compositeCtx=composite.getContext("2d",{willReadFrequently:true});if(!compositeCtx)throw new Error("Composite context unavailable");
+      compositeCtx.imageSmoothingEnabled=true;compositeCtx.imageSmoothingQuality="high";
+      compositeCtx.drawImage(mosaic,0,0,390,540);
+      const imageData=compositeCtx.getImageData(0,0,390,540);
+      const stats=roundedLumaStats(imageData.data);
+      const frameRawSha256=sha256Hex(new Uint8Array(imageData.data.buffer));
+      const framePngSha256=await new Promise<string>((resolve,reject)=>{composite.toBlob(blob=>{if(!blob){reject(new Error("Composite PNG encode failed"));return;}void blob.arrayBuffer().then(bytes=>resolve(sha256Hex(new Uint8Array(bytes)))).catch(reject);},"image/png");});
+      const pixels=imageData.data;
+      const rows:Probe79Row[]=[];let anyUniformZeroDelta=false;let count=0;
+      for(const tangent of TANGENTS){const values:number[]=[];for(let offset=-12;offset<=12;offset+=1){const o=((270+tangent)*390+(195+offset))*4;values.push(.299*(pixels[o]??0)+.587*(pixels[o+1]??0)+.114*(pixels[o+2]??0));}const row=scoreRow(tangent,values);if(row[1]===0)anyUniformZeroDelta=true;if(row[6]===1)count+=1;rows.push(row);}
+      return {name,layerEnabled,normalizePerimeter,textureWaitFrames,queueBefore,queueAfter,drainSteps,visibleVariance:visible.variance,visibleUnique:visible.unique,variance:stats.variance,unique:stats.unique,frameRawSha256,framePngSha256,chunkSha256,count,anyUniformZeroDelta,rows,publishedMismatches:null};
+    };
+    target.__AWL_RUN_TONAL_STEP_PROBE79__=async()=>{
+      if(window.innerWidth!==390||window.innerHeight!==844||window.devicePixelRatio!==1)throw new Error(`Probe requires 390x844 at devicePixelRatio 1; received ${window.innerWidth}x${window.innerHeight} at ${window.devicePixelRatio}`);
+      const encoder=new TextEncoder();
+      const sha256SelfTest={abc:sha256Hex(encoder.encode("abc"))==="ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",empty:sha256Hex(new Uint8Array(0))==="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"};
+      const configs:Probe79Config[]=[];
+      configs.push(await runConfig("anchor",true,true));
+      configs.push(await runConfig("nonorm",true,false));
+      configs.push(await runConfig("nolattice",false,true));
+      configs.push(await runConfig("nonormrerun",true,false));
+      configs.push(await runConfig("anchorerun",true,true));
+      for(const config of configs){if(config.name==="anchor"||config.name==="anchorerun")config.publishedMismatches=countFieldMismatches(config.rows,PUBLISHED_ANCHOR);if(config.name==="nolattice")config.publishedMismatches=countFieldMismatches(config.rows,PUBLISHED_NOLATTICE);}
+      const source=canvasRef.current;if(!source)throw new Error("Gameplay canvas unavailable");
+      const rect=source.getBoundingClientRect();
+      lastReport={buildId:BUILD_ID,viewport:{width:window.innerWidth,height:window.innerHeight,devicePixelRatio:window.devicePixelRatio},canvasRect:{x:rect.x,y:rect.y,width:rect.width,height:rect.height},sha256SelfTest,scorerSha256:"4628ddc158238ae288520a49d13b0bcd6096a0e4c56fb9398eceaf79f3ed6713",configs};
+      return lastReport;
+    };
+    target.__AWL_READ_TONAL_STEP_PROBE79__=()=>lastReport;
+    return()=>{inputRef.current={x:0,y:0};delete target.__AWL_RUN_TONAL_STEP_PROBE79__;delete target.__AWL_READ_TONAL_STEP_PROBE79__;};
+  },[]);
+
+  useEffect(()=>{
+    if(!window.location.pathname.includes("/hatch-audit-"))return;
+    const target=window as typeof window&{__AWL_RUN_TONAL_STEP_PROBE79__?:()=>Promise<unknown>};
+    const controls=document.getElementById("terrain-lattice-probes");
+    if(!controls)return;
+    const run=document.createElement("button"),output=document.createElement("output");
+    run.type="button";
+    run.textContent="Run tonal-step probe 79";
+    run.setAttribute("aria-label","Run tonal step probe 79");
+    output.id="maro-tonal-step-probe79-output";
+    output.setAttribute("aria-live","polite");
+    output.style.cssText="position:fixed;left:8px;right:8px;bottom:228px;z-index:10001;max-height:34vh;overflow:auto;padding:6px;background:#050807;color:#c9ffd0;font:9px/1.25 monospace;white-space:pre-wrap;opacity:.96;pointer-events:none";
+    output.textContent="TONAL STEP PROBE 79 · ready";
+    run.onclick=()=>{const invoke=target.__AWL_RUN_TONAL_STEP_PROBE79__;if(!invoke){output.textContent="TONAL STEP PROBE 79 · probe unavailable";return;}run.disabled=true;output.textContent="TONAL STEP PROBE 79 · running anchor, nonorm, nolattice, nonorm rerun, anchor rerun…";void invoke().then(report=>{output.textContent=`TONAL STEP PROBE 79 ${JSON.stringify(report)}`;}).catch(error=>{output.textContent=`TONAL STEP PROBE 79 · ${error instanceof Error?error.message:"probe failed"}`;}).finally(()=>{run.disabled=false;});};
+    controls.append(run);document.body.append(output);
+    return()=>{run.remove();output.remove();};
   },[]);
 
   useEffect(()=>{if(!window.location.pathname.includes("/hatch-audit-"))return;const onKeyDown=(event:KeyboardEvent)=>{if(event.key!=="F9"&&event.key!=="F10")return;event.preventDefault();if(modeRef.current!=="playing")return;const world=worldRef.current,cora=NPCS.find(npc=>npc.id==="cora");if(!cora)return;const regionId=regionAtPoint(cora.x,cora.y)?.id??world.zone;world.dungeon=null;ACTIVE_DUNGEON=null;world.activeInterior=null;ACTIVE_INTERIOR_ID=null;world.player.x=cora.x+110;world.player.y=cora.y+25;world.camera.x=world.player.x;world.camera.y=world.player.y;world.zone=regionId;world.coins=999;const current=saveRef.current,tier=event.key==="F10"?3:0;saveRef.current={...current,weaponName:"Glock",coins:999,woodScraps:99,volatileEyes:12,weaponUpgrades:[...current.weaponUpgrades.filter(item=>item.name!=="Glock"),...(tier?[{name:"Glock",tier}]:[])]};setHud(value=>({...value,coins:999,woodScraps:99,zone:regionId,x:world.player.x,y:world.player.y}));if(tier===0){setSelectedNpc(cora);setForgeOpen(true);setNotice("Audit setup · Ember Forge ready");}else{setForgeOpen(false);world.enemies=world.enemies.filter(enemy=>enemy.id!==9_999_994);const target=makeEnemy("brute",9_999_994,regionId,world.player.x+180,world.player.y);target.speed=.01;target.damage=0;target.hp=420;target.maxHp=420;world.enemies.push(target);refreshEnemyFrameSets(world);setNotice("Glock III · Cinder-Tier combat test");}};window.addEventListener("keydown",onKeyDown);return()=>window.removeEventListener("keydown",onKeyDown);},[]);
