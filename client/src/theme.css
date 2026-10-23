@@ -1160,7 +1160,7 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 }
 .objective-panel span { font-size: 7px; letter-spacing: .1em; }
 .objective-panel strong { margin-top: 2px; font-size: 9px; line-height: 1.28; white-space: normal; overflow-wrap: break-word; }
-.quest-panel,.main-story-quest {
+.quest-panel:not(.first-night-objective),.main-story-quest {
   left: 10px;
   width: min(46%,174px);
   max-width: 174px;
@@ -1243,7 +1243,7 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
   .game-utility-bar { padding-inline: 6px; }
   .arena-wrap { max-height: calc(100dvh - 100px); }
   .objective-panel { width: 42%; max-width: 158px; }
-  .quest-panel,.main-story-quest { width: 45%; max-width: 168px; }
+  .quest-panel:not(.first-night-objective),.main-story-quest { width: 45%; max-width: 168px; }
   .status-rail.expanded { top: 250px; }
   .status-rail-items { width: min(136px,36vw); max-height: 210px; }
   .status-rail-toggle { width: 44px; }
@@ -1335,7 +1335,7 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
   }
-  .quest-panel,.main-story-quest {
+  .quest-panel:not(.first-night-objective),.main-story-quest {
     left: 8px;
     width: min(52%,188px);
     max-width: 188px;
@@ -1345,7 +1345,7 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
     transform: none !important;
   }
   .quest-stack { left: 8px; top: 58px; width: min(52%,188px); max-width: 188px; }
-  .quest-panel em,.main-story-quest em {
+  .quest-panel:not(.first-night-objective) em,.main-story-quest em {
     display: -webkit-box;
     margin-top: 4px;
     padding-top: 4px;
@@ -1443,20 +1443,20 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
    each own a non-intersecting column at the 390px gameplay viewport. */
 @media (max-width: 430px) {
   .objective-panel,
-  .quest-panel,
+  .quest-panel:not(.first-night-objective),
   .main-story-quest {
     left: 8px;
     width: 132px;
     max-width: 132px;
   }
 
-  .quest-panel,
+  .quest-panel:not(.first-night-objective),
   .main-story-quest {
     max-height: none;
     overflow: visible;
   }
 
-  .quest-panel em,
+  .quest-panel:not(.first-night-objective) em,
   .main-story-quest em {
     display: block;
     overflow: visible;
