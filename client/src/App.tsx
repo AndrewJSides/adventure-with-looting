@@ -56,6 +56,40 @@ import groundFrostfallSnow from "./assets/textures/frostfall-snow.png";
 import survivorSheetUrl from "./assets/sprites/survivor-sheet.png";
 import zombieSheetUrl from "./assets/sprites/zombie-sheet.png";
 import eliteSheetUrl from "./assets/sprites/elite-sheet.png";
+import foliagePineTallUrl from "./assets/sprites/foliage-kenney-pine-tall.png";
+import foliagePineUrl from "./assets/sprites/foliage-kenney-pine.png";
+import foliageTreeTallUrl from "./assets/sprites/foliage-kenney-tree-tall.png";
+import foliageTreeRoundUrl from "./assets/sprites/foliage-kenney-tree-round.png";
+import foliageTreeFullUrl from "./assets/sprites/foliage-kenney-tree-full.png";
+import foliageTreeWideUrl from "./assets/sprites/foliage-kenney-tree-wide.png";
+import foliageCypressUrl from "./assets/sprites/foliage-kenney-cypress.png";
+import foliageAutumnTallUrl from "./assets/sprites/foliage-kenney-autumn-tall.png";
+import foliageAutumnRoundUrl from "./assets/sprites/foliage-kenney-autumn-round.png";
+import foliageAutumnFullUrl from "./assets/sprites/foliage-kenney-autumn-full.png";
+import foliageAutumnWideUrl from "./assets/sprites/foliage-kenney-autumn-wide.png";
+import foliageAutumnCypressUrl from "./assets/sprites/foliage-kenney-autumn-cypress.png";
+import foliageSnowPineTallUrl from "./assets/sprites/foliage-kenney-snow-pine-tall.png";
+import foliageSnowPineUrl from "./assets/sprites/foliage-kenney-snow-pine.png";
+import foliageSnowPineFullUrl from "./assets/sprites/foliage-kenney-snow-pine-full.png";
+import foliageSnowboundPineUrl from "./assets/sprites/foliage-kenney-snowbound-pine.png";
+import foliageSnowboundPineFullUrl from "./assets/sprites/foliage-kenney-snowbound-pine-full.png";
+import foliageDeadTrunkAUrl from "./assets/sprites/foliage-kenney-dead-trunk-a.png";
+import foliageDeadTrunkBUrl from "./assets/sprites/foliage-kenney-dead-trunk-b.png";
+import foliageDeadTrunkCUrl from "./assets/sprites/foliage-kenney-dead-trunk-c.png";
+import foliageDeadTrunkDUrl from "./assets/sprites/foliage-kenney-dead-trunk-d.png";
+import foliageDeadTrunkEUrl from "./assets/sprites/foliage-kenney-dead-trunk-e.png";
+import foliageBushAUrl from "./assets/sprites/foliage-kenney-bush-a.png";
+import foliageBushBUrl from "./assets/sprites/foliage-kenney-bush-b.png";
+import foliageBushCUrl from "./assets/sprites/foliage-kenney-bush-c.png";
+import foliageBushFlatUrl from "./assets/sprites/foliage-kenney-bush-flat.png";
+import foliageRockAUrl from "./assets/sprites/foliage-kenney-rock-a.png";
+import foliageRockBUrl from "./assets/sprites/foliage-kenney-rock-b.png";
+import foliageRockCUrl from "./assets/sprites/foliage-kenney-rock-c.png";
+import foliageRockDUrl from "./assets/sprites/foliage-kenney-rock-d.png";
+import foliageRockMossAUrl from "./assets/sprites/foliage-kenney-rock-moss-a.png";
+import foliageRockMossBUrl from "./assets/sprites/foliage-kenney-rock-moss-b.png";
+import foliageRockSnowAUrl from "./assets/sprites/foliage-kenney-rock-snow-a.png";
+import foliageRockSnowBUrl from "./assets/sprites/foliage-kenney-rock-snow-b.png";
 import rainLoopUrl from "./assets/audio/rain-loop-cc0.wav";
 import zombieGroanUrl from "./assets/audio/zombie-groan-cc0.mp3";
 import zombieAggroUrl from "./assets/audio/zombie-aggro-cc0.mp3";
@@ -1794,7 +1828,21 @@ function spawnHoldoutWave(world:World):number {
 function projectileHitsObstacle(projectile:Projectile):boolean {return measureSubsystem("collision",()=>{const obstacles=collectNearbyObstacles(PROJECTILE_OBSTACLE_SCRATCH,projectile.x,projectile.y,projectile.radius+8,false);for(let index=0;index<obstacles.length;index+=1){const obstacle=obstacles[index];if(obstacle&&collidesObstacle(projectile.x,projectile.y,projectile.radius,obstacle))return true;}return false;});}
 function countNearbyIceWolves(world:World,enemy:Enemy):number {let count=0;for(let index=0;index<world.activeEnemies.length;index+=1){const other=world.activeEnemies[index];if(!other||other.kind!=="iceManeWolf"||other.hp<=0)continue;const dx=other.x-enemy.x,dy=other.y-enemy.y;if(dx*dx+dy*dy<129600)count+=1;}return count;}
 function roundedRect(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,r:number):void {ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();}
-function drawTree(ctx:CanvasRenderingContext2D,tree:Tree):void {ctx.save();ctx.translate(tree.x,tree.y);ctx.fillStyle="rgba(2,7,4,.38)";ctx.beginPath();ctx.ellipse(18,tree.r*.78,tree.r*1.35,tree.r*.53,-.08,0,Math.PI*2);ctx.fill();const bark=ctx.createRadialGradient(-tree.r*.2,-tree.r*.15,3,0,0,tree.r*.6);bark.addColorStop(0,"#9a7650");bark.addColorStop(.45,"#68482f");bark.addColorStop(1,"#38291f");ctx.fillStyle=bark;ctx.strokeStyle="#a48358";ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,0,tree.r*.56,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.strokeStyle="rgba(39,22,15,.68)";ctx.lineWidth=2;for(let i=0;i<7;i+=1){const a=i*.88+tree.shade;ctx.beginPath();ctx.moveTo(Math.cos(a)*5,Math.sin(a)*5);ctx.quadraticCurveTo(Math.cos(a+.35)*tree.r*.28,Math.sin(a+.35)*tree.r*.28,Math.cos(a)*tree.r*.51,Math.sin(a)*tree.r*.51);ctx.stroke();}const dark=tree.shade>.5?"#173d2a":"#214b30",mid=tree.shade>.5?"#2d6440":"#39734a",light=tree.shade>.5?"#5e8e57":"#6e9e62";ctx.shadowColor="rgba(0,0,0,.48)";ctx.shadowBlur=renderShadowBlur(16);for(const [ox,oy,s] of [[-tree.r*.54,-tree.r*.7,.78],[tree.r*.5,-tree.r*.8,.84],[0,-tree.r*1.1,1],[-tree.r*.12,-tree.r*.48,.88]] as const){ctx.fillStyle=dark;ctx.beginPath();ctx.arc(ox,oy,tree.r*s,0,Math.PI*2);ctx.fill();ctx.fillStyle=mid;ctx.globalAlpha=.72;ctx.beginPath();ctx.arc(ox-tree.r*.12,oy-tree.r*.18,tree.r*s*.72,0,Math.PI*2);ctx.fill();}ctx.shadowBlur=renderShadowBlur(0);ctx.globalAlpha=.58;ctx.fillStyle=light;ctx.beginPath();ctx.ellipse(-tree.r*.28,-tree.r*1.32,tree.r*.38,tree.r*.24,-.45,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.restore();}
+// Kenney Foliage Pack (CC0 1.0) sprite pools — see client/src/assets/sprites/ATTRIBUTION.md.
+const FOLIAGE_GREEN_TREES=[foliagePineTallUrl,foliagePineUrl,foliageTreeTallUrl,foliageTreeRoundUrl,foliageTreeFullUrl,foliageTreeWideUrl,foliageCypressUrl] as const;
+const FOLIAGE_AUTUMN_TREES=[foliageAutumnTallUrl,foliageAutumnRoundUrl,foliageAutumnFullUrl,foliageAutumnWideUrl,foliageAutumnCypressUrl] as const;
+const FOLIAGE_SNOW_TREES=[foliageSnowPineTallUrl,foliageSnowPineUrl,foliageSnowPineFullUrl,foliageSnowboundPineUrl,foliageSnowboundPineFullUrl] as const;
+const FOLIAGE_DEAD_TREES=[foliageDeadTrunkAUrl,foliageDeadTrunkBUrl,foliageDeadTrunkCUrl,foliageDeadTrunkDUrl,foliageDeadTrunkEUrl] as const;
+const FOLIAGE_BUSHES=[foliageBushAUrl,foliageBushBUrl,foliageBushCUrl,foliageBushFlatUrl] as const;
+const FOLIAGE_ROCKS=[foliageRockAUrl,foliageRockBUrl,foliageRockCUrl,foliageRockDUrl,foliageRockMossAUrl,foliageRockMossBUrl] as const;
+const FOLIAGE_SNOW_ROCKS=[foliageRockSnowAUrl,foliageRockSnowBUrl] as const;
+const foliageImageCache=new Map<string,HTMLImageElement>();
+function getFoliageImage(url:string):HTMLImageElement|null{let image=foliageImageCache.get(url);if(!image&&typeof Image!=="undefined"){image=new Image();image.decoding="async";image.src=url;foliageImageCache.set(url,image);}return image&&image.complete&&image.naturalWidth>0?image:null;}
+let foliagePendingSprite:CachedSprite|null=null;
+function pendingFoliageSprite():CachedSprite{if(!foliagePendingSprite){const canvas=document.createElement("canvas");canvas.width=1;canvas.height=1;foliagePendingSprite={canvas,offsetX:0,offsetY:0};}return foliagePendingSprite;}
+function foliageTreePick(tree:Tree):{url:string;bush:boolean}{const regionId=regionAtPoint(tree.x,tree.y)?.id??0,pool=regionId===12?FOLIAGE_SNOW_TREES:regionId===7||regionId===10?FOLIAGE_AUTUMN_TREES:regionId===8?FOLIAGE_DEAD_TREES:FOLIAGE_GREEN_TREES;if(pool===FOLIAGE_GREEN_TREES&&tree.r<38)return{url:FOLIAGE_BUSHES[Math.floor(tree.shade*FOLIAGE_BUSHES.length)%FOLIAGE_BUSHES.length]!,bush:true};return{url:pool[Math.floor(tree.shade*pool.length)%pool.length]!,bush:false};}
+function foliageRockUrl(rock:Rock,frost:boolean):string{const pool=frost?FOLIAGE_SNOW_ROCKS:FOLIAGE_ROCKS;return pool[Math.abs(Math.round(rock.x+rock.y))%pool.length]!;}
+function drawTree(ctx:CanvasRenderingContext2D,tree:Tree,image:HTMLImageElement,bush:boolean):void {ctx.save();ctx.translate(tree.x,tree.y);ctx.fillStyle="rgba(2,7,4,.38)";ctx.beginPath();ctx.ellipse(18,tree.r*.78,tree.r*1.35,tree.r*.53,-.08,0,Math.PI*2);ctx.fill();const height=bush?tree.r*1.1:tree.r*3,width=height*image.naturalWidth/Math.max(1,image.naturalHeight);ctx.imageSmoothingEnabled=true;ctx.drawImage(image,-width/2,tree.r*.56-height,width,height);ctx.restore();}
 function drawTorch(ctx:CanvasRenderingContext2D,x:number,y:number,time:number,seed:number):void{
   const sway=Math.sin(time/92+seed)*3,flicker=1+Math.sin(time/83+seed)*.09+Math.sin(time/41+seed*2)*.05;
   ctx.save();
@@ -1974,8 +2022,8 @@ function drawAtmosphere(ctx:CanvasRenderingContext2D,world:World,time:number):vo
   if(moon&&visible(moon)){ctx.save();const shaft=ctx.createLinearGradient(moon.x-230,moon.y-390,moon.x+130,moon.y+330);shaft.addColorStop(0,"rgba(182,222,238,0)");shaft.addColorStop(.3,"rgba(182,222,238,.085)");shaft.addColorStop(.72,"rgba(182,222,238,.035)");shaft.addColorStop(1,"rgba(182,222,238,0)");ctx.fillStyle=shaft;ctx.translate(moon.x-100,moon.y);ctx.rotate(-.27);ctx.fillRect(-58,-moon.radius,116,moon.radius*2);ctx.translate(185,0);ctx.fillRect(-33,-moon.radius,66,moon.radius*2);ctx.restore();for(let i=0;i<MOON_FIREFLIES.length;i+=1){const p=MOON_FIREFLIES[i];if(!p)continue;const x=moon.x+p.x+Math.sin(time*.00065+p.phase)*18,y=moon.y+p.y+Math.cos(time*.00052+p.phase)*11,alpha=.28+(Math.sin(time*.0045+p.phase)+1)*.3;ctx.fillStyle=`rgba(176,238,210,${alpha})`;ctx.shadowColor="#a8efcf";ctx.shadowBlur=renderShadowBlur(9);ctx.beginPath();ctx.arc(x,y,p.size*.65,0,Math.PI*2);ctx.fill();}ctx.shadowBlur=renderShadowBlur(0);}
   const frost=REGIONS[11];if(frost&&visible(frost)){ctx.save();ctx.strokeStyle="rgba(240,252,255,.78)";ctx.lineCap="round";for(let i=0;i<FROST_SNOW.length;i+=1){const p=FROST_SNOW[i];if(!p)continue;const sweep=(time*.16*p.drift+p.phase*190)%(frost.radius*2.1),x=frost.x-frost.radius+sweep,y=frost.y+p.y*.9+Math.sin(time*.002+p.phase)*42;if(Math.hypot(x-frost.x,y-frost.y)>frost.radius*1.05)continue;ctx.globalAlpha=.25+(i%5)*.1;ctx.lineWidth=1.5+p.size*.55;ctx.beginPath();ctx.moveTo(x-18-p.size*3,y+8);ctx.lineTo(x+18+p.size*3,y-8);ctx.stroke();}ctx.globalAlpha=1;ctx.restore();}
 }
-function drawRock(ctx:CanvasRenderingContext2D,rock:Rock):void{ctx.save();ctx.translate(rock.x,rock.y);ctx.rotate(rock.angle);ctx.fillStyle="rgba(0,0,0,.32)";ctx.beginPath();ctx.ellipse(8,rock.r*.52,rock.r*1.05,rock.r*.42,0,0,Math.PI*2);ctx.fill();const stone=ctx.createLinearGradient(-rock.r,-rock.r,rock.r,rock.r);stone.addColorStop(0,"#68777a");stone.addColorStop(.45,"#414e51");stone.addColorStop(1,"#293436");ctx.fillStyle=stone;ctx.strokeStyle="#829194";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-rock.r*.9,rock.r*.45);ctx.lineTo(-rock.r*.62,-rock.r*.52);ctx.lineTo(-rock.r*.12,-rock.r*.82);ctx.lineTo(rock.r*.72,-rock.r*.4);ctx.lineTo(rock.r*.94,rock.r*.42);ctx.closePath();ctx.fill();ctx.stroke();ctx.strokeStyle="rgba(188,207,207,.34)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-rock.r*.42,-rock.r*.36);ctx.lineTo(-rock.r*.08,-rock.r*.05);ctx.lineTo(-rock.r*.3,rock.r*.24);ctx.moveTo(rock.r*.18,-rock.r*.48);ctx.lineTo(rock.r*.36,-rock.r*.12);ctx.lineTo(rock.r*.67,rock.r*.08);ctx.stroke();ctx.fillStyle="rgba(208,223,220,.18)";ctx.beginPath();ctx.ellipse(-rock.r*.28,-rock.r*.48,rock.r*.22,rock.r*.1,-.35,0,Math.PI*2);ctx.fill();ctx.restore();}
-function drawFrostCliff(ctx:CanvasRenderingContext2D,rock:Rock):void{ctx.save();ctx.translate(rock.x,rock.y);ctx.rotate(rock.angle);ctx.fillStyle="rgba(15,35,44,.4)";ctx.beginPath();ctx.ellipse(12,rock.r*.58,rock.r*1.15,rock.r*.42,0,0,Math.PI*2);ctx.fill();const cliff=ctx.createLinearGradient(-rock.r,-rock.r,rock.r,rock.r);cliff.addColorStop(0,"#e6f3f5");cliff.addColorStop(.38,"#9fbec6");cliff.addColorStop(1,"#456977");ctx.fillStyle=cliff;ctx.strokeStyle="#d9f3f7";ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(-rock.r,rock.r*.5);ctx.lineTo(-rock.r*.72,-rock.r*.54);ctx.lineTo(-rock.r*.2,-rock.r);ctx.lineTo(rock.r*.54,-rock.r*.62);ctx.lineTo(rock.r,rock.r*.5);ctx.closePath();ctx.fill();ctx.stroke();ctx.strokeStyle="rgba(240,253,255,.75)";ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(-rock.r*.7,-rock.r*.48);ctx.quadraticCurveTo(-rock.r*.1,-rock.r*.78,rock.r*.55,-rock.r*.55);ctx.stroke();ctx.restore();}
+function drawRock(ctx:CanvasRenderingContext2D,rock:Rock,image:HTMLImageElement):void{ctx.save();ctx.translate(rock.x,rock.y);ctx.fillStyle="rgba(0,0,0,.32)";ctx.beginPath();ctx.ellipse(8,rock.r*.52,rock.r*1.05,rock.r*.42,0,0,Math.PI*2);ctx.fill();ctx.rotate(rock.angle*.35);const width=rock.r*2,height=width*image.naturalHeight/Math.max(1,image.naturalWidth);ctx.imageSmoothingEnabled=true;ctx.drawImage(image,-width/2,rock.r*.45-height,width,height);ctx.restore();}
+function drawFrostCliff(ctx:CanvasRenderingContext2D,rock:Rock,image:HTMLImageElement):void{ctx.save();ctx.translate(rock.x,rock.y);ctx.fillStyle="rgba(15,35,44,.4)";ctx.beginPath();ctx.ellipse(12,rock.r*.58,rock.r*1.15,rock.r*.42,0,0,Math.PI*2);ctx.fill();ctx.rotate(rock.angle*.3);const width=rock.r*2.1,height=width*image.naturalHeight/Math.max(1,image.naturalWidth);ctx.imageSmoothingEnabled=true;ctx.drawImage(image,-width/2,rock.r*.5-height,width,height);ctx.restore();}
 function horizontalFacingScale(angle:number):1|-1{return Math.cos(angle)<-.2?-1:1;}
 function drawNpc(ctx:CanvasRenderingContext2D,npc:Npc,state:NpcState,time:number,chatter=""):void{
   const attacking=time<state.attackUntil,attackProgress=attacking?Math.max(0,Math.min(1,1-(state.attackUntil-time)/300)):0,stride=state.moving?Math.sin(time/92+npc.x)*5:0,bob=state.moving?Math.abs(Math.sin(time/92+npc.y))*2:Math.sin(time/520+npc.x)*.8,gesture=attacking?10+Math.sin(attackProgress*Math.PI)*15:state.activity==="chat"?Math.sin(time/260+npc.y)*7:0,sitting=state.activity==="sit";
@@ -2003,8 +2051,8 @@ function drawDocYarrow(ctx:CanvasRenderingContext2D,location:YarrowLocation,time
 type CachedSprite={canvas:HTMLCanvasElement;offsetX:number;offsetY:number};
 const staticSpriteCache=new WeakMap<object,CachedSprite>();
 let maroStallSprite:CachedSprite|null=null;
-function cachedTreeSprite(tree:Tree):CachedSprite{const found=staticSpriteCache.get(tree);if(found)return found;const size=Math.ceil(tree.r*4),offsetX=size/2,offsetY=tree.r*2.3,canvas=document.createElement("canvas");canvas.width=size;canvas.height=size;const ctx=canvas.getContext("2d");if(ctx){const previous=lowCostRender;lowCostRender=false;drawTree(ctx,{...tree,x:offsetX,y:offsetY});lowCostRender=previous;}const made={canvas,offsetX,offsetY};staticSpriteCache.set(tree,made);return made;}
-function cachedRockSprite(rock:Rock,frost=false):CachedSprite{const found=staticSpriteCache.get(rock);if(found)return found;const size=Math.ceil(rock.r*3),offsetX=size/2,offsetY=size/2,canvas=document.createElement("canvas");canvas.width=size;canvas.height=size;const ctx=canvas.getContext("2d");if(ctx){const previous=lowCostRender;lowCostRender=false;(frost?drawFrostCliff:drawRock)(ctx,{...rock,x:offsetX,y:offsetY});lowCostRender=previous;}const made={canvas,offsetX,offsetY};staticSpriteCache.set(rock,made);return made;}
+function cachedTreeSprite(tree:Tree):CachedSprite{const found=staticSpriteCache.get(tree);if(found)return found;const pick=foliageTreePick(tree),image=getFoliageImage(pick.url);if(!image)return pendingFoliageSprite();const size=Math.ceil(tree.r*4.6),offsetX=size/2,offsetY=tree.r*2.9,canvas=document.createElement("canvas");canvas.width=size;canvas.height=size;const ctx=canvas.getContext("2d");if(ctx){const previous=lowCostRender;lowCostRender=false;drawTree(ctx,{...tree,x:offsetX,y:offsetY},image,pick.bush);lowCostRender=previous;}const made={canvas,offsetX,offsetY};staticSpriteCache.set(tree,made);return made;}
+function cachedRockSprite(rock:Rock,frost=false):CachedSprite{const found=staticSpriteCache.get(rock);if(found)return found;const image=getFoliageImage(foliageRockUrl(rock,frost));if(!image)return pendingFoliageSprite();const size=Math.ceil(rock.r*3),offsetX=size/2,offsetY=size/2,canvas=document.createElement("canvas");canvas.width=size;canvas.height=size;const ctx=canvas.getContext("2d");if(ctx){const previous=lowCostRender;lowCostRender=false;(frost?drawFrostCliff:drawRock)(ctx,{...rock,x:offsetX,y:offsetY},image);lowCostRender=previous;}const made={canvas,offsetX,offsetY};staticSpriteCache.set(rock,made);return made;}
 function cachedHouseSprite(house:(typeof VILLAGE_HOUSES)[number]):CachedSprite{const found=staticSpriteCache.get(house);if(found)return found;const width=Math.ceil(house.w*1.5),height=Math.ceil(house.h*2.4),offsetX=width/2,offsetY=house.h*1.35,canvas=document.createElement("canvas");canvas.width=width;canvas.height=height;const ctx=canvas.getContext("2d");if(ctx)drawVillageHouse(ctx,{...house,x:offsetX,y:offsetY},0);const made={canvas,offsetX,offsetY};staticSpriteCache.set(house,made);return made;}
 function cachedMaroStallSprite():CachedSprite{if(maroStallSprite)return maroStallSprite;const canvas=document.createElement("canvas"),offsetX=110,offsetY=100;canvas.width=220;canvas.height=190;const ctx=canvas.getContext("2d");if(ctx){ctx.save();ctx.translate(offsetX-9390,offsetY-29890);drawMaroStall(ctx,0);ctx.restore();}maroStallSprite={canvas,offsetX,offsetY};return maroStallSprite;}
 function stampCachedSprite(ctx:CanvasRenderingContext2D,sprite:CachedSprite,x:number,y:number):void{ctx.drawImage(sprite.canvas,x-sprite.offsetX,y-sprite.offsetY);}
@@ -2452,7 +2500,7 @@ function drawWorld(ctx:CanvasRenderingContext2D,world:World,save:PersistedSave,t
     for(const state of world.npcStates)if((state.id!=="imogen"||world.activeInterior===HOSPITAL_BUILDING_ID)&&isInRenderView(state.x,state.y,100))pushRenderDepth("npc",state.y+38,state);
     for(const rock of ROCKS)if(isInRenderView(rock.x,rock.y,rock.r+24))pushRenderDepth("rock",rock.y+rock.r*.52,rock);
     for(const rock of FROST_CLIFFS)if(isInRenderView(rock.x,rock.y,rock.r+24))pushRenderDepth("cliff",rock.y+rock.r*.58,rock);
-    for(const tree of TREES)if(isInRenderView(tree.x,tree.y,tree.r*1.5+24))pushRenderDepth("tree",tree.y+tree.r*.58,tree);
+    for(const tree of TREES)if(isInRenderView(tree.x,tree.y,tree.r*3.2+24))pushRenderDepth("tree",tree.y+tree.r*.58,tree);
     if(!vehicleMounted&&isInRenderView(world.dog.x,world.dog.y,120))pushRenderDepth("dog",world.dog.y+25,world.dog);
     if(world.spiritWolf)pushRenderDepth("wolf",world.spiritWolf.y+28,world.spiritWolf);
     if(activeEffectFlags.vehicles)for(const vehicle of world.vehicles)if(isInRenderView(vehicle.x,vehicle.y,340))pushRenderDepth("vehicle",vehicle.y+vehicle.radius*.55,vehicle);
