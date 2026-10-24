@@ -1690,3 +1690,16 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
   .inventory-detail > small { font-size:9px; }
   .inventory-footer span:nth-child(n+4) { display:none; }
 }
+
+/* Gear-tab infection care: the split view hid .inventory-equipped wholesale, which
+   also buried .cure-slot and its 44px cure buttons. Flatten the equipped pane with
+   display:contents so only the cure slot joins the overlay grid, placed in the
+   detail column on its own row; every other equipped slot stays hidden, matching
+   the split-view design. Footer and return button shift down one row. */
+.inventory-equipped { display: contents; overflow: visible; }
+.inventory-equipped > :not(.cure-slot) { display: none; }
+.inventory-overlay { grid-template-rows: auto auto auto minmax(0, 1fr) auto auto auto; }
+.inventory-scroll { grid-row: 4 / 6; }
+.cure-slot { grid-column: 2; grid-row: 5; align-self: stretch; padding: 9px; border: 1px solid #46534c; background: #11191d; }
+.inventory-footer { grid-row: 6; }
+.inventory-overlay > .primary-button { grid-row: 7; }
