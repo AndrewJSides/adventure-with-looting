@@ -370,7 +370,7 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .vehicle-drive-state small { font-size: 6px; color: #8e9a96; text-align: right; }
 .vehicle-drive-state.ram-ready span { color: #ffc26f; }
 .vehicle-drive-state.ram-ready small { color: #e1c7a0; }
-.vehicle-cargo-button { width: 100%; min-height: 32px; margin-top: 7px; padding: 5px 6px; display: grid; grid-template-columns: auto auto; align-items: center; justify-content: space-between; gap: 4px 7px; border: 1px solid rgba(209,150,88,.35); background: rgba(39,31,24,.92); color: #ead9c2; pointer-events: auto; }
+.vehicle-cargo-button { width: 100%; min-height: 44px; margin-top: 7px; padding: 5px 6px; display: grid; grid-template-columns: auto auto; align-items: center; justify-content: space-between; gap: 4px 7px; border: 1px solid rgba(209,150,88,.35); background: rgba(39,31,24,.92); color: #ead9c2; pointer-events: auto; }
 .vehicle-cargo-button > span, .vehicle-cargo-button > b { font-size: 7px; font-weight: 900; letter-spacing: .1em; }
 .vehicle-cargo-button > div { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4,1fr); gap: 4px; }
 .vehicle-cargo-button > div i { display: block; height: 6px; background: #2a2925; border: 1px solid #5c5147; }
