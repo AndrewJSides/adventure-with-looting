@@ -2681,7 +2681,7 @@ export function App(){
     run.setAttribute("aria-label","Run terrain lattice density probe");
     output.id="terrain-lattice-density-output";
     output.setAttribute("aria-live","polite");
-    output.style.cssText="position:fixed;left:8px;right:8px;bottom:104px;z-index:10001;max-height:40vh;overflow:auto;padding:6px;background:#050807;color:#c9ffd0;font:9px/1.25 monospace;white-space:pre-wrap;opacity:.96;pointer-events:none";
+    output.style.cssText="position:fixed;left:8px;right:8px;bottom:128px;z-index:10001;max-height:40vh;overflow:auto;padding:6px;background:#050807;color:#c9ffd0;font:9px/1.25 monospace;white-space:pre-wrap;opacity:.96;pointer-events:none";
     output.textContent="LATTICE DENSITY · ready";
     run.onclick=()=>{const invoke=target.__AWL_RUN_LATTICE_DENSITY_PROBE__;if(!invoke){output.textContent="LATTICE DENSITY · probe unavailable";return;}run.disabled=true;output.textContent="LATTICE DENSITY · running four fixed coordinates…";void invoke().then(report=>{output.textContent=`LATTICE DENSITY ${JSON.stringify(report)}`;}).catch(error=>{output.textContent=`LATTICE DENSITY · ${error instanceof Error?error.message:"probe failed"}`;}).finally(()=>{run.disabled=false;});};
     controls.append(run);document.body.append(output);
