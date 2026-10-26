@@ -215,7 +215,7 @@ type ZombieAudioState = { nextGroanAt:number; lastHitAt:number; lastEvent:string
 type RecordedAudioKey = "zombieGroan" | "zombieAggro" | "zombieHit" | "zombieDeath" | "zombieRoar" | "nightDrone" | "lootChime" | "chestChime" | "swing" | "gun" | "crossbow" | "reload" | "scytheScrape" | "sunBells" | "fogBell" | "thunder" | "footstep" | "fireLoop" | "waterLoop" | "windLoop" | "villageLoop" | "engineLoop" | "engineStart" | "chainsaw";
 type AudioMix = { master:GainNode; compressor:DynamicsCompressorNode; music:GainNode; engine:GainNode; sfx:GainNode };
 type EngineAudio = { id:VehicleId; master:GainNode; source:AudioBufferSourceNode; pulse:GainNode; filter:BiquadFilterNode; nextTextureAt:number; nextHarleyPulseAt:number; harleyPulseIndex:number };
-type EngineSoundProfile = { idleTone:number; topTone:number; idleRumble:number; topRumble:number; idleCutoff:number; topCutoff:number; volume:number; wobble:number; toneType:OscillatorType; rumbleType:OscillatorType };
+type EngineSoundProfile = { idleTone:number; idleCutoff:number; topCutoff:number; volume:number; wobble:number };
 type ProfilerMode = "idle" | "compact" | "expanded";
 type EffectKey = "vehicles" | "lighting" | "particles" | "decals" | "corpses" | "shadows" | "ambient" | "damageNumbers" | "muzzleFlash" | "screenShake" | "groundTexture";
 type EffectFlags = Record<EffectKey, boolean>;
@@ -490,11 +490,11 @@ const VEHICLE_SPAWNS: ReadonlyArray<{id:VehicleId;name:string;x:number;y:number;
 ];
 const AMBIENT_MASTER_LEVEL=.48;
 const ENGINE_SOUNDS:Record<VehicleId,EngineSoundProfile>={
-  rustbucket:{idleTone:42,topTone:89,idleRumble:21,topRumble:45,idleCutoff:260,topCutoff:720,volume:.48,wobble:3.8,toneType:"sawtooth",rumbleType:"square"},
-  trailrunner:{idleTone:51,topTone:116,idleRumble:25.5,topRumble:58,idleCutoff:330,topCutoff:1120,volume:.5,wobble:1.8,toneType:"sawtooth",rumbleType:"square"},
-  "mire-mule":{idleTone:34,topTone:74,idleRumble:17,topRumble:37,idleCutoff:230,topCutoff:680,volume:.48,wobble:2.7,toneType:"square",rumbleType:"sine"},
-  motorcycle:{idleTone:38,topTone:126,idleRumble:19,topRumble:63,idleCutoff:290,topCutoff:1350,volume:.56,wobble:4.6,toneType:"sawtooth",rumbleType:"sine"},
-  mustang:{idleTone:44,topTone:132,idleRumble:22,topRumble:66,idleCutoff:340,topCutoff:1320,volume:.58,wobble:3.4,toneType:"sawtooth",rumbleType:"square"},
+  rustbucket:{idleTone:42,idleCutoff:260,topCutoff:720,volume:.48,wobble:3.8},
+  trailrunner:{idleTone:51,idleCutoff:330,topCutoff:1120,volume:.5,wobble:1.8},
+  "mire-mule":{idleTone:34,idleCutoff:230,topCutoff:680,volume:.48,wobble:2.7},
+  motorcycle:{idleTone:38,idleCutoff:290,topCutoff:1350,volume:.56,wobble:4.6},
+  mustang:{idleTone:44,idleCutoff:340,topCutoff:1320,volume:.58,wobble:3.4},
 };
 const FRONTIER_CENTER:Vec={x:5300,y:6400};
 const RUINED_CITY_CENTER:Vec={x:25200,y:19600};
