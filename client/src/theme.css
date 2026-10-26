@@ -1508,13 +1508,15 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
   .status-rail.expanded ~ .dog-hud { top: 222px; }
 
   /* Rail-aware boss banner slots. Collapsed rail: Slot A parks the banner in
-     the center lane (x 176-386), name row at top 154px, clear of the location
-     card (y 104-156) and tracker card (y 156-220) on the left. Expanded rail:
+     the center lane (x 176-386), name row at top 163px, clear of the location
+     card (y 104-156) and tracker card (y 156-220) on the left, and 2px clear
+     of the vehicle HUD bottom (y 161, cargo button included) in the center
+     lane. Expanded rail:
      Slot B drops it into the left lane (x 8-208) below the tracker, name row
      at top 228px, HP bottom above the reserved lane under y 282; the drawer
      owns x >= 216 and the dog panel the right lane, so neither is touched. */
   .status-rail.collapsed ~ .boss-bar {
-    top: 154px;
+    top: 163px;
     left: 176px;
     width: 210px;
     transform: none;
