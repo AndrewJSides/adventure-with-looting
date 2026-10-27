@@ -235,3 +235,44 @@ web read, so no item URL is asserted here):
 Decision deferred: swap run picks the exact items, downloads the bytes into
 `client/src/assets/portraits/`, records each item URL + license in this file,
 and re-captures all three live in dialogue at 390×844.
+
+## AI portrait swap — completed (2026-10-27)
+
+Gate: App.tsx SHA-256 matched the handoff value
+`df0904a379b8a8b7590930b859ebbf4d0a8732ce8fc4d859eb3e22c8514d9dfb` (3082 lines)
+before any edit. Only imports L33–L35 were repointed; the render slot,
+theme.css, and the old AI files on disk are unchanged.
+
+All three replacements are real photographs from Pexels, each verified on its
+live item page (photographer, camera EXIF, dimensions, "Free" license badge)
+before download. License for all three: **Pexels License**
+(https://www.pexels.com/license/) — free to use for personal and commercial
+purposes; **attribution is not required** under that license (recorded per
+item, not assumed). Full-size bytes were downloaded from images.pexels.com
+and pre-cropped to the dialogue sliver aspect (8:35 ≈ 0.2286:1, shipped at
+336×1470 WebP) with the face centered near the top, located by visual
+grounding on the full-size file, and each crop was visually inspected.
+
+| Slot | Item page (verbatim final URL) | Photographer | Source dims | Bytes URL | Crop applied (from full-size) | Shipped file |
+|---|---|---|---|---|---|---|
+| Old Warden Cobb | https://www.pexels.com/photo/34712848/ | Eslam Mohammed Abdelmaksoud (Canon EOS R6 EXIF) | 5472×3648 | https://images.pexels.com/photos/34712848/pexels-photo-34712848.jpeg | 686×3000 @ (2459,648), face bbox x 453–571 / y 255–474 (0–1000) | `cobb-pexels-34712848.webp` |
+| Tide Runner Sel | https://www.pexels.com/photo/38828583/ | Hữu Quyền Nguyễn (Canon EOS R8 EXIF) | 5554×3703 | https://images.pexels.com/photos/38828583/pexels-photo-38828583.jpeg | 847×3703 @ (1668,0), face bbox x 298–455 / y 168–468 (0–1000) | `sel-pexels-38828583.webp` |
+| The Drowned Preacher | https://www.pexels.com/photo/17527466/ | Mehmet Turgut Kirkgoz | 5156×3867 | https://images.pexels.com/photos/17527466/pexels-photo-17527466.jpeg | 754×3300 @ (2201,567), face bbox x 428–572 / y 312–505 (0–1000) | `preacher-pexels-17527466.webp` |
+
+Deviations from the original directions, recorded plainly:
+
+- Sel's direction named Pixabay. pixabay.com was blocked to the browsing
+  tool in this environment (policy denial on the search page), so no Pixabay
+  item could be verified at item level; per the standing rule that an
+  unverified asset never ships, Sel uses a verified Pexels photograph
+  instead (fish-market fisherwoman, head-and-shoulders). A second verified
+  Pexels candidate (32943722, fisherwoman with a red crate, 3728×5592) was
+  rejected because the subject's torso is covered in a repeating brand
+  monogram pattern.
+- The Preacher's direction preferred a free CC0 hand-drawn portrait
+  (Kenney/OpenGameArt). No CC0 illustrated portrait that fits the sliver
+  crop was verified in this pass (OpenGameArt surfaced only a large
+  uncurated CC0-portraits collection; no fitting item was item-verified),
+  so the brief's explicit fallback — a real Pexels photograph — was used:
+  an elderly white-bearded man praying with rosary beads in a graveyard,
+  which matches the character's death-haunted eccentric brief.
