@@ -178,3 +178,60 @@ Exact public preview derivatives downloaded for this pass:
 - https://cdn.freesound.org/previews/149/149293_2513936-lq.mp3
 
 All files are bundled under `client/src/assets/audio/`; no runtime request goes to Freesound. Long recordings were reduced to compact mono OGG excerpts. Fire, water, wind, village, and engine loops were crossfaded locally. One-shot windows were selected by measured RMS/peak analysis, not generated or synthesized.
+
+## AI portrait inventory + replacement candidates (2026-10-27, diagnosis only — no swap)
+
+Gate: App.tsx SHA-256 df0904a379b8a8b7590930b859ebbf4d0a8732ce8fc4d859eb3e22c8514d9dfb, 3082 lines — matched before work.
+
+All three AI-generated portraits are Blackwater Bay (region 17) NPCs. They share
+exactly ONE render site: App.tsx line 3067, `<img className="npc-portrait">` inside
+`.dialogue-portrait-frame` in `.dialogue-shell`, shown only in `mode==="dialogue"`
+with that NPC selected. None render in any shop (none of the three NPCs has a shop
+mode), quest UI, character screen, or title menu. The in-world NPC is a canvas
+sprite, not the portrait.
+
+Slot geometry (theme.css 611–614, 632): `.npc-portrait` is `object-fit: cover;
+object-position: center top`, filling the frame. At 390×844 the shell is
+min(72%, 520px) tall with a 112px portrait column (max-width:430px breakpoint),
+so the frame is ~112 × ~490 CSS px — aspect ~0.23:1, a tall sliver. Only the
+horizontal center of the source shows: ~23% of a 1:1 source's width, ~46% of a
+1:2 source's width. Any replacement must be face-centered horizontally and near
+the top, or pre-cropped to ~0.23:1, or the face will be cut.
+
+| NPC | Import (App.tsx) | Shipped file | Intrinsic | NPC def |
+|---|---|---|---|---|
+| Old Warden Cobb, "Blackwater lighthouse keeper", (27020, 9060) | L33 `cobbPortrait` | media-generation-old-warden-cobb-0-3b159f1e-1b89-46c2-b948-31e27dbcb64a.webp (600 KB) | 1600×1600, 1:1 | L1154 |
+| Tide Runner Sel, "Blackwater dock survivor", (25000, 10360) | L34 `selPortrait` | media-generation-tide-runner-sel-0-21aa86b2-67d4-4338-82cc-504bda7252c2.webp (461 KB) | 1600×1600, 1:1 | L1155 |
+| The Drowned Preacher, "Eccentric of the rotting piers", (26140, 11320) | L35 `preacherPortrait` | media-generation-drowned-preacher-0-c44c94e2-fed0-4419-9b38-c7733e26df6f.webp (639 KB) | 1120×2240, 1:2 | L1156 |
+
+Provenance in source: NONE licensed. Filenames carry the `media-generation-`
+prefix; each has a sidecar `media-generation-*-<id>.json` holding only a
+generation `snapshot_id` and an expiring CDN URL — no license, no attribution.
+No portrait entry exists in any ATTRIBUTION.md. Two further AI alternates sit
+on disk un-imported (not shipped): cobb `…-d68e9ad1-…webp` 1600×1600 405 KB;
+sel `…-1d0f1058-…webp` 1120×2240 686 KB. Content viewed 2026-10-27: Cobb =
+painted elderly white-bearded keeper in yellow oilskin holding a lantern,
+lighthouse behind; Sel = painted short-dark-haired dock survivor in a red
+patched life vest holding a boat hook; Preacher = illustrated seaweed-and-shell
+encrusted preacher in a tall hat with driftwood cross, waist-deep at the piers.
+
+Live capture (audit hooks): `__AWL_SHOW_BAY_NPCS__("dialogue")` stages Sel's
+dialogue directly — Sel is the only one of the three with a hook-driven live
+dialogue path. Cobb is staged only in the world scene (canvas sprite + the
+Preacher as chatter text); neither Cobb's nor the Preacher's portrait has an
+audit-hook dialogue path, so theirs are source-verified only unless reached by
+manual Blackwater travel + interact.
+
+Replacement candidates (NOT downloaded, NOT swapped this run; item-level URL
+and pixel dimensions must be re-verified at swap time — this run had no public
+web read, so no item URL is asserted here):
+
+| Slot | Candidate source | License terms | Fit |
+|---|---|---|---|
+| Cobb | Pexels — real photograph, search target: elderly bearded fisherman / lighthouse keeper portrait | Pexels License (https://www.pexels.com/license/, already recorded above for terrain): free to use, personal and commercial, attribution not required | Pexels originals are multi-thousand-px; pick a portrait-orientation, face-centered frame so the 0.23:1 center-top crop keeps the face |
+| Sel | Pixabay — real photograph, search target: woman dock / harbour worker portrait | Pixabay Content License: free to use and modify for personal and commercial purposes, attribution not required; unaltered-stock resale and trademark-identifiable uses excluded | Same crop rule as Cobb; a head-and-shoulders harbour shot survives the sliver crop, a wide dock scene does not |
+| Preacher | OpenGameArt / Kenney — hand-drawn character portrait pack (matches the current illustrated style, unlike the other two painted portraits) | CC0 1.0 Universal on Kenney assets and on CC0-flagged OpenGameArt submissions: public-domain dedication, any personal/commercial use, no attribution required — verify the individual submission's CC0 flag at download | Pack portraits are typically square and face-centered by construction — the best geometric fit for the 0.23:1 slot of the three |
+
+Decision deferred: swap run picks the exact items, downloads the bytes into
+`client/src/assets/portraits/`, records each item URL + license in this file,
+and re-captures all three live in dialogue at 390×844.
