@@ -2736,8 +2736,12 @@ export function App(){
    * or click it at phone width. This effect mirrors the same
    * start/stop-and-save handlers onto a button in the audit controls bar
    * (outside the scrollport) and reports the saved recording's frame-time
-   * stats, computed directly from its stored samples. The player route
-   * never installs this control.
+   * stats, computed directly from its stored samples. A sibling RESET
+   * mirror sits immediately next to the Record toggle and calls the same
+   * resetDiagnosticRings() the in-overlay RESET button uses (plus a
+   * diagnostics refresh), so a probe can zero the diagnostic frame rings
+   * without reaching the below-the-fold overlay button. The player route
+   * never installs either control.
    */
   useEffect(()=>{
     if(location.hostname!=="artifact-capture.invalid"&&!window.location.pathname.includes("/hatch-audit-"))return;
@@ -2754,8 +2758,11 @@ export function App(){
       if(modeRef.current!=="playing"){output.textContent="PROFILER RECORD · start ignored · not in gameplay";return;}
       startProfilerRecording();renderState();
     };
-    controls.append(toggle);document.body.append(output);
-    return()=>{window.clearInterval(timer);toggle.remove();output.remove();};
+    const reset=document.createElement("button");
+    reset.type="button";reset.textContent="Reset rings";reset.setAttribute("aria-label","Reset diagnostic frame rings (audit)");
+    reset.onclick=()=>{resetDiagnosticRings();setDiagnostics(diagnosticDashboard());output.textContent="DIAGNOSTIC RINGS · reset · rings zeroed";};
+    controls.append(toggle);controls.append(reset);document.body.append(output);
+    return()=>{window.clearInterval(timer);toggle.remove();reset.remove();output.remove();};
   },[finishProfilerRecording,startProfilerRecording]);
 
   useEffect(()=>{if(!window.location.pathname.includes("/hatch-audit-"))return;const onKeyDown=(event:KeyboardEvent)=>{if(event.key!=="F9"&&event.key!=="F10")return;event.preventDefault();if(modeRef.current!=="playing")return;const world=worldRef.current,cora=NPCS.find(npc=>npc.id==="cora");if(!cora)return;const regionId=regionAtPoint(cora.x,cora.y)?.id??world.zone;world.dungeon=null;ACTIVE_DUNGEON=null;world.activeInterior=null;ACTIVE_INTERIOR_ID=null;world.player.x=cora.x+110;world.player.y=cora.y+25;world.camera.x=world.player.x;world.camera.y=world.player.y;world.zone=regionId;world.coins=999;const current=saveRef.current,tier=event.key==="F10"?3:0;saveRef.current={...current,weaponName:"Glock",coins:999,woodScraps:99,volatileEyes:12,weaponUpgrades:[...current.weaponUpgrades.filter(item=>item.name!=="Glock"),...(tier?[{name:"Glock",tier}]:[])]};setHud(value=>({...value,coins:999,woodScraps:99,zone:regionId,x:world.player.x,y:world.player.y}));if(tier===0){setSelectedNpc(cora);setForgeOpen(true);setNotice("Audit setup · Ember Forge ready");}else{setForgeOpen(false);world.enemies=world.enemies.filter(enemy=>enemy.id!==9_999_994);const target=makeEnemy("brute",9_999_994,regionId,world.player.x+180,world.player.y);target.speed=.01;target.damage=0;target.hp=420;target.maxHp=420;world.enemies.push(target);refreshEnemyFrameSets(world);setNotice("Glock III · Cinder-Tier combat test");}};window.addEventListener("keydown",onKeyDown);return()=>window.removeEventListener("keydown",onKeyDown);},[]);
