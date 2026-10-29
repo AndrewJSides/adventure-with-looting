@@ -1201,7 +1201,7 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 .action-slot { width: 62px; height: 68px; }
 .vehicle-slot { grid-column: 1; grid-row: 1; }
 .context-slot { grid-column: 2; grid-row: 1; }
-.throwable-slot { grid-column: 3; grid-row: 1; }
+.action-stack .throwable-slot { grid-column: 3; grid-row: 1; }
 .dash-slot { grid-column: 1; grid-row: 2; }
 .flask-slot { grid-column: 2; grid-row: 2; }
 .melee-slot { grid-column: 4; grid-row: 1 / 3; width: 62px; height: 140px; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; }
