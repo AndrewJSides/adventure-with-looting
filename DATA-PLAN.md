@@ -279,6 +279,45 @@ count (1–2 per ~550 frames, vsync-quantized capture timings) is within
 run-to-run noise. No sub-change regressed, so none was reverted.
 Recordings 14–16 live in the audit sandbox database only.
 
+## Defeated-scan gating pass (2026-11-01)
+
+Gate: App.tsx SHA-256 `d20b9c2c35bdbfe41234810fef330e64ee427490d888598870217d306662a767`
+matched before editing; post-edit SHA-256
+`f6dd93787818068f2b840c099525cb8fd3b50d6b08266644e2485d0678e68add`.
+The frame loop's per-frame `world.enemies.filter(e=>e.hp<=0)` scan now runs
+only when the new runtime-only `world.killDirty` flag is set (initialized
+`true` in createWorld) or every 300 frames as a backstop
+(`world.frameNo%300===0`); the flag is cleared after each gated scan and the
+zone-clear `REGIONS` loop after it stays ungated. The flag is set at all 15
+enemy `.hp-=` damage sites (NPC melee, snare, player melee, dog, lightning,
+Mirrorplate reflect, pipe bomb, outpost spikes, bleed, burn, bile infighting,
+vehicle ram, spirit wolf, projectile, shock chain) and all 8 `.hp=0`
+kill-assignment sites (harvester/sunwraith/fogmariner/tailspin audit kills,
+holdout milestone + F5 wave clear, two audit boss strikes). Deliberately
+unflagged: the `__AWL_SHOW_LOOT_JUICE__` staged corpse (line ~2733) — that
+enemy is created, decal-stamped manually, and never pushed into
+`world.enemies`, so the scan could never see it. No save-schema change (the
+flag is in-memory world state only). Edit verified insertion-only: removing
+the inserted fragments reproduces the pre-edit file byte-for-byte.
+
+Measured with the in-game profiler on the same scene (audit session,
+390×844, MINIMAL MODE, F9 driveClean Rustbucket route, ~26 s recordings):
+- Before (sandbox recording): n=517 — median 16.70 ms, mean 20.98 ms,
+  p95 50.00 ms, max 100.10 ms, 14 frames ≥50 ms.
+  Drive ring: 600 frames, frame p50/p95 16.70/33.40 ms, 11 frames ≥50 ms.
+- After (sandbox recording): n=523 — median 16.70 ms, mean 17.04 ms,
+  p95 16.80 ms, max 50.00 ms, 0 frames ≥50 ms.
+  Drive ring: 600 frames, frame p50/p95 16.70/16.80 ms, 4 frames ≥50 ms.
+Verdict: neutral-to-better (the before run carried extra environment noise;
+median identical, mean/p95/tails improved) — no regression, nothing reverted.
+The structural win is 60 fewer throwaway array allocations + 60 fewer filter
+closures per second at 60 fps. Kill verification (F7 driveDecals, same
+session): HUD coins 184 → 423 from ram-kill gold, a plank drop label and
+LOOT count visible, gore decals stamped (DECAL 2 live, gore visible at route
+end), staged bodies compacted (drive completed at max speed 300.0), zero
+console errors. Kills processed same-tick via the flag — no backstop delay
+observed. Recordings live in the audit sandbox database only.
+
 ## Minimap memoization pass (2026-11-01)
 
 The always-visible world-map button was extracted from the main game
