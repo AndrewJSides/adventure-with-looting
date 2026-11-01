@@ -23,7 +23,7 @@ All runtime ground textures are locally owned derivatives of downloaded photogra
 | `biome-17-blackwater-bay.png` | [Muddy Trail Against a Field](https://www.pexels.com/photo/muddy-trail-against-a-field-25799014/) | Pexels License |
 | `biome-18-harlan-airfield.png` | [Asphalt Surface](https://www.pexels.com/photo/asphalt-surface-11254991/) | Pexels License |
 
-The legacy `dirt-seamless.png` remains Heathal’s CC0 dirt texture from [OpenGameArt](https://opengameart.org/content/texture-pack-seamless-dirtpng).
+
 
 ## Visual overhaul ground photos (Phase 2, Oct 22 2026)
 
