@@ -236,6 +236,32 @@ Decision deferred: swap run picks the exact items, downloads the bytes into
 `client/src/assets/portraits/`, records each item URL + license in this file,
 and re-captures all three live in dialogue at 390×844.
 
+## Minimap memoization pass (2026-11-01)
+
+The always-visible world-map button was extracted from the main game
+component into a `React.memo`'d `WorldMapButton` whose props are only what
+the map displays (map window, camera, player position, explored set +
+size, cleared-region set + size, region id/name, outpost-claimed key,
+box/yarrow names + positions, harvester/fogmariner positions,
+wreckmother flag, inside/sewer flags, stable open callback), so the 100 ms
+HUD tick no longer rebuilds its SVG/fog/pin subtree when nothing it shows
+changed. The fog-reveal ellipse list is now built by `fogRevealPoints`,
+which caches the parsed explored-cell list keyed on explored-set size
+(cells are only ever added) and only re-projects positions onto the
+current window. Dungeon/city pin data arrays are hoisted module constants.
+No visual, layout, or interaction changes; no save-schema changes.
+
+Measured with the in-game profiler (audit session, 390×844):
+- Before (stored baseline recording id 7, previous build): 919 samples /
+  51.5 s — mean frame 16.11 ms, p95 23 ms, worst 39 ms, 11 frames ≥ 50 ms.
+- After (recording id 14, this build, ~25 s of live night boss-fight play
+  at Blackwater Bay): 511 samples — median 16.70 ms, mean 16.73 ms,
+  p95 16.70 ms, max 33.40 ms, 0 frames ≥ 50 ms. Live panel at capture:
+  56 FPS, terrain/stream/enemy subsystems ≈ 0.00 ms.
+Scenes differ (baseline was a mixed session), so the mean is not a clean
+A/B; the tail improvement (p95 23 → 16.7 ms, ≥50 ms stalls 11 → 0) is the
+signal, plus the structural guarantee that idle HUD ticks skip the subtree.
+
 ## AI portrait swap — completed (2026-10-27)
 
 Gate: App.tsx SHA-256 matched the handoff value

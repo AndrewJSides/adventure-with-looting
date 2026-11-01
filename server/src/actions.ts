@@ -335,6 +335,7 @@ function serializePerfSummary(row: typeof schema.perfRecordings.$inferSelect): z
 
 export const Actions = {
   loadGame: defineAction({
+    description: "Load the signed-in player's saved Adventure with Looting game, or report that no save exists yet.",
     request: z.object({}), response: loadResponse,
     async handler(ctx): Promise<z.infer<typeof loadResponse>> {
       const ownerKey = viewerKey(ctx);
@@ -346,6 +347,7 @@ export const Actions = {
   }),
 
   saveGame: defineAction({
+    description: "Persist the player's current Adventure with Looting game state to their save slot.",
     request: saveSchema, response: writeResponse,
     async handler(ctx, args): Promise<z.infer<typeof writeResponse>> {
       const ownerKey = viewerKey(ctx);
@@ -363,6 +365,7 @@ export const Actions = {
   }),
 
   savePerfRecording: defineAction({
+    description: "Store a completed in-game performance profiler recording and return its summary.",
     request: z.object({ startedAt: z.number().int().nonnegative(), stoppedAt: z.number().int().nonnegative(), samples: z.array(perfSampleSchema).min(1).max(12000) }), response: savePerfRecordingResponse,
     async handler(ctx, args): Promise<z.infer<typeof savePerfRecordingResponse>> {
       if (args.stoppedAt < args.startedAt) return { ok: false, message: "The recording end time is invalid." };
@@ -380,6 +383,7 @@ export const Actions = {
   }),
 
   listPerfRecordings: defineAction({
+    description: "List recent in-game performance profiler recordings, newest first.",
     request: z.object({}), response: listPerfRecordingsResponse,
     async handler(ctx): Promise<z.infer<typeof listPerfRecordingsResponse>> {
       const rows = await ctx.db<typeof schema>().select().from(schema.perfRecordings).orderBy(desc(schema.perfRecordings.startedAt)).limit(20);
@@ -388,6 +392,7 @@ export const Actions = {
   }),
 
   getPerfRecording: defineAction({
+    description: "Fetch one performance profiler recording with its full frame samples.",
     request: z.object({ id: z.number().int().positive() }), response: getPerfRecordingResponse,
     async handler(ctx, args): Promise<z.infer<typeof getPerfRecordingResponse>> {
       const rows = await ctx.db<typeof schema>().select().from(schema.perfRecordings).where(eq(schema.perfRecordings.id, args.id)).limit(1);
@@ -400,6 +405,7 @@ export const Actions = {
   }),
 
   resetGame: defineAction({
+    description: "Start a fresh run, replacing the player's save with a new game (optionally hardcore or farmhouse origin).",
     request: z.object({ hardcore: z.boolean().default(false), origin: z.enum(["village", "farmhouse"]).default("village") }), response: writeResponse,
     async handler(ctx, args): Promise<z.infer<typeof writeResponse>> {
       const ownerKey = viewerKey(ctx);
@@ -421,6 +427,7 @@ export const Actions = {
   }),
 
   wipeHardcoreRun: defineAction({
+    description: "Delete the player's save after a hardcore run ends.",
     request: z.object({}), response: wipeResponse,
     async handler(ctx): Promise<z.infer<typeof wipeResponse>> {
       const ownerKey = viewerKey(ctx);
