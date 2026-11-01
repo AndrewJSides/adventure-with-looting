@@ -236,6 +236,49 @@ Decision deferred: swap run picks the exact items, downloads the bytes into
 `client/src/assets/portraits/`, records each item URL + license in this file,
 and re-captures all three live in dialogue at 390×844.
 
+## Frame-loop allocation pass (2026-11-01)
+
+Gate: App.tsx SHA-256 `2bfe4992a6230e00d55085c2c853aa246baa1f66ae3cbe5705164b5fb51a2b56`
+matched before editing. All seven measured per-frame allocations in `frame()`
+were eliminated, behavior-identical: (1) `subsystemFrame` is now one object
+created once per effect run and zeroed per frame via `resetSubsystemValues`
+(the frame tail only copies its numbers into histories/perf frames, so reuse
+is safe; MINIMAL MODE subsystem readouts verified live after the change);
+(2) `dayCycleState` is memoized on a 1/2048-cycle quantum (~0.23 s of the
+480 s cycle; max darkness deviation ≈0.005 inside dawn/dusk bands);
+(3) the three roaming `enemies.find` scans became `roamingSpecial()`, a
+single-pass cache keyed on world identity + enemy-array identity/length, so
+it refreshes exactly on structural transitions (spawn pushes, death
+compaction, dawn/night filter removals) and returns the live enemy object,
+whose x/y/hp the 90-frame save spread reads; (4) the vehicles mounted-find
+and nearest-reduce became plain loops with identical first-wins-tie and
+nearest-within-180 semantics; (5) the buff-key array is the module constant
+`BUFF_KEYS`; (6) both `refreshEnemyFrameSets` sort comparators are the
+module functions `compareEnemyFrameDistance`/`compareEnemyY`;
+(7) the blood-moon `[...Set].some(...)` living check became
+`world.bloodMoonLivingCount`, incremented on guarded set-add in
+`spawnBloodMoonWave`, decremented in the central defeated-enemy processing
+(the same pass that compacts the dead out of `world.enemies`, so the count
+is exact at the point of the check), and zeroed at `beginBloodMoon`, the
+dawn reward clear, and world creation. No save-schema change (the counter
+is in-memory world state only).
+
+Measured with the in-game profiler on the same scene (audit session,
+390×844, F9 driveClean Rustbucket route, ~25 s recordings):
+- Before (recording id 14, previous build): n=571 — median 16.70 ms,
+  mean 17.48 ms, p95 16.80 ms, max 66.70 ms, 1 frame ≥50 ms.
+  Drive ring: frame p50/p95 16.70/33.30 ms.
+- After (recording id 15): n=543 — median 16.70 ms, mean 17.07 ms,
+  p95 16.80 ms, max 66.70 ms, 2 frames ≥50 ms.
+- After, second sample (recording id 16): n=510 — median 16.70 ms,
+  mean 16.96 ms, p95 16.80 ms, max 50.10 ms, 1 frame ≥50 ms.
+  Drive ring: frame p50/p95 16.70/16.80 ms.
+Verdict: neutral-to-better — median/p95 identical, mean improved
+~0.4–0.5 ms in both after-samples, ring p95 improved, and the ≥50 ms
+count (1–2 per ~550 frames, vsync-quantized capture timings) is within
+run-to-run noise. No sub-change regressed, so none was reverted.
+Recordings 14–16 live in the audit sandbox database only.
+
 ## Minimap memoization pass (2026-11-01)
 
 The always-visible world-map button was extracted from the main game
