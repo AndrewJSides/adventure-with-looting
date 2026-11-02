@@ -2201,10 +2201,9 @@ function segmentHitsCircle(ax:number,ay:number,bx:number,by:number,cx:number,cy:
 function drawCharacterSheetFrame(ctx:CanvasRenderingContext2D,url:string,direction:number,state:"idle"|"walk"|"attack",phase:number,size:number,flash=false){
   const image=getCharacterSheet(url);if(!image)return;
   const row=SPRITE_DIRECTION_ROWS[spriteDirection(direction)],base=state==="idle"?0:state==="walk"?2:4,column=base+(phase&1);
-  ctx.save();if(flash){ctx.globalAlpha=.72;ctx.globalCompositeOperation="screen";}
-  ctx.imageSmoothingEnabled=true;
+  if(flash){ctx.save();ctx.globalAlpha=.72;ctx.globalCompositeOperation="screen";ctx.imageSmoothingEnabled=true;}
   ctx.drawImage(image,column*CHARACTER_SHEET_CELL,row*CHARACTER_SHEET_CELL,CHARACTER_SHEET_CELL,CHARACTER_SHEET_CELL,-size/2,-size/2,size,size);
-  ctx.restore();
+  if(flash)ctx.restore();
 }
 function drawSpecialInfected(ctx:CanvasRenderingContext2D,enemy:Enemy,time:number):void{
   if(!isSpecialInfected(enemy.kind))return;const info=SPECIAL_INFECTED[enemy.kind],angle=Math.abs(enemy.vx)+Math.abs(enemy.vy)>.02?Math.atan2(enemy.vy,enemy.vx):enemy.targetAngle,bob=Math.sin(time/150+enemy.flutter)*2,flash=enemy.flash>0?"#fff":info.color;ctx.save();ctx.rotate(angle);ctx.translate(0,bob);ctx.fillStyle="rgba(0,0,0,.4)";ctx.beginPath();ctx.ellipse(0,enemy.radius*.54,enemy.radius*.82,enemy.radius*.3,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#1a201d";ctx.lineWidth=5;ctx.fillStyle=flash;
