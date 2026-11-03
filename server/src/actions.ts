@@ -16,7 +16,7 @@ const saveSchema = z.object({
   coins: z.number().int().min(0).max(999999),
   weaponName: z.string().min(1).max(40),
   weaponDamage: z.number().min(1).max(999),
-  attackSpeed: z.number().min(0.2).max(8),
+  attackSpeed: z.number().min(0.2).max(16), // Warlord's Minigun fires at 16/s; Rust SMG at 9/s
   rarity: raritySchema,
   meleeWeaponName: z.string().min(1).max(80),
   armorName: z.string().min(1).max(40),
