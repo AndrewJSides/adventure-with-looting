@@ -1532,6 +1532,16 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
   }
 
   .status-rail.expanded ~ .boss-bar strong { letter-spacing: .12em; }
+
+  /* Warning-aware boss slot: a blood-moon or raid banner (top 238px, a second
+     banner at 272px) and the indoor indicator (top 288px, ~26px tall) occupy
+     the left lane through y=314, so with the rail expanded and a banner up,
+     the boss bar drops below all three instead of hiding its HP track under
+     the banner. */
+  .status-rail.expanded ~ .blood-moon-warning ~ .boss-bar,
+  .status-rail.expanded ~ .raid-warning ~ .boss-bar {
+    top: 318px;
+  }
 }
 
 /* Inventory polish: dedicated craft rail, readable pack scrolling, and in-flow inspection. */
