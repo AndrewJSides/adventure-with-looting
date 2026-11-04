@@ -650,3 +650,113 @@ Console errors: 0 on every probe response in the session (audit
 envelope and all probe calls). Typecheck: `bun x tsc --noEmit -p
 client/tsconfig.json && bun x tsc --noEmit -p server/tsconfig.json`
 exited 0 (clean).
+
+## 2026-11-03 — Greyhaven town-border ground seam probe (no fix shipped)
+
+SHA gate: `client/src/App.tsx` SHA-256 recorded BEFORE any work and
+re-verified after measurement, unchanged:
+`e955dd40c0b3bebfc605e8c9236bf16feed972fb11bc4e9997f8bd51afd3f0e5`
+(1,057,941 bytes). Gate value `e955dd40` matched, so the run proceeded.
+No game code, save schema, asset, terrain/feather, chunk-streaming,
+player-route, or balance change was made in this run; `App.tsx` remains
+byte-identical. Only this DATA-PLAN record was added. The rebuild
+regenerated `client/src/generated-build.ts` only (BUILD_ID/timestamp) —
+build-only metadata churn, no gameplay effect.
+
+Source confirmation (current source): Greyhaven is region 13,
+`FRONTIER_CENTER {x:5300,y:6400}`, radius 1450 (App.tsx L1032). Its ground
+is two overlapping feathers, not a rect edge like Old Greyhaven: the
+biome texture layer (`drawBiomeTextureLayer`, L2059) replaces the
+Mosslight fallback under a radial mask with feather
+`min(radius*.42, BIOME_EDGE_FEATHER=720)` = 609 world units (band
+841–1450 from the town centre), and the town dirt patch
+(`frontierGround`, L2161) is an irregular 1800×1520 blob with a 230-unit
+blur feather drawn over it (`drawCityDistricts`, L2507). The crossing
+therefore has no single straight edge x=…; the visible transition is a
+broad diagonal soft blend where the dirt patch and the radial biome
+feather overlap, running roughly x = 266 − 0.33·y in screen space in the
+crossing frame below.
+
+Method (stated exactly; same strip/threshold as the Old Greyhaven
+x=26700 method, adapted to the diagonal band): scripted staged gameplay
+in the audit probe session — NOT the title menu — mobile viewport
+390×844, screenshot DPR 1, full-resolution canvas 390×540 CSS px at
+canvas bbox y 63–603, textures active (photo dirt/grass ground visible),
+rain weather (Greyhaven default cycle; thunderstorm at staging, rain by
+the crossing — same weather for border and control frames in the
+crossing window). Staging used the existing audit-only terrain probe
+`Show terrain probe Greyhaven yard` (player 5300,6400, interior control
+frame), then the existing `=` joystick pin drove due east at y=6400.
+The due-east line passes within 1 unit of the Boarding House door
+(5720,6401), whose frame-loop auto-entry radius is 32, so the first walk
+entered the interior (as in the prior audit's interrupted border walk);
+a second walk deadlocked against the patrolling Tamsin Vale NPC in the
+door corridor. The successful crossing used the existing audit `0` key
+to exit the Boarding House interior to door+34 (5720,6435), just outside
+the 32-unit auto-entry radius, with the joystick pin still held east, so
+the player walked out at y=6435 through the clear corridor between the
+Boarding House and the Watch House, across the border, onto Mosslight
+grass — on foot throughout the crossing frames, no vehicle mount, no
+loot-clear overlay (only transient chatter/rule toasts). Per-row step =
+|Rec.601 luma at band+2 − luma at band−2| (a 5 px strip); a hit is step
+> 30/255. Analysis window is a verified ground-only window, rows
+170–265, cols 150–360, below the minimap/quest HUD panels and above the
+player/chatter/probe-panel zones; the band line x = 266 − 0.33·y was
+read from the enlarged crossing frame, and a free band-following
+argmax (x 150–260) was run as a check. Black/missing-tile count =
+pixels with max(R,G,B) < 10 in canvas rows 101–425.
+
+Results, same session (audit `2026-11-04T04-37-56Z-702938780`):
+
+| Strip | Hits / denominator | Longest run | Median step | Mean step | Max step |
+|---|---|---:|---:|---:|---:|
+| Border band, fitted line, `observe-086.png`, rows 170–265 | 1/96 (1.0%) | 1 | 6.0 | 7.6 | 30.3 |
+| Border band, free band-follow, same frame/rows | 0 hits at argmax; step median 6.5, mean 7.7, max 28.5; argmax x stdev 29.4 (wanders — no consistent edge) | — | 6.5 | 7.7 | 28.5 |
+| Grass control, col 330, same frame/rows | 0/96 (0.0%) | 0 | 3.8 | 5.9 | 29.8 |
+| Dirt control, col 155, same frame/rows | 1/96 (1.0%) | 1 | 5.3 | 7.2 | 34.2 |
+| Earlier crossing frame, fitted line, `observe-085.png` | 0/96 (0.0%) | 0 | 5.2 | 5.8 | 19.9 |
+| Post-crossing frame, fitted line, `observe-087.png` | 0/96 (0.0%) | 0 | 5.4 | 6.9 | 27.6 |
+
+Black/missing-tile pixels: 0/126,750 in both the border frame
+(`observe-086.png`) and the interior control frame (`observe-025.png`).
+The post-crossing col-330 strip shows 18/96 hits in two runs — the tree
+canopy at the frame's right edge, confirming the method does detect
+real edges; the band line in the same frame shows none.
+
+Verdict: NO DEFECT. The border band sits at texture-noise level (1.0%,
+longest run 1, median step 6.0) against the same-frame grass (0.0%) and
+dirt (1.0%) controls, far below the Old Greyhaven pre-fix level (32.5%,
+continuous runs) and at/below its post-fix level (4.2%, longest run 4).
+The transition reads as a wide soft blend, not a hard continuous edge.
+Per the fix-if gate, no feather change was made. Probe hazards
+documented for future runs: letter keys are audit shortcuts in this
+harness (`w` stages the Deadlight Mall interior, `e` stages the
+frontier quest, `0` exits an interior) — use only clicks, `=`, `0`, and
+`Space` for movement staging; the Boarding House door auto-enters
+within 32 units, and the Tamsin Vale patrol can deadlock a due-east
+joystick walk in the door corridor.
+
+Frames (staged gameplay frames in audit
+`2026-11-04T04-37-56Z-702938780`, mobile 390×844): `observe-002.png`
+(interior control, Greyhaven yard, thunderstorm), `observe-025.png`
+(interior control, rain, town dirt + Tamsin's Supply), `observe-078.png`
+(door approach, Tamsin Vale clear of the lane), `observe-082.png`
+(inside Boarding House), `observe-084.png` ("Boarding House exited",
+town dirt), `observe-085.png` (crossing approach, dirt→grass blend
+entering frame), `observe-086.png` (border band in frame, diagonal soft
+blend, Bria Stone + zombie, no vehicle/loot overlay), `observe-087.png`
++ `observe-089.png` (all grass east of the border), `observe-091.png`
+(final stopped frame, pin released). Audit-path HUD occlusion note
+(unchanged): probe panels overlay the bottom HUD on audit paths only;
+the player route has no probe panels. Touch path: the walk ran through
+the existing joystick pin (input east) with the game surface untouched;
+`touch-action: none` / `user-select: none` and tap-to-shoot/melee/
+driving paths were not modified.
+
+Console errors: 0 on every probe response in the session (audit
+envelope and all probe calls). Typecheck: `bun x tsc --noEmit -p
+client/tsconfig.json && bun x tsc --noEmit -p server/tsconfig.json`
+exited 0 (clean). Durable rows paired pre/post: the audit scope counted
+14 durable rows (`game_save` 1, `perf_recordings` 13) before this edit;
+no durable row was written by this run — all staging/persist side
+effects stayed in the sandbox database.
