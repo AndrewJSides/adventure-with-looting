@@ -529,3 +529,124 @@ across the middle, feather-edge tree top-centre), `observe-004.png`
 (repeat boundary frame with the profiler-record summary visible).
 Audit-path HUD occlusion note (unchanged): probe panels overlay the
 bottom HUD on audit paths only; the player route has no probe panels.
+
+## 2026-11-03 — Old Greyhaven moving-camera vehicle drive: feather-edge crossing cost (measurement only, no fix shipped)
+
+SHA gate: `client/src/App.tsx` SHA-256 recorded BEFORE any work and
+re-verified after measurement, unchanged:
+`e955dd40c0b3bebfc605e8c9236bf16feed972fb11bc4e9997f8bd51afd3f0e5`
+(1,057,941 bytes). Gate value `e955dd40` matched, so the run proceeded.
+No game code, save schema, asset, terrain/feather, chunk-streaming,
+player-route, or balance change was made in this run; `App.tsx` remains
+byte-identical. Only this DATA-PLAN record was added. The rebuild
+regenerated `client/src/generated-build.ts` only (BUILD_ID
+`7019e14085b8`, timestamp `20261104T023905687Z`, visible in the probe
+frames) — build-only metadata churn, no gameplay effect.
+
+Method (same session throughout; staged gameplay, NOT the title menu):
+mobile viewport 390×844, canvas 390×540 CSS px at y 101–641, textures
+active (photo ruin/grass ground visible in every frame), day/clear
+weather, minimal mode OFF, render scale 1 by construction
+(`targetRenderScale` is `DRIVING_RENDER_SCALE = 1` while driving and 1
+otherwise — no dynamic-resolution path exists). Staging used the
+existing audit-only `__AWL_SHOW_OLD_GREYHAVEN_DRIVE__` hook and its
+`Drive` button (`/hatch-audit-` only): Rustbucket + player/camera to
+`CITY_DRIVE_ROUTE_START {24600,19300}`, due east at forced speed 300
+through the feathered ruin edge at x=26700 (feather band 26520–26700),
+looping back at route end. Each window is one profiler recording made
+with the existing audit `Record` / `Stop + save` toggle; the recording
+summary line is computed from the probe session's own saved recording
+(median/mean/p95/max/over-50/chunkLoads) and read from the probe DOM.
+Windows were bracketed by screenshots fired in single probe batches
+with no reads between start and stop, so the truck's phase at each
+bracket is visible in the saved frames. Instruments and their limits:
+the probe tool has no JS-eval verb, so `__AWL_READ_DRIVE_DIAGNOSTIC__`
+ring JSON could not be dumped; the DRIVE PROBE ring summary sits below
+the fold of the profiler scrollport and could not be reached by probe
+scrolling (attempted, no movement), so subsystem evidence is the
+per-frame diagnostic strip visible in the window frames plus the
+recording chunk-load counts. Raw recording samples were not read
+(they live in the probe session's scratch database; the delivered
+numbers are the UI-rendered recording summaries). The day clock was
+NOT used for position: it advances on clamped frame deltas, so its
+rate varies with frame rate. Position is proven by scene bracketing
+plus the pixel measurement below, on the deterministic route/speed.
+
+Position proof: `observe-014.png` (R3 pre-record bracket) shows 0%
+green ground pixels across the visible canvas at four sampled rows —
+pure interior ruin ground, no feather/grass in view, so the truck was
+west of the feather band. `observe-015.png` (inside the R3 recording)
+shows a clean vertical dark→green ground transition at screen column
+~254–274 on three rows (a ground edge, not a tree/building — it spans
+rows 280–400 at the same columns), with the truck sprite west of it:
+at driving zoom 0.86 (view 837 world units over 390 px, camera centre
+lagging the truck ~33 units), column C maps to world
+X = truck.x − 451.5 + C/0.466, so the transition at C≈260 puts the
+truck at x≈26410–26590 for a flip inside the 26520–26700 feather band
+— the x=26700 edge visible in-frame, crossing imminent. `act-010.png`
+(R3 stop frame) is all green ground across the visible canvas with no
+ruin ground and no loop-teleport staging spike: the truck is east of
+the edge. The crossing therefore falls strictly inside the R3
+recording, which started after the interior bracket and stopped at the
+east frame. R2's brackets (`observe-009.png`, `act-007.png`) both show
+dark ruin ground with ruined buildings flanking the street and no
+grass: a pure interior control window, ≥600 units clear of the feather
+band (route start 24600, ~2 s of driving at speed 300).
+
+Results, same session (audit `2026-11-04T02-39-36Z-373463904`,
+0 console errors on every probe response):
+
+| Recording | Window | n (50 ms samples) | Median | Mean | P95 | Max | Over 50 ms | Chunk loads |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| id 15 (R2) | Interior control, city ground, x≈24600–25600 | 42 | 66.65 ms | 54.31 ms | 150.00 ms | 166.60 ms | 22 (52%) | 3 |
+| id 16 (R3) | Feather-edge crossing, approach → x=26700 → just east | 36 | 66.65 ms | 53.71 ms | 100.00 ms | 116.60 ms | 21 (58%) | 3 |
+| id 14 (R1) | Full route, staging + ~2 loop passes (mixed) | 431 | 66.60 ms | 54.13 ms | 100.00 ms | 183.30 ms | 236 (55%) | 12 |
+
+Subsystem strip (per-frame diagnostic timings visible in the window
+frames; latest-frame values, not window aggregates): control frame
+`observe-009.png` — TERRAIN 0.10, STAMP 0.00/0, DECAL 0.00, STREAM
+0.00/0, VEHICLE 0.09, ENEMY 0.00, RENDER PASS 16.69 ms. Crossing frame
+`observe-015.png` — TERRAIN 0.20, STAMP 0.00/0, DECAL 0.00, STREAM
+0.00/0, VEHICLE 0.09, ENEMY 0.00, RENDER PASS 16.69 ms. Chunks cached
+657 (control) vs 644 (crossing); chunk-stream cost 0.00 ms in both
+frames; no decal stamps in either (clean drive, no kills).
+
+Verdict: NO REGRESSION. Median identical (66.65 vs 66.65 ms), mean
+slightly lower at the crossing (53.71 vs 54.31 ms), p95 lower (100 vs
+150 ms), max lower (116.60 vs 166.60 ms), chunk loads identical (3 vs
+3). The over-50 rate is 6 points higher at the crossing (58% vs 52%)
+on n=36/42 — within sampling noise (SE ≈ 8 points) and bounded by the
+lower crossing max; there is no sustained p95 / over-50 enrichment at
+the crossing, and no subsystem signal tied to the feather rings
+(terrain +0.10 ms on one instantaneous frame, stream/decal unchanged).
+Per the fix-if gate, no fix was shipped — no stacked speculative
+changes, no quality degradation, no terrain/feather code touched.
+
+Session-condition caveat: absolute frame times in this headless audit
+session are depressed (steady 15–21 FPS, ~50–65 ms averages; medians
+quantized at the 66.65 ms frame quantum) versus the earlier
+`2026-11-04T00-08-04Z` session (51–60 FPS). The harness conditions
+differ between sessions, so only the same-session crossing-vs-control
+comparison above is claimed. Staging spikes (2416 ms first staging,
+383 ms re-staging; chunk-cache reset + first-frame upload) sit outside
+both windows by sequencing (recordings start after staging).
+
+Frames (staged gameplay drive frames in audit
+`2026-11-04T02-39-36Z-373463904`, mobile 390×844): `act-001.png`
+(staging frame, truck at 24600,19300, dark ruin ground, staging spike
+visible in profiler), `act-008.png` (R3 staging, R2 summary line
+visible), `observe-009.png` + `act-007.png` (control window brackets,
+interior city street, truck moving, 300 SPD), `observe-014.png`
+(crossing approach, interior ground, R2 summary line visible),
+`observe-015.png` (edge in frame, dark→green transition at col ~260,
+truck west of it), `act-010.png` (stop frame, all grass east of the
+edge), `observe-016.png` (R3 summary line visible, truck looping east
+of the edge). Audit-path HUD occlusion note (unchanged): probe panels
+overlay the bottom HUD on audit paths only; the player route has no
+probe panels. Touch path: the drive ran through the existing joystick
+input (input east at full speed) with the game surface untouched.
+
+Console errors: 0 on every probe response in the session (audit
+envelope and all probe calls). Typecheck: `bun x tsc --noEmit -p
+client/tsconfig.json && bun x tsc --noEmit -p server/tsconfig.json`
+exited 0 (clean).
