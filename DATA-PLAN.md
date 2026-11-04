@@ -859,3 +859,138 @@ paired pre/post: the audit scope counted 14 durable rows
 `app.db` is byte-untouched since 2026-11-01 (mtime unchanged), the
 sandbox listed the same 13 recordings (ids 1–13, all Oct 6), and all
 New Game / staging side effects stayed in the sandbox database.
+
+## 2026-11-04 — Saint Mercy Infirmary ground texture integrity probe (no fix shipped)
+
+SHA gate: `client/src/App.tsx` SHA-256 recorded BEFORE any work and
+re-verified after measurement, unchanged:
+`dccd741658398fe4b33401aa537178b03b3422e05fb50d6022d26c90b0250ce2`
+(1,063,564 bytes). Gate prefix `dccd7416` matched, so the run proceeded.
+No game code, save schema, asset, terrain/feather, chunk-streaming,
+player-route, or balance change was made; `App.tsx` remains byte-identical.
+Only this DATA-PLAN record was added. The build run regenerated
+`client/src/generated-build.ts` only (`BUILD_TIMESTAMP`/`BUILD_ID` to
+`2026-11-04T15:39:47.093Z`; `BUILD_HASH` unchanged) — build-only metadata
+churn, no gameplay effect. Durable `app.db` byte-untouched (mtime Nov 1);
+all staging/recording side effects stayed in the sandbox database
+(recordings id 14–16 are sandbox-only).
+
+Source confirmation (current source): region 16, `HOSPITAL_CENTER
+{x:15600,y:4400}`, radius 1300. Ground is the radial biome layer
+(`drawBiomeTextureLayer`): biome-16 texture over the Mosslight fallback
+under a radial mask, feather `min(radius*.42, BIOME_EDGE_FEATHER=720)` =
+546 world units (band radius 754–1300; due-east outer edge x=16900).
+`HOSPITAL_INSIDE` is 1800×1300 (x 14700–16500, y 3750–5050); the building
+apron rect in `drawCityDistricts` is 1800×1400 centred on the hospital.
+Interior door is (15600,4796); `0` exits an interior to (15600,5012).
+
+Method (stated exactly; same strip/threshold as prior biome probes):
+scripted staged gameplay in the audit probe session — NOT the title menu —
+mobile viewport 390×844, screenshot DPR 1 (PNG 390×844), full-resolution
+canvas 390×540 CSS px at canvas bbox y 63–603, textures active. Per-row
+step = |Rec.601 luma at band+2 − luma at band−2| (a 5 px strip); a hit is
+step > 30/255. Black/missing-tile count = pixels with max(R,G,B) < 10 in
+screenshot rows 101–425 (primary) and full canvas rows 63–602. Staging
+used the existing audit keys F12 (boss interior) and `0` (exit), plus the
+ENTER button (re-entry). F8 (exterior) and F11 (ward) are UNREACHABLE in
+this build in the probe session — see hazards below — so no day exterior
+stage and no ward stage were obtained; both interior stages run at
+timeOfDay .88 (night, clear) and the entry stage ran at dawn 06:50, clear.
+No due-east walk to the r=1300 outer edge was possible (see hazards), so
+the outer edge itself was never framed; the exterior transition evidence
+below is the building-apron square edge and the feather-zone scan in the
+static exit frames, plus the interior controls. Frame times are the
+profiler recording summaries read from the probe DOM (same-session,
+sandbox recordings).
+
+Results, same session (audit `2026-11-04T15-45-38Z-143951536`, session
+`2376835c-0831-4723-9e99-99926eed27b5`, 0 console errors on every probe
+response):
+
+| Strip | Hits / denominator | Longest run | Median step | Mean step | Max step |
+|---|---|---:|---:|---:|---:|
+| Interior boss, full lattice scan, `observe-013.png`, rows 440–530, cols 60–330 (V pooled + H pooled) | 0/24661 + 1/24661 (0.00%) | 1 | 0.6–0.9 | 0.6–1.2 | 35.2 (single px) |
+| Interior boss repeat, `observe-018.png`, same window | 0/24661 + 1/24661 (0.00%) | 1 | — | — | — |
+| Interior entry, HUD-excluded clean window, `observe-094.png`, rows 450–530, cols 70–350 (V + H) | 0/22761 + 0/22761 (0.00%) | 0 | 0.0 | 0.0–0.4 | <30 |
+| Interior entry, tighter window rows 475–530, cols 70–350 | 0/15736 + 0/15736 (0.00%) | 0 | — | — | — |
+| Exterior apron edge, geometric row 380, `observe-020.png` + repeat `observe-087.png`, cols 40–190 | 4/151 + 4/151 (2.6% pooled) | 4 | 1.1 | 3.2 | 32.9 |
+| Exterior apron band, fitted rows 371–375, `observe-020.png` | 9–16/151 per row (6–11%) | 8–10 | 1.0–1.9 | 4.6–9.6 | 64.5 |
+| Exterior control band, rows 300–315, `observe-020.png` | 359/3171 pooled (11.3%) | 22 | 1.7–7.7 | 11.8–16.0 | 80.8 |
+| Exterior feather zone, `observe-087.png` (toast-free), rows 478–491, cols 130–260 | 24–38/131 per row (18–29%) | 27 | — | — | 228.7 |
+| Exterior chunk/stride cols 65/250/342, `observe-087.png`, rows 460–535 | 0/76 each | 0 | 0.2–0.4 | 0.3–1.1 | 18.5 |
+
+Attribution (checked by hit positions + enlarged crop, not assumed): the
+raw entry-frame scan (HUD included) showed 60 V + 116 H hits — every one
+traces to the FPS profiler HUD box corner at (cols 59–63, rows 468–472)
+and bottom-button tops at row 535, both DOM overlays; the HUD-excluded
+window is 0 throughout. The apron-band hits cluster at cols 110–131 and
+155–170 (tree canopies / sprites), never a full-width line; the apron
+edge sits at/below the same-frame control clutter (2.6% vs 11.3%). The
+feather-zone rows' hits are 2–4 clusters per row (zombie/tree sprite
+edges, longest run 27/131 cols) with no continuous arc line; chunk and
+stride columns are 0. Mean luma: interior boss window 31.2, interior
+entry window 11.9 (near-flat dark floor — little texture signal to seam),
+exterior apron zone 38.5, feather zone 29.4 (night frames).
+
+Black/missing-tile pixels: 0/126,750 (rows 101–425) and 0/210,600 (full
+canvas) in `observe-013.png`, `observe-094.png`, `observe-020.png`, and
+`observe-087.png`.
+
+Frame times (profiler recordings, sandbox): interior boss id 14 — n=32,
+median 16.70 ms, mean 28.63 ms, p95 66.70 ms, max 83.30 ms, over-50 2,
+chunkLoads 0. Exterior exit id 15 — n=81, median 33.20 ms, mean 40.94 ms,
+p95 83.40 ms, max 133.30 ms, over-50 28, chunkLoads 0. Interior entry id
+16 — n=31, median 16.70 ms, mean 17.74 ms, p95 33.40 ms, max 33.40 ms,
+over-50 0, chunkLoads 0. Small-n caveat on id 14/16 (short windows); no
+crossing-vs-control frame comparison exists because no crossing window
+was stageable. Live FPS overlays: 33 (boss), 35 (exit), 43–49 (entry).
+
+Verdict: NO DEFECT FOUND within what could be staged. No hard square
+edge, no seam banding above control levels, and no missing/black tiles at
+any staged Infirmary location. Per the fix-if gate, no fix was shipped.
+LIMIT STATED PLAINLY: the r=1300 outer-edge crossing frame was NOT
+obtained and is not in the evidence set; the feather gradient's outer edge
+was not measured. The delivered canonical captures for this audit are
+title-menu-only (harness captures at initial load, before staging — see
+the 2026-11-04 capture-pipeline diagnosis); the staged gameplay frames
+below exist only as probe frames in the audit directory above, not in the
+delivered set.
+
+Frames (staged gameplay frames in audit
+`2026-11-04T15-45-38Z-143951536`, mobile 390×844): `observe-012.png` +
+`observe-013.png` (F12 boss interior, player 15600,3970, Subject Zero,
+night 21:09–21:12 clear, REGION 16/18), `observe-018.png` (same interior,
+post-recording), `observe-020.png` (`0` exit exterior, player 15600,5012,
+night 23:37 clear, ENTER button visible), `observe-026.png` (exterior,
+post-recording, 23:58), `observe-087.png` (exterior after 60 ArrowRight
+presses, no movement, night 02:58, toast-free), `observe-089.png` +
+`observe-094.png` (ENTER re-entry interior, dawn 06:50 clear).
+Hazard/contamination frames in the same dir: `observe-003.png` /
+`observe-004.png` (diagnostic drive after F8), `observe-007.png`
+(drive + storm after F11).
+
+Probe hazards documented for future runs (all verified in source + in
+this session): F8 is claimed by the drive-diagnostic capture handler
+(F8 = `driveDecalsOff`, stops propagation — it mounts the Rustbucket and
+drives the meadow route; the truck keeps driving after Reset rings, which
+only zeroes rings/scenario, it does not stop the truck); F11 is claimed
+by the audio-probe capture handler (F11 = storm weather, stops
+propagation); `=` is a hardcore fatal strike in `/spaces/v2/hatch-audit-`
+sessions AND the joystick-pin key — do NOT press it (it sets hp=0);
+letter keys `w`/`e`/`q`/`1`–`9` are audit waypoints/quests in this
+session, so WASD movement is unavailable; probe `key` is a press
+(down+up), and 60 ArrowRight presses produced zero camera shift (best
+shift 0 px, mean luma diff 10.4 = enemy/HUD animation only) — there is
+no held-input path in the probe tool, and dash requires held movement
+input, so walking/driving to a boundary is impossible without a new
+audit-only staging hook or joystick-drag probe support. A dedicated
+Infirmary boundary staging hook (player just outside x=16900, day/clear)
+is the missing affordance for a future outer-edge run; adding it was
+outside this run's fix-if gate. Touch path: no joystick, tap-to-shoot,
+melee, driving, SAVE, autosave, banner, shop, probe-panel, terrain,
+chunk, glow, audio, night-mask, HUD, key-binding, save-schema, or
+drawTailspin code was touched.
+
+Console errors: 0 on every probe response in the session. Typecheck:
+`bun x tsc --noEmit -p client/tsconfig.json && bun x tsc --noEmit -p
+server/tsconfig.json` exited 0 (clean).
