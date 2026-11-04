@@ -760,3 +760,102 @@ exited 0 (clean). Durable rows paired pre/post: the audit scope counted
 14 durable rows (`game_save` 1, `perf_recordings` 13) before this edit;
 no durable row was written by this run — all staging/persist side
 effects stayed in the sandbox database.
+
+## 2026-11-04 — Capture-pipeline diagnosis: staged gameplay frames exist on disk but the delivered capture set is title-menu-only (no fix shipped)
+
+SHA gate: `client/src/App.tsx` SHA-256 recorded BEFORE any work and
+re-verified after this diagnosis, unchanged:
+`4e07329bab1f0eb733aa1b6f87479545c1a907b8c49363680cec1faa2ea3537c`
+(1,062,291 bytes). Gate prefix `4e07329b` matched, so the run proceeded.
+No game code, save schema, asset, terrain, probe-panel, or staging-hook
+change was made; `App.tsx` remains byte-identical. Only this DATA-PLAN
+record was added. The rebuild regenerated
+`client/src/generated-build.ts` only (BUILD_ID/timestamp) — build-only
+metadata churn, no gameplay effect.
+
+Question: three consecutive Tamsin shop-panel attempts (Nov 4 00:34,
+01:34-adjacent, 02:34) reported staged 390x844 gameplay frames, yet the
+attested delivered capture set showed only the title menu ("Beyond the
+Wildwood", New Game/Options) with audit probe panels visible.
+
+Reproduction (this run, audit session `1400e716-bb9c-401b-95ea-deb2184d59a5`,
+audit dir `2026-11-04T11-37-39Z-616991228`, mobile viewport 390x844,
+full-resolution canvas, no reload, no viewport switch): hid the five
+visible probe panels first (census, Cinder Scar, Old Greyhaven, wayfire,
+terrain lattice — each by its distinct "Hide audit … panel" button; the
+sixth, "Hide audit profiler panel", had no visible node at the title
+menu, so it could not be hidden there and its panel never appeared in
+this session), clicked New Game, clicked Skip intro, pressed `b`
+(the audit key that invokes `__AWL_SHOW_TAMSIN_SHOP__`). The shop
+opened: `observe-004.png` shows Tamsin's Frontier Supply, 999 gold,
+Greyhaven Plate 180 / Snare Trap 55 / Iron Key 85 / Gold Key 160, Close
+shop, no probe panels visible. Console errors: 0 on every probe
+response. The probe session DID leave the title menu, in this run and
+in the baseline run below.
+
+Pipeline trace: the harness writes the three canonical captures
+(`screenshot.png`, `screenshot-full.png`, `screenshot-mobile.png`) at
+audit start, on initial load — before any probe interaction can stage
+gameplay. Probe screenshots (`act-*.png`, `observe-*.png`) are written
+later, into the same audit directory, but `report.json`'s `viewports`
+section names only the three canonical files, and neither `act-001`
+nor `observe-004` (nor any probe filename) appears anywhere in
+`report.json`. The handoff/attestation reads the canonical files (the
+spawn metadata's before-screenshot is `screenshot-full.png`). No
+session reset or reload happens before export: the canonical files'
+mtimes (11:38:05–11:38:11) precede every probe frame (11:39:20+), and
+none was rewritten after staging. Cause (b) is confirmed — gameplay
+frames exist on disk but are not attached to the delivered set — and
+(d) in its within-directory form: the right directory, the wrong
+files. Causes (a) (never left title), (c) (reset to title before
+export), and wrong-directory (d) are rejected on this file/session
+evidence. The panels visible in the canonical captures are there
+because they render at menu load, before any hide click can run.
+
+Reconciliation, this session's audit dir
+`2026-11-04T11-37-39Z-616991228` (taken = on disk; delivered = named
+in `report.json` viewports / spawn before-screenshot):
+
+| File | Taken (mtime) | State at capture | In delivered set? |
+|---|---|---|---|
+| `screenshot-mobile.png` | 11:38:05 | Title menu + probe panels | YES — title only |
+| `screenshot.png` / `screenshot-full.png` | 11:38:09 / 11:38:11 | Title menu + probe panels (desktop) | YES — title only |
+| `observe-001.png` | 11:39:20 | Title menu + probe panels (probe start) | NO |
+| `act-001.png` … `act-005.png` | 11:39:27–11:39:33 | Title menu, panels hiding one by one | NO |
+| `act-005.png` | 11:39:33 | Clean title menu, all visible panels hidden | NO |
+| `act-006.png` / `observe-002.png` | 11:39:45 / 11:39:46 | Story intro 1/3 after New Game | NO |
+| `act-007.png` / `observe-003.png` | 11:39:54 / 11:39:55 | Gameplay, Hearthglen, FPS 22, no panels | NO |
+| `observe-004.png` / `observe-005.png` | 11:40:04 / 11:40:06 | Tamsin shop open, 999 gold, no panels | NO |
+
+Baseline audit dir `2026-11-04T10-37-11Z-542174977` (same pattern;
+states classified by direct viewing of `screenshot-mobile.png`,
+`act-007.png` (Hearthglen gameplay), `act-010.png` (Greyhaven,
+"Tamsin's frontier supply" dialogue) plus 16x16 average-hash distance
+to the title frame — title-like ≤28, gameplay ≥86): canonical three
+are title-only; `act-001.png`…`act-005.png`, `observe-001.png`,
+`observe-002.png` are title-like; `act-006.png`…`act-013.png` and
+`observe-003.png`…`observe-009.png` (15 files) are gameplay frames,
+none in the delivered set.
+
+FIX-IF verdict: NO code fix shipped. No `App.tsx` change within the
+gates can make the delivered set include staged gameplay: the
+canonical captures fire at initial load, before any interaction, and
+auto-staging gameplay (or auto-opening the shop) at load would break
+the title menu for real players and violate zero probe residue. Hiding
+the probe panels by default would only yield a clean title-menu
+capture, still not gameplay. The fix belongs harness-side: the
+handoff must promote the probe session's `act-`/`observe-` frames
+(or re-capture the canonical files after staging). Until that lands,
+the Tamsin shop-panel row/Close measurement stays blocked as a
+delivered-evidence matter — the measurement itself reproduces fine in
+the probe session, as `observe-004.png` proves. No shop-panel, probe,
+terrain, or HUD defect was fixed in this slice; none was found beyond
+the absent-at-menu profiler hide control noted above.
+
+Typecheck: `bun x tsc --noEmit -p client/tsconfig.json && bun x tsc
+--noEmit -p server/tsconfig.json` exited 0 (clean). Durable rows
+paired pre/post: the audit scope counted 14 durable rows
+(`game_save` 1, `perf_recordings` 13) before this edit; durable
+`app.db` is byte-untouched since 2026-11-01 (mtime unchanged), the
+sandbox listed the same 13 recordings (ids 1–13, all Oct 6), and all
+New Game / staging side effects stayed in the sandbox database.
