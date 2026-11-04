@@ -994,3 +994,164 @@ drawTailspin code was touched.
 Console errors: 0 on every probe response in the session. Typecheck:
 `bun x tsc --noEmit -p client/tsconfig.json && bun x tsc --noEmit -p
 server/tsconfig.json` exited 0 (clean).
+
+## 2026-11-04 — Saint Mercy Infirmary r=1300 outer-edge ground seam probe (no fix shipped)
+
+SHA gate: `client/src/App.tsx` SHA-256 recorded BEFORE any work and
+re-verified after measurement, unchanged:
+`e1867ea162e21ad3cd65fe2ad5d3f7931f677e3bb2b149f1e302379a4ea24ba0`
+(1,067,339 bytes). Gate prefix `e1867ea1` matched, so the run proceeded.
+No game code, save schema, asset, terrain/feather, chunk-streaming,
+player-route, probe-tooling, or balance change was made; `App.tsx`
+remains byte-identical. Only this DATA-PLAN record was added. The
+rebuild regenerated `client/src/generated-build.ts` only
+(`BUILD_TIMESTAMP`/`BUILD_ID`; `BUILD_HASH` unchanged at
+`8043732018dd…`) — build-only metadata churn, no gameplay effect.
+Durable rows paired pre/post: the audit scope counted 14 durable rows
+(`game_save` 1, `perf_recordings` 13) before this edit; no durable row
+was written by this run — the profiler recording below (id 14) is
+sandbox-only.
+
+Source confirmation (current source): region 16, `HOSPITAL_CENTER
+{x:15600,y:4400}`, radius 1300. Ground is the radial biome layer
+(`drawBiomeTextureLayer`, L2059): biome-16 texture over the Mosslight
+fallback under a radial mask, feather `min(radius*.42,
+BIOME_EDGE_FEATHER=720)` = 546 world units (band radius 754–1300;
+due-east outer edge x=16900). The staging hook shipped in the baseline
+(`__AWL_SHOW_INFIRMARY_EDGE__`, L2755) puts the player exactly at
+(16900,4400), zone 16, `timeOfDay` .38 (day), clear, camera
+(16540,3900), zoom 1, ground-chunk cache reset, enemies cleared. The
+built-in biome seam probe (`__AWL_RUN_BIOME_SEAM_PROBE__`) covers only
+Ember/Silverrun/Frostfall/Hearthglen — no Saint Mercy border — so this
+run measured from staged PNG frames with the prior seam-density method,
+as the Greyhaven and earlier Infirmary probes did.
+
+Method (stated exactly): scripted staged gameplay in the audit probe
+session — NOT the title menu — mobile viewport 390×844, DPR 1
+(PNG 390×844), full-resolution canvas 390×540 CSS px at canvas bbox
+y 63–603, textures active (photo grass/tile ground visible), day/clear.
+Screen geometry from source constants: VIEW_W 720, VIEW_H 1000, so
+scale 0.5417 px/wu (x) and 0.54 (y); the r=1300 circle is the ellipse
+centred at screen (−509.2, canvas row 270), radii (704.2, 702.0); the
+due-east crossing is canvas x=195.0 at the player row, and the arc
+stays within x 191.3–195.0 over the clean window, so an arc-following
+strip is used. Per-row step (Method A, Greyhaven PNG method) =
+|Rec.601 luma at arc+2 − luma at arc−2| (a 5 px strip); a hit is step
+> 30/255. Method B (built-in probe sampler adapted to the arc): at
+each arc point and each normal offset −2…+2, gradient
+|L(offset+1) − L(offset−1)| along the normal; a hit is > 30/255.
+Clean window: canvas rows 170–250 (screenshot rows 233–313), below the
+quest/minimap HUD, above the player sprite and bottom controls, clear
+of tree foliage/shadows. Controls in the same frames: interior strip
+x=120 (inside the feather annulus) and exterior strip x=310 (outside
+the region, pure fallback). Black/missing-tile count = pixels with
+max(R,G,B) < 10 in the full canvas and in screenshot rows 101–425.
+Ground pixels were verified stable: observe-004/005/006 agree to 0.1
+in every reported statistic, and the re-staged observe-011 canvas is
+99.90% pixel-identical to observe-006 (remainder is clock/FPS text).
+
+Results, same session (audit `2026-11-04T18-38-21Z-645478262`, session
+`20e6d26d-037f-4dc2-b35e-8afec265decb`, 0 console errors on every probe
+response), primary frame `observe-006.png`:
+
+| Strip (clean window, rows 170–250) | Method A hits | Longest run | Median step | Mean step | Max step |
+|---|---|---:|---:|---:|---:|
+| Border arc, x 191.3–195.0 | 0/81 (0.0%) | 0 | 9.3 | 10.0 | 26.3 |
+| Interior control, x=120 | 3/81 (3.7%) | 1 | 7.6 | 9.4 | 33.4 |
+| Exterior control, x=310 | 4/81 (4.9%) | 2 | 11.0 | 12.8 | 45.9 |
+
+| Strip (same window) | Method B hits | Rows with ≥1 hit | Longest row run | Median | Mean | Max |
+|---|---|---:|---:|---:|---:|---:|
+| Border arc | 8/405 (2.0%) | 7 | 2 | 8.6 | 10.3 | 36.0 |
+| Interior control, x=120 | 9/405 (2.2%) | 8 | 3 | 6.7 | 9.1 | 40.8 |
+| Exterior control, x=310 | 18/405 (4.4%) | 15 | 2 | 9.6 | 11.3 | 44.3 |
+
+Wide scan (canvas rows 100–400, Method A): border 14/301 (4.7%,
+longest run 9) — the only hits cluster at rows 114–118 (tree
+foliage/shadow at x≈178; mean RGB 102,98,47) and rows 317–325 (player
+shadow/sprite zone; mean luma 59.5), both outside the clean window and
+attributable to sprites, not ground. Same wide scan: interior 12/301,
+exterior 8/301. Free band-follow check (per-row argmax of the 5 px step
+over x 150–260, clean window): argmax median x=230, mean 216.5, stdev
+34.4, range 150–260 — it wanders across the whole search range with no
+concentration at the border (x≈193–195). Fixed-x sensitivity: a
+straight x=195 strip gives 2/81, still below the exterior control.
+Mean luma in the clean window: border zone (x 150–240) 101.5, interior
+zone (x 60–140) 91.2, exterior zone (x 260–350) 105.0 — no step; by
+construction the whole visible window lies inside the feather annulus
+(nearest visible ground is 940 wu from the region centre, feather band
+754–1300), so the transition is a broad ramp, not a localised edge.
+
+Black/missing-tile pixels: 0/210,600 (full canvas) and 0/126,750
+(rows 101–425) in `act-007.png`, `observe-004.png`, `observe-005.png`,
+`observe-006.png`, re-staged `observe-011.png`, and interior
+`observe-008.png`.
+
+Interior control frames (same session, panels hidden): F12 staged the
+Saint Mercy boss interior (night 21:09, player 15600,3970, Subject
+Zero, FPS 58) — `observe-008.png` + `observe-009.png`. Lattice scan,
+screenshot rows 440–530, cols 60–330: vertical 0/24,479 + horizontal
+1/24,119 hits, median 0.3–0.4, mean 0.56–0.63, max 35.2, window mean
+luma 31.0 (near-flat dark floor — little texture signal, as in the
+prior probe). The day exterior stage (F8) remains unreachable in this
+build: F8 is claimed by the drive-diagnostic and combo handlers and
+F11 by the audio probe (both stop propagation), verified in source;
+`=` was not pressed (fatal strike in audit sessions, per prior record).
+
+Frame times: profiler recording saved id 14 (sandbox) — n=390, median
+16.70 ms, mean 16.71 ms, p95 16.70 ms, max 33.40 ms, over-50 0,
+chunkLoads 0. The recording window spans reload/title/staging/edge
+gameplay (mixed), not the edge alone. Live FPS overlay readings at the
+staged edge: 31 (`act-007.png`), 32 (`observe-006.png`), 36
+(`observe-011.png`); interior 58 (`observe-008.png`). Both are
+reported as observed; no over-50 frame and no chunk load occurred in
+the recording window.
+
+Verdict: NO DEFECT. The r=1300 outer-edge band sits at/below texture
+noise on both samplers (Method A 0.0% vs interior 3.7% / exterior
+4.9%; Method B 2.0% vs 2.2% / 4.4%), the band-follow finds no
+consistent edge, and there are no missing/black tiles. This closes the
+gap left by the 07:34 probe: the outer-edge crossing frame was obtained
+and measured. Per the fix-if gate, no feather change was shipped — a
+feather fix on the Old Greyhaven code path would change a gradient
+that already measures clean, and interior alpha/coverage is unchanged.
+The delivered canonical captures for this audit are title-menu-only
+(harness captures at initial load, before staging — see the 2026-11-04
+capture-pipeline diagnosis); the staged gameplay frames below exist
+only as probe frames in the audit directory above, not in the
+delivered set.
+
+Frames (staged gameplay frames in audit
+`2026-11-04T18-38-21Z-645478262`, mobile 390×844): `observe-002.png`
+(staged edge, panels visible, day 09:11, REGION 16/18), `act-007.png`
++ `observe-004.png` + `observe-005.png` + `observe-006.png` (edge,
+panels hidden, day 09:59–12:44), `observe-008.png` +
+`observe-009.png` (F12 boss interior control, night 21:09, panels
+hidden), `observe-011.png` (re-staged edge after reload, panels
+hidden, day 09:20, Method A reproduced exactly),
+`observe-014.png`…`observe-017.png` + `act-015.png`…`act-017.png`
+(profiler recording cycle at the edge, panels visible),
+`observe-018.png`…`observe-020.png` + `observe-022.png` (recording
+stop and saved-summary status). Hazard/contamination notes: the
+profiler panel's "Hide audit profiler panel" button has no visible
+node in gameplay in this session (its panel never renders a hideable
+node here, as in the prior diagnosis) — the FPS box and the "Stage
+Tamsin shop" button remain visible but lie outside the canvas /
+measurement window. Touch path: no joystick, tap-to-shoot, melee,
+driving, SAVE, autosave, banner, shop, probe-panel, terrain, chunk,
+glow, audio, night-mask, HUD, key-binding, save-schema, or
+drawTailspin code was touched.
+
+Console errors: 0 on every probe response in the session. Typecheck:
+`bun x tsc --noEmit -p client/tsconfig.json && bun x tsc --noEmit -p
+server/tsconfig.json` exited 0 (clean).
+
+Audit-panel collapse (Nov 4, 2026): on `/hatch-audit-` paths the seven
+diagnostic panels (census, Cinder Scar, Old Greyhaven, Saint Mercy edge,
+wayfire, terrain lattice, profiler) now start collapsed — a
+`body.awl-audit-panels-collapsed` stylesheet rule hides them so they no
+longer cover New Game / Options or the joystick and context buttons on a
+390x844 phone. One 44px toggle, "Show audit panels" (top-left, below the
+status rail), reveals them; every staging button, window hook, and
+per-panel "Hide panel" button is unchanged, so probe staging still works
+after one toggle tap. No player-route, save, or gameplay code touched.
