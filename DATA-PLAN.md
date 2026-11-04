@@ -384,3 +384,148 @@ Deviations from the original directions, recorded plainly:
   so the brief's explicit fallback — a real Pexels photograph — was used:
   an elderly white-bearded man praying with rosary beads in a graveyard,
   which matches the character's death-haunted eccentric brief.
+
+## 2026-11-03/04 — Old Greyhaven city-drive staging hook (audit-only)
+
+Concurrency gate: `client/src/App.tsx` SHA-256 verified
+`0718a40460b13ada70a7e6122f812db8d1bd2a41726fdfd85f459a67501552ea`
+before any edit (2026-11-03). Hook + Drive probe button + compact probe
+style landed at `7edb4c5395efa48a27775feba799df72f0d3464a858d7509e34919827637a577`.
+A second edit (route-keeper fix, below) landed at
+`e955dd40c0b3bebfc605e8c9236bf16feed972fb11bc4e9997f8bd51afd3f0e5`
+(verified by re-hash after editing; build typechecks clean, 0 console errors).
+
+Corridor: the y=19600 line is blocked by North Apartments, Market Arcade, and
+Hotel Ruin. The drivable line is the north street at y=19300: 110 clear of
+Civic Records' south edge (19190) and 65 clear of Market Arcade's north edge
+(19365), truck radius 48. Seeded-tree check (exact `seededTrees()` extracted
+and run in Node, 7,038 trees) leaves one tree within r+68 on x 23800–27300
+at (26727,19187,r47): clearance +18.1 at y=19300 (would clip at y=19278).
+Route: `CITY_DRIVE_ROUTE_START {24600,19300}` → `CITY_DRIVE_ROUTE_END
+{27300,19300}`; the feathered ruin edge x=26700 is crossed ~7 s after staging
+at Rustbucket speed 300. Clean run ends before the stall tree at x≈27444.
+
+Hook: `__AWL_SHOW_OLD_GREYHAVEN_DRIVE__`, audit-path-gated
+(`/hatch-audit-` only, mirroring `__AWL_SHOW_OLD_GREYHAVEN__`), placed
+immediately after the Old Greyhaven hook. It relocates the Rustbucket +
+player/camera to the route start, clears dungeon/interior/enemies/projectiles,
+forces playing, sets day/clear weather, joystick input east, applies vehicle +
+decal effect flags, expanded profiler, and arms the existing `driveClean`
+diagnostic (rings readable via `__AWL_READ_DRIVE_DIAGNOSTIC__`). It calls no
+`persist`, touches no save field (keys/dog untouched), and changes no
+terrain/blend/feather, chunk-streaming, or gameplay-balance code. A `Drive`
+button (aria-label `Stage Old Greyhaven drive`) on the existing
+`#old-greyhaven-probe` panel is the probe affordance (the probe tool has no
+JS-eval verb); compact panel styling is scoped to that panel only.
+
+Diagnosis that unblocked the run: the first probe session showed meadow
+grass/road after staging, with notices/outputs confirming the hook ran. The
+cause was the frame-loop diagnostic route-keeper (App.tsx ~L3146): while
+`forcedDiagnosticScenario` is set it snaps the truck back to the hardcoded
+meadow `DIAGNOSTIC_ROUTE_START` whenever lateral > 150 or progress is out of
+[-.02,.96], so the city staging was teleported back every frame. Fix, all
+inside diagnostic tooling: module-level `activeDiagnosticRouteStart/End`
+(defaulting to the meadow constants), the keeper now follows the active
+route, `resetDiagnosticRings()` restores the meadow defaults, the city hook
+sets the active route to the city route after resetting, and the drive
+effect's cleanup restores the defaults. Meadow F9 behavior is unchanged by
+construction (keeper arithmetic is identical when the active route is the
+meadow route); its live frame in the final session was occluded by a pending
+relic-claim modal from the sandbox save, not re-probed visually. Note for
+future runs: staging Drive arms the keeper; boundary/interior hooks staged
+after a Drive click in the same session will be snapped back unless the
+diagnostic is reset first.
+
+Evidence (audit `2026-11-04T00-08-04Z-850586993`, mobile 390×844, 0 console
+errors on every probe response): staged city frames `observe-001.png`
+(staging frame: dark ruin ground, ruined buildings, truck on the street,
+REGION 14/18, Old Greyhaven, CLEAR, 300 SPD), `observe-008.png` (mid-city),
+`observe-017.png` (pale feather-zone ground east of the ruin core),
+`observe-026.png` (later loop pass, back in the city core). Profiler overlay
+visible throughout: FPS 51–60, AVG 16.8–19.6 ms, P95 16.8–33.4 ms, WORST
+49.9–83.4 ms steady (333.3 ms staging spike in the first frame only), CHUNKS
+645–678, CANVAS 24–60, vehicle speed 300, fuel 100→99% per pass with keeper
+refills. The x=26700 crossing itself is inferred from keeper loop cycling
+(fuel refills, day advance 09:09→10:10, return to the city core), not from a
+coordinate readout — no coordinate readout exists in the UI. The driveClean
+ring summary JSON was not dumped: the probe tool cannot evaluate JS, so
+`__AWL_READ_DRIVE_DIAGNOSTIC__` was verified by code path only (scenario
+stays `driveClean`; ring push untouched). Audit-path HUD occlusion note: on
+audit paths only, probe panels overlay the bottom HUD (`Exit Rustbucket`,
+`Dash`, etc. reported occluded); the player route has no probe panels.
+
+## 2026-11-03 — Old Greyhaven ruin-edge feather regression re-check (no fix shipped)
+
+SHA gate: `client/src/App.tsx` SHA-256 recorded BEFORE any work and re-verified
+after measurement, unchanged:
+`e955dd40c0b3bebfc605e8c9236bf16feed972fb11bc4e9997f8bd51afd3f0e5`
+(1,057,941 bytes). Gate value `e955dd40` matched, so the run proceeded.
+No game code, save schema, or asset was changed in this run; `App.tsx`
+remains byte-identical. Only this DATA-PLAN record was added. No vehicle-drive
+measurement was run (separate mobile-perf slice).
+
+Source confirmation (current source, lines cited): `RUINED_CITY_CENTER`
+`{x:25200,y:19600}` (App.tsx L519), so the ruin rect is x 23700–26700,
+y 18150–21050. L2513 sets `ruinFeather=180, ruinSteps=18`. L2517 draws the
+concentric ground rings on all four edges, ramping base alpha 0 at the outer
+edge to full `.76` at 180 world units in (four `fillRect` calls per step:
+top, bottom, left, right). L2519 feathers the east–west street-grid bands at
+their left/right ends only, and L2520 feathers the north–south bands at
+their top/bottom ends only, over the same 180 units. The 180-unit feather
+on all four edges and the feathered band ends are still present.
+
+Method (stated exactly; same strip/threshold for boundary and control):
+scripted staged gameplay in the audit probe session — NOT the title menu —
+mobile viewport 390×844, screenshot DPR 1, full-resolution canvas
+390×540 CSS px at canvas bbox y 101–641, textures active (photo grass/ruin
+ground visible), day/clear weather via `__AWL_SHOW_OLD_GREYHAVEN__`
+(`boundary`: player 26750,19600; camera x 26390, y 19100). World x=26700
+maps to screenshot column 168: (26700−26390)/720×390 = 167.9. Per row,
+step = |Rec.601 luma at column xc+2 − luma at xc−2| (a 5 px strip,
+columns xc−2…xc+2); a hit is step > 30/255. Denominator = rows analysed.
+Black/missing-tile count = pixels with max(R,G,B) < 10 in canvas rows
+101–425. This differs from the 12:34 run's capture geometry (its
+denominators differed between before/after), so the comparison here is
+against a same-session interior control at identical geometry, not only
+against the 12:34 percentages.
+
+Results, same session (audit `2026-11-04T00-45-31Z-178263123`):
+
+| Strip | Hits / denominator | Longest run | Median step | Mean step | Max step |
+|---|---|---:|---:|---:|---:|
+| Boundary, x=26700 (col 168), rows 101–425 | 12/325 (3.7%) | 4 rows | 7.4 | 9.4 | 44.1 |
+| Boundary, x=26700 (col 168), rows 180–425 (excludes top tree/HUD zone) | 7/246 (2.8%) | 2 rows | 9.0 | 10.5 | 39.4 |
+| Interior control, ground gap col 360 (world 25505, inside ruin, east of Market Arcade), rows 180–425 | 0/246 (0.0%) | 0 | 0.9 | 1.3 | 7.7 |
+| Interior, same column 168 (Market Arcade building floor), rows 180–425 | 0/246 (0.0%) | 0 | 0.0 | 4.3 | 24.0 |
+
+Boundary hit rows (full range): 141–144 (the feather-edge tree canopy at
+world 26727,19187), 159, 211, 220, 375, 376, 405, 419, 420 — scattered
+singles and one 4-row tree cluster, not a continuous vertical edge. A
+repeat boundary frame (`observe-008.png`, re-staged after the interior
+frame) reproduced the full-range result exactly: 12/325, longest run 4,
+same hit rows. Black/missing-tile pixels: 0/126,750 in both the boundary
+and interior frames, and 0/126,750 in the repeat boundary frame.
+
+Verdict: NO REGRESSION. Boundary density 3.7% (2.8% in the clean row
+range) is at the 12:34 post-fix level (4.2%, longest run 4) and far below
+the 12:34 pre-fix level (231/710, 32.5%, continuous clusters, 30–60 luma
+step); it sits just above the same-session interior control (0.0%) with
+no long continuous run, consistent with texture variation plus the tree
+canopy, not a hard continuous edge. Per the fix-if gate, no feather
+restore was made.
+
+Frames/overhead in the same session: profiler recording over the static
+staged boundary scene (sandbox recording, n=263 frames): median 16.70 ms,
+mean 16.67 ms, p95 16.70 ms, max 16.80 ms, over-50 ms frames 0,
+chunkLoads 0. Console errors: 0 on every probe response in the session.
+Typecheck: `bun x tsc --noEmit -p client/tsconfig.json && bun x tsc
+--noEmit -p server/tsconfig.json` exited 0 (clean).
+
+Captures (staged gameplay frames in audit `2026-11-04T00-45-31Z-178263123`,
+mobile 390×844): `observe-003.png` (boundary, player 26750,19600 —
+darker ruin ground left of the soft edge, bright grass right, street band
+across the middle, feather-edge tree top-centre), `observe-004.png`
+(interior, player 25200,19600, inside Market Arcade), `observe-008.png`
+(repeat boundary frame with the profiler-record summary visible).
+Audit-path HUD occlusion note (unchanged): probe panels overlay the
+bottom HUD on audit paths only; the player route has no probe panels.
