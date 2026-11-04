@@ -1155,3 +1155,81 @@ longer cover New Game / Options or the joystick and context buttons on a
 status rail), reveals them; every staging button, window hook, and
 per-panel "Hide panel" button is unchanged, so probe staging still works
 after one toggle tap. No player-route, save, or gameplay code touched.
+
+## 2026-11-04 — Cross-region vehicle-drive cost comparison: Mosslight open ground vs Old Greyhaven interior (measurement only, no fix shipped)
+
+SHA gate: `client/src/App.tsx` SHA-256 recorded BEFORE any work and
+re-verified after measurement, unchanged:
+`9cf762c0099471d7bc137cc0f145ec3b4d46d1c159ac2f29311e29dda5279759`
+(1,069,417 bytes). Gate prefix `9cf762c0` matched, so the run proceeded.
+No game code, save schema, asset, terrain, chunk-streaming, player-route,
+or balance change was made; `App.tsx` remains byte-identical. Only this
+DATA-PLAN record was added. The rebuild regenerated
+`client/src/generated-build.ts` only (BUILD_ID `a8086470f10e-20261104T204133612Z`
+— build-only metadata churn, no gameplay effect).
+
+Method (same probe session throughout; staged gameplay, NOT the title
+menu): mobile viewport 390x844, full-resolution canvas, textures active
+(photo grass/ruin ground visible in every drive frame), day/clear weather,
+minimal mode OFF, render scale 1 by construction (no dynamic-resolution
+path exists). Audit panels collapsed via the shipped "Show audit panels"
+toggle during each drive window and re-expanded only to stop/save. Same
+Rustbucket, same settings, same session for both legs; each leg used the
+identical 7-step probe batch (stage, Record, collapse panels, observe,
+expand panels, Stop + save, observe). Staging: Mosslight via the existing
+audit-only F9 `driveClean` hook (`__AWL_SETUP_DRIVE_DIAGNOSTIC__`,
+(8600,29000)->(13000,31600), "DRIVE · NO KILLS"); Old Greyhaven interior
+via the existing audit-only Drive button (`__AWL_SHOW_OLD_GREYHAVEN_DRIVE__`,
+(24600,19300) due east on the y=19300 north street). Contamination note:
+the first Mosslight attempt was voided — staging the Old Greyhaven
+interior on foot first triggered a pending "REGION CLEARED · Choose one
+relic" modal, so F9/Record were ignored ("not in gameplay"); the relic
+was claimed (in-session only), the drive re-staged fresh from F9, and the
+void attempt saved nothing. The city window was kept interior-only: the
+identical short batch held the truck west of the 26520-26700 feather
+band — both city frames (`observe-014.png`, `observe-015.png`) show pure
+dark ruin ground with ruined buildings flanking the street and no grass
+transition in view, unlike the 2026-11-03 crossing frame where the edge
+was visible at column ~260. Instruments and limits: the probe tool has
+no JS-eval verb, so `__AWL_READ_DRIVE_DIAGNOSTIC__` ring JSON and the
+below-fold profiler recording detail (window-aggregate chunk-build steps
+and draw calls) could not be dumped; subsystem evidence is the audit
+recording summary line plus the per-frame diagnostic strip visible in
+the drive frames (latest-frame values, not window aggregates). Raw
+samples were not read: recordings live in the probe session's sandbox
+database only — `getPerfRecording` id 14 in the builder sandbox returned
+"not found" and its list still tops out at the pre-existing id 13.
+
+Results, same session (audit `2026-11-04T20-41-59Z-002529504`,
+0 console errors on every probe response):
+
+| Recording | Window | n (50 ms samples) | Median | Mean | P95 | Max | Over 50 ms | Chunk loads |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| id 14 | Mosslight open ground, Rustbucket 300 SPD | 38 | 16.70 ms | 17.12 ms | 16.80 ms | 33.30 ms | 0 (0%) | 6 |
+| id 15 | Old Greyhaven interior street, Rustbucket 300 SPD, west of x=26700 edge | 36 | 16.70 ms | 18.99 ms | 33.40 ms | 49.90 ms | 0 (0%) | 3 |
+
+Subsystem strip, latest drive frame (Mosslight `observe-008.png`):
+FPS 56, AVG 17.7 ms, P95 16.8 ms, WORST 116.6 ms, DRAW 127, ENEMIES 56,
+TERRAIN 0.10, STAMP 0.00/0, DECAL 0.00, STREAM 0.00/0, VEHICLE 0.19,
+ENEMY 0.00, RENDER PASS 10.00 ms. City interior (`observe-014.png`):
+FPS 58, AVG 17.2 ms, P95 16.8 ms, WORST 33.4 ms, DRAW 663, ENEMIES 96,
+TERRAIN 0.10, STAMP 0.00/0, DECAL 0.00, STREAM 0.00/0, VEHICLE 0.09,
+ENEMY 0.00, RENDER PASS 10.00 ms. DRAW is a single-frame value and
+volatile (796 on an earlier Mosslight frame, `act-007.png`); no
+window-aggregate draw-call or chunk-build-step total is claimed.
+
+Verdict: NO FIX SHIPPED. Median identical (16.70 vs 16.70 ms), over-50
+rate identical (0% vs 0%), chunk loads lower in the city leg (3 vs 6),
+and the subsystem strips are indistinguishable (terrain +0.00 ms,
+stream 0.00/0 in both, render pass 10.00 ms in both). The city p95/max
+elevation (+16.6/+16.6 ms, one vsync quantum) rests on ~1-2 frames in
+n=36-38 windows and is not an over-50 enrichment; no subsystem ties any
+cost to terrain, streaming, or any other subsystem. Per the fix-if gate,
+nothing was shipped — no quality degradation, no dynamic resolution, no
+terrain/feather code touched. Recordings 14-15 live in the probe
+session's sandbox database only; the durable save / perf store was not
+touched (no save action invoked, no migration, no post-submit action).
+
+Console errors: 0 on every probe response in the session. Typecheck:
+`bun x tsc --noEmit -p client/tsconfig.json && bun x tsc --noEmit -p
+server/tsconfig.json` exited 0 (clean).
