@@ -1362,9 +1362,11 @@ button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
     -webkit-line-clamp: 2;
   }
   /* Keep transient notices below the conditional status, companion, and
-     vehicle lanes instead of laying over the objective stack or active HUD. */
+     vehicle lanes instead of laying over the objective stack or active HUD.
+     Measured 2026-11-05 at 390px: the vehicle inventory button ends at
+     153px arena-relative, so the notice sits at 160px to clear it by 7px. */
   .game-notice {
-    top: 146px;
+    top: 160px;
     right: 7px;
     left: auto;
     max-width: calc(100% - 210px);
