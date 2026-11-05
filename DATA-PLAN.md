@@ -1233,3 +1233,95 @@ touched (no save action invoked, no migration, no post-submit action).
 Console errors: 0 on every probe response in the session. Typecheck:
 `bun x tsc --noEmit -p client/tsconfig.json && bun x tsc --noEmit -p
 server/tsconfig.json` exited 0 (clean).
+
+## 2026-11-04 — Driving restoration after Resume from the pause menu (measurement only, no fix shipped)
+
+SHA gate: `client/src/App.tsx` SHA-256 recorded BEFORE any probe work and
+re-verified after measurement, unchanged:
+`9cf762c0099471d7bc137cc0f145ec3b4d46d1c159ac2f29311e29dda5279759`
+(1,069,417 bytes). Gate prefix `9cf762c0` matched, so the run proceeded.
+No game code, save schema, asset, terrain, chunk-streaming, player-route,
+or balance change was made; `App.tsx` remains byte-identical. Only this
+DATA-PLAN record was added. The rebuild regenerated
+`client/src/generated-build.ts` only (BUILD_ID
+`a8086470f10e-20261105T003811157Z` — build-only metadata churn, no
+gameplay effect).
+
+Method (same probe session throughout; staged gameplay, NOT the title
+menu): mobile viewport 390x844, full-resolution canvas 390x540 CSS px at
+y 101-641, textures active (photo grass/ruin ground visible in every drive
+frame), night/rain by the time of the pause window, minimal mode OFF,
+render scale 1 by construction (no dynamic-resolution path exists).
+Staging used the existing audit-only F9 `driveClean` hook
+(`__AWL_SETUP_DRIVE_DIAGNOSTIC__`, audit-path-gated): Rustbucket mounted
+at the player, forced speed 300 on the Mosslight route. The story intro
+(3 cards) was dismissed by tapping the dialog node; Save / Save & exit
+were never clicked, the persisted joystick/WASD toggle was never touched
+(the staging hook sets only the in-memory scheme; the pause menu still
+showed JOYSTICK pressed), and all writes stayed in the probe session's
+sandbox database — the durable save was not touched (no save action
+invoked, no migration, no post-submit action). The probe tool has no
+JS-eval verb, so `__AWL_READ_DRIVE_DIAGNOSTIC__` ring JSON could not be
+dumped; ring/strip numbers below are the UI-rendered values from the
+probe DOM. Frames: pre-pause driving `observe-009.png`/`observe-012.png`,
+pause menu `observe-014.png`, post-Resume driving `observe-015.png`/
+`observe-016.png` (audit `2026-11-05T00-38-36Z-050329393`, 0 console
+errors on every probe response).
+
+Pre-pause (observe-012): joystick [2,535,104,104]; Exit Rustbucket
+[186,537,47,48]; Dash [186,589,47,48]; Aim Pipe Bomb [288,537,47,48];
+healing [237,589,47,48]; Cargo [157,210,78,44]; Pause [342,14,44,44];
+no Swing/Reload while driving. HUD: RUSTBUCKET 300 SPD, FUEL 97%,
+HP 98, RAM READY; notice "Audit Rustbucket · 300 speed · DRIVE · NO
+KILLS". Drive-probe ring (rolling 600 frames): FRAME P50 16.70 / P95
+33.40, OVER50 4, CLAMPED 11, MAX SPEED 300.0. Profiler strip: FPS 56,
+AVG 17.9 ms, P95 33.3 ms, WORST 50.1 ms.
+
+Pause menu (observe-014): RUN PAUSED / Loadout & stats overlay; Resume,
+Options, Save, Save & exit present in the overlay (Resume only was
+clicked). Post-Resume (observe-015/016): overlay dismissed; every box
+above byte-identical (joystick, Exit, Dash, Pipe Bomb, healing, Cargo,
+Pause — same coordinates and sizes). HUD: RUSTBUCKET 300 SPD, FUEL 99%,
+HP 180 (route-loop reset by the staging hook's own rule when the route
+completed, not a resume effect), RAM READY; still mounted/driving, EXIT
+present, no Swing/Reload. Ring: FRAME P50 16.70 / P95 16.80, OVER50 2,
+CLAMPED 10, MAX SPEED 300.0 — the ring kept recording driving frames
+after Resume with no new over-50 enrichment. Strip: FPS 58, AVG 17.2 ms,
+P95 16.8 ms, WORST 33.4 ms. Scene position advanced between the
+pre-pause and post-Resume frames (Wilderness/Starfall Expanse to
+Mosslight Meadow, headlight cone visible), so the truck kept moving
+after Resume.
+
+Verdict: NO FIX SHIPPED. Driving restores correctly after Resume:
+mounted state, drive UI, and all control boxes identical pre/post, speed
+300 maintained, and frame times improved rather than degraded across the
+pause. Per the fix-if gate, nothing was shipped. Limitation, stated
+plainly: the F9 staging hook re-applies drive input every playing tick
+while its forced scenario is active, so this run proves restoration of
+the staged drive (mounted state + drive UI + movement + frame times),
+not a fresh unforced joystick hold after Resume. A pure joystick-hold
+check was not safely probeable: the probe has no drag verb, and the
+`__AWL_PIN_JOYSTICK__` "=" key shares a binding with a hardcore
+fatal-strike audit key on the `/spaces/v2/hatch-audit-` path, so "="
+was deliberately never pressed. Code check supports the rest: `changeMode`
+clears only transient input/joystick state and never touches
+`world.vehicle.mounted`, and the joystick pointer handlers re-establish
+`inputRef` on fresh input.
+
+Console errors: 0 on every probe response in the session. Typecheck:
+`bun x tsc --noEmit -p client/tsconfig.json && bun x tsc --noEmit -p
+server/tsconfig.json` exited 0 (clean).
+
+Platform v27 guest-access inspection (2026-11-04, same run): no source
+change needed. `loadGame` returns no save + `canSave: false` + a sign-in
+message for a missing viewer (rows stay partitioned by `viewerKey`;
+no fabricated identity); `saveGame`/`resetGame` reject a missing viewer
+with an `ok: false` message, and the client never shows "saved" on
+failure (`persist` maps guest failure to "local" and keeps session
+state; New Game for guests starts a local-only run without calling
+`resetGame`; the hardcore wipe call is skipped client-side for guests).
+Perf recordings are global by design (migration 0021) with no private
+data — listing/saving them is the same for guests as for signed-in
+non-owners. No action calls inference, tools, agents, or privileged
+callbacks, so there is nothing to gate on shared pages; this artifact
+has no scheduled refreshes to preserve. Upgrade completed by inspection.
