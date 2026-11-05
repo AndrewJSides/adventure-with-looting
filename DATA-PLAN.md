@@ -1426,3 +1426,110 @@ non-owner paths could not be exercised as distinct authenticated viewers
 in the sandbox probe (single local guest session), so the non-owner
 Cloudflare behavior is recorded as verified by code inspection +
 typecheck, not by a live non-owner probe.
+
+## 2026-11-05 (morning) — Bisect UNACCOUNTED frame time vs live enemy count / region crossings during vehicle driving (measurement only, NO FIX SHIPPED)
+
+SHA gate: `client/src/App.tsx` SHA-256 recorded BEFORE any probe work and
+re-verified after measurement, unchanged:
+`5afcb9bebce6d8342ccababf0f36f25c743204df7dae997b2006c8f3e01bea4e`
+(1,075,068 bytes). Gate prefix `5afcb9be` matched pre and post, so the run
+proceeded. No game code, save schema, asset, terrain, chunk-streaming,
+player-route, or balance change was made; `App.tsx` remains byte-identical.
+Only this DATA-PLAN record was added.
+
+Hypothesis (from the brief): the unaccounted frame time during sustained
+driving scales with live enemy count and/or region-crossing load, not with
+steady-state rendering.
+
+Method (same probe session throughout; audit
+`2026-11-05T07-36-32Z-477909358`, 0 console errors on every probe response):
+mobile viewport 390x844, full-resolution canvas, live gameplay (NOT the
+title menu). New Game, story intro dismissed by tapping the dialog (3
+cards), profiler opened and expanded, MINIMAL MODE enabled (all 10 effect
+flags off), then F9 `driveClean` staging
+(`__AWL_SETUP_DRIVE_DIAGNOSTIC__`, (8600,29000)->(13000,31600),
+"DRIVE · NO KILLS", Rustbucket speed 300). Note: staging forces
+vehicles+decals back on, so the profiler toggle reads MINIMAL MODE OFF
+during the drive with the other 8 flags still off — the same staging the
+08:34 baseline and the 22:51 run used. The diagnostic ring is a rolling
+600-frame window, reset at staging; the diagnostic loop auto-teleports the
+truck back to the route start past progress 0.96, so each leg covers
+repeated route loops. Ring values below are read from the profiler's DRIVE
+PROBE region in the probe aria tree; enemy counts from the profiler's
+"active / visible / total enemies" line. The probe has no JS-eval verb, so
+`__AWL_READ_DRIVE_DIAGNOSTIC__` ring JSON could not be dumped and no
+profiler recording was started. Save / Save & exit were never clicked, the
+persisted joystick/WASD toggle was never touched (staging sets only the
+in-memory scheme), and all writes stayed in the probe session's sandbox
+database — the durable save was not touched (durable rows unchanged: 1
+`game_save`, 13 `perf_recordings`, 14 total). Live-gameplay capture with
+the perf HUD: `audits/2026-11-05T07-36-32Z-477909358/observe-015.png`
+(Rustbucket at 300 SPD, profiler strip FPS 23 / AVG 44.3 / P95 83.4 /
+WORST 200.0, MINIMAL MODE OFF after staging, Fallen Seer boss bar active,
+REGION 9/18, Day 15:41 Starfall Expanse).
+
+Results:
+
+| Leg | Window | Active / total enemies | FRAME p50 / p95 | OVER50 | STREAM p50 / max | STREAM EVENTS TOTAL | ENEMY p50 / p95 | UNACCOUNTED p50 / p95 |
+|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| 08:34 baseline | 600 fr | ? | 16.70 / 33.30 | 5 | — / — | 55 steps | ? | — |
+| 22:51 Leg 1 | 600 fr | ~773 total | 33.30 / 83.40 | 190 | 0.00 / 0.30 | 30 | ? | 33.10 / 83.20 |
+| 22:51 Leg 2 full ring | 600 fr | 773 total | 33.30 / 83.40 | 237–238 | 0.00 / 0.30 | 40 | ? | 33.10 / 83.30 |
+| This run Leg A (fresh session) | 600 fr | 0–8 active / 779–785 total | 33.40 / 100.00 | 254 | 0.00 / 1.30 | 95 | 0.10 / 0.50 | 33.10 / 99.60 |
+| This run Leg B mid (first half) | 286 fr | 1 active / 774 total | 33.40 / 100.00 | 132 | 0.00 / 12.70 | 125 | 0.10 / 0.30 | 33.30 / 99.70 |
+| This run Leg B full ring | 600 fr | 2 active / 771 total | 33.30 / 83.40 | 247 | 0.00 / 0.40 | 35 | 0.00 / 0.20 | 33.10 / 83.30 |
+
+Supporting reads: pre-leg baseline (fresh session, standing in
+Hearthglen before any driving): 0 active / 0 visible / 785 total enemies
+— a fresh world already spawns ~785 enemies, so the 22:51 run's "773
+total enemies accumulated across route loops" was not accumulation at all.
+Strip at leg-A full-ring read: 20 FPS / AVG 50.3 / P95 100.0 /
+WORST 183.3. Strip at leg-B full-ring read: 23 FPS / AVG 44.3 /
+P95 83.4 / WORST 200.0. TERRAIN 0.10/1.00 (A) and 0.10/0.60 (B full);
+VEHICLE 0.00/0.20 both legs; ACCOUNTED 0.30/3.20 (A) and 0.20/1.80
+(B full). Latest-frame chunk detail repeatedly "chunk 0.00 ms / 0 steps /
+0 finished"; chunk cache 30–32 chunks / 46.9–54.7 MiB by leg end. The
+ring's RENDER (112.00/112.00, identical in every read) and WORK
+(1184–1920 ms) fields are again not cited as evidence: a per-frame
+render/work value cannot be 112 ms / ~1300 ms while frames median 33 ms,
+so those two fields are treated as uninterpretable instrumentation rather
+than a render cost, as in the 22:51 run.
+
+Verdict: NO FIX SHIPPED — hypothesis refuted by the numbers on both
+halves. (1) Enemy count: the fresh-session leg A ran with 0 active / 0
+visible enemies for most of the leg (max 8 active at the end read) and
+still showed UNACCOUNTED 33.10/99.60 with 254/600 frames over 50 ms —
+indistinguishable from the 22:51 legs. The ring's own ENEMY timer is
+0.00–0.10 ms p50 / 0.20–0.50 ms p95 in every window, and the per-frame
+frame-set refresh over all ~785 world enemies is bounded by the profiler's
+Enemy AI strip (~16.0 ms cumulative over its 300-frame window, ≈0.05
+ms/frame). Active enemies while driving are hard-capped by design
+(`MAX_ACTIVE_ENEMIES_DRIVING = 24`, visible 32) and never approached
+(0–8) on this route — the truck outruns spawns in the sparse meadow.
+(2) Region crossings: leg B crossed from Mosslight Meadow (REGION 1/18)
+into Starfall Expanse (REGION 9/18 by the end read, Fallen Seer boss bar
+active in the final capture) with UNACCOUNTED 33.30/99.70 in the
+pre-crossing 286-frame partial ring vs 33.10/83.30 in the full ring that
+includes the crossing — no step change. There is no enemy-count-driven
+per-frame cost to reduce, so the FIX-IF gate does not open.
+
+Structural finding (for the next bisect, not a fix): the ring's ACCOUNTED
+sum covers only seven update timers (terrain, decal stamp/draw, chunk
+build, vehicle update, enemy update, lighting). The main canvas draw
+(`drawWorld`, 162–295 draw calls/frame), HUD, collision, camera, and
+audio are NOT in it — and the ring's RENDER PASS field is actually the
+lighting timer (`renderPassMs: activeLightingMs`), which reads 0.00/0.00
+with lighting off. So the ~33 ms "unaccounted" bucket most plausibly
+holds the untimed draw plus rAF/present scheduling; frame times are
+quantized to ~16.67 ms multiples (33.30, 83.40, 100.00, 200.00 worst)
+consistent with the probe's ~30 fps cadence. The 08:34 baseline (FRAME
+p50 16.70) remains unexplained by any game-side variable measured here —
+same route, same staging, same fresh-world enemy totals — and looks like
+a probe-environment cadence difference, not game code (SHA identical).
+Nothing here licenses a fix for the unaccounted cost; the next item is to
+time the draw pass itself, not to re-test enemies, chunk streaming, or
+decals.
+
+Typecheck: `bun x tsc --noEmit -p client/tsconfig.json && bun x tsc
+--noEmit -p server/tsconfig.json` exited 0 (clean). Console errors: 0 on
+every probe response.
