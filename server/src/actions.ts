@@ -269,7 +269,13 @@ function viewerKey(ctx: Ctx): string | null {
   const viewer = ctx.viewer;
   if (!viewer) return null;
   if (viewer.isOwner) return "owner";
-  return viewer.source === "local" ? `local:${viewer.userId}` : `cloudflare:${viewer.viewerFbid}`;
+  // v28: Cloudflare no longer exposes a per-viewer identity, so a
+  // shared-link non-owner cannot be keyed to a private save row. They play
+  // session-only via the existing guest path (canSave false) rather than
+  // sharing a row with other viewers. Local viewers keep their unchanged
+  // userId-based key.
+  if (viewer.source === "local") return `local:${viewer.userId}`;
+  return null;
 }
 
 function serialize(row: typeof schema.gameSave.$inferSelect): z.infer<typeof savedSchema> {

@@ -1325,3 +1325,104 @@ data — listing/saving them is the same for guests as for signed-in
 non-owners. No action calls inference, tools, agents, or privileged
 callbacks, so there is nothing to gate on shared pages; this artifact
 has no scheduled refreshes to preserve. Upgrade completed by inspection.
+
+## 2026-11-04 (late) — Ground chunk-streaming frame cost during sustained high-speed driving (measurement only, NO FIX SHIPPED)
+
+SHA gate: `client/src/App.tsx` SHA-256 recorded BEFORE any probe work and
+re-verified after measurement, unchanged:
+`5afcb9bebce6d8342ccababf0f36f25c743204df7dae997b2006c8f3e01bea4e`
+(1,075,068 bytes). Gate prefix `5afcb9be` matched pre and post, so the run
+proceeded. No game code, save schema, asset, terrain, chunk-streaming,
+player-route, or balance change was made; `App.tsx` remains byte-identical.
+Only this DATA-PLAN record and the v28 server change below were made.
+
+Hypothesis (from the brief): chunk builds during sustained driving cause
+the residual frame spikes seen in earlier drive legs. Before numbers
+(08:34 post-kill bisection, driveClean leg, same fixed route, Rustbucket
+speed 300, n=600): FRAME p50 16.70 / p95 33.30, OVER50 5, STREAM 0.00/0.00,
+55 chunk build steps.
+
+Method (same probe session throughout; audit
+`2026-11-05T06-38-52Z-803613257`, 0 console errors on every probe
+response): mobile viewport 390x844, full-resolution canvas, live gameplay
+(NOT the title menu). New Game, story intro dismissed by tapping the
+dialog (3 cards), profiler opened, MINIMAL MODE enabled (all 10 effect
+flags off), then F9 `driveClean` staging
+(`__AWL_SETUP_DRIVE_DIAGNOSTIC__`, (8600,29000)->(13000,31600),
+"DRIVE · NO KILLS", Rustbucket speed 300, cold chunk cache via
+`resetGroundChunkCache()`). Note: staging forces vehicles+decals back on,
+so the profiler toggle reads MINIMAL MODE OFF during the drive with the
+other 8 flags still off — the same staging the 08:34 baseline used. The
+diagnostic ring is a rolling 600-frame window, reset at staging; ring
+values below are read from the profiler's DRIVE PROBE region in the probe
+aria tree. The probe has no JS-eval verb, so `__AWL_READ_DRIVE_DIAGNOSTIC__`
+ring JSON could not be dumped and no profiler recording was started (the
+RECORD button sits below the fold inside the scrollable profiler overlay
+and is not addressable). Save / Save & exit were never clicked, the
+persisted joystick/WASD toggle was never touched (staging sets only the
+in-memory scheme), and all writes stayed in the probe session's sandbox
+database — the durable save was not touched. Two legs were driven for
+stability; leg 2 was re-staged with F9 for a fresh cold-cache window.
+
+Results (STREAM = per-frame chunk-build cost; `chunkStreamMs` is the
+chunk-build timer, `chunkStreamEvents` the build-step count):
+
+| Leg | Window | FRAME p50 / p95 | OVER50 | STREAM p50 / p95 | STREAM MAX | STREAM EVENTS TOTAL | UNACCOUNTED p50 / p95 |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| 08:34 baseline | 600 fr | 16.70 / 33.30 | 5 | 0.00 / 0.00 | — | 55 steps | — |
+| Leg 1 | 600 fr | 33.30 / 83.40 | 190 | 0.00 / 0.00 | 0.30 ms | 30 | 33.10 / 83.20 |
+| Leg 2 cold-cache | 188 fr | 33.30 / 99.90 | 87 | 0.00 / 0.00 | 4.60 ms | 110 | 33.10 / 99.30 |
+| Leg 2 full ring | 600 fr | 33.30 / 83.40 | 237–238 | 0.00 / 0.00 | 0.30 ms | 40 | 33.10 / 83.30 |
+
+Supporting reads: profiler strip at the leg-2 full-ring read — 24 FPS, AVG
+42.3 ms, P95 83.4 ms, WORST 166.7 ms (later read 21 FPS / AVG 47.1 /
+P95 100.0 / WORST 216.6); TERRAIN 0.10/0.40, VEHICLE 0.00/0.10, ENEMY
+0.00/0.10, ACCOUNTED 0.20/1.10, CLAMPED 0–2, MAX SPEED 300.0 in every
+window. Latest-frame chunk detail repeatedly read "chunk 0.00 ms / 0
+steps / 0 finished" while the strip average sat at 42–47 ms — slow frames
+with zero chunk work. Chunk cache line: 6 chunks cached, queue 3
+(peak 5), build budget 3.5 ms; strip CHUNK/S (rebuilds/sec) 64 in leg 1.
+
+Verdict: NO FIX SHIPPED — hypothesis refuted by the numbers. Chunk
+streaming costs at most 0.30 ms in the worst frame of a full 600-frame
+sustained-drive window (4.60 ms worst frame in the cold-cache burst
+window, when the queue was draining after a cache reset), with p95 0.00
+in every window, while 39.5% of frames exceed 50 ms and unaccounted time
+sits at 33.10 ms p50. A per-frame chunk-build budget already exists
+(`GROUND_CHUNK_DRIVING_BUDGET_MS=2.0` while driving, `3.5` otherwise), so
+the suggested fix is already in place; no prefetch-radius or budget tweak
+is justified by these numbers. The spikes live in the unaccounted bucket
+(frame time minus the seven timed subsystems), not in streaming.
+
+Honest confound, stated plainly: this run's frames are much slower than
+the 08:34 baseline (p50 33.30 vs 16.70 ms, OVER50 237 vs 5) for reasons
+this item did not bisect. Visible in-session state: 773 total enemies
+accumulated across route loops, boss bars (Sunwraith, Fallen Seer),
+region crossings past the route end, coins 8→216 from ram pickups. The
+ring's RENDER (112.00/112.00, identical in every read) and WORK
+(1216–1728 ms) fields are not cited as evidence: a per-frame render/work
+value cannot be 112 ms / ~1300 ms while frames median 33 ms, so those two
+fields are treated as uninterpretable instrumentation rather than a
+render cost. Nothing here licenses a fix for the unaccounted cost; that
+is a separate item, not this one.
+
+Typecheck: `bun x tsc --noEmit -p client/tsconfig.json && bun x tsc
+--noEmit -p server/tsconfig.json` exited 0 (clean), run after the v28
+server edit below. Console errors: 0 on every probe response.
+
+Platform v28 upgrade (2026-11-03 Cloudflare viewer identity removal,
+applied in this run): `server/src/actions.ts` `viewerKey` no longer reads
+`viewerFbid` (no `viewerFbid`/`ownerFbid`/`displayName` reads remain
+anywhere in `server/src` or `client/src`). Owner check unchanged
+(`ctx.viewer?.isOwner === true` → `"owner"`); local viewers keep their
+unchanged `local:${userId}` key. Cloudflare shared-link non-owners can no
+longer be keyed to a private save row (no per-viewer identity exists), so
+they now return `null` and take the existing guest/session-only path
+(`loadGame` → no save + `canSave: false`; `saveGame`/`resetGame` →
+`ok: false` message) instead of a per-viewer row: no guard removed, no
+row identities merged, no caller-supplied ID substituted. The owner path
+(Andrew in the app) and the local non-owner path are unaffected. Owner /
+non-owner paths could not be exercised as distinct authenticated viewers
+in the sandbox probe (single local guest session), so the non-owner
+Cloudflare behavior is recorded as verified by code inspection +
+typecheck, not by a live non-owner probe.
