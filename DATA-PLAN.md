@@ -1533,3 +1533,88 @@ decals.
 Typecheck: `bun x tsc --noEmit -p client/tsconfig.json && bun x tsc
 --noEmit -p server/tsconfig.json` exited 0 (clean). Console errors: 0 on
 every probe response.
+
+## 2026-11-05 (midday) — Time the main canvas draw pass during sustained driving (instrumentation + measurement, NO FIX SHIPPED)
+
+SHA gate: pre-edit `client/src/App.tsx` SHA-256
+`5afcb9bebce6d8342ccababf0f36f25c743204df7dae997b2006c8f3e01bea4e`
+(1,075,068 bytes) — prefix `5afcb9be` matched, run proceeded. Post-edit
+SHA-256 `1228c4018cea80c6d839bb1a69fc2763ff69ed22f197bf6dd16e8a05c1125f95`
+(1,076,827 bytes); the delta is only the additive diagnostic instrumentation
+below. Typecheck `bun x tsc --noEmit -p client/tsconfig.json && bun x tsc
+--noEmit -p server/tsconfig.json` exited 0. Console errors: 0 on every probe
+response. Durable store untouched (audit scope: sandbox {game_save:1,
+perf_recordings:13} = durable {game_save:1, perf_recordings:13}); Save /
+Save & exit never clicked; persisted joystick/WASD toggle never touched.
+
+Instrumentation added (the brief's step-3 allowance — minimal, additive,
+through the existing perf HUD ring; no gameplay, terrain, texture, decal,
+audio, save-schema, or probe-tooling change): `DiagnosticFrame` gains
+`drawCalls` (the frame's instrumented canvas call count), `presentMs`
+(callback-to-callback hi-res frame time minus in-callback JS work — the
+rAF/present-scheduling remainder), and `unaccountedAfterDrawMs` (frame time
+minus the seven update timers minus the drawWorld render time).
+`DiagnosticSummary` gains `renderMax`, `drawCalls` p50/p95 + `drawCallsMax`,
+`present` p50/p95, and `unaccountedAfterDraw` p50/p95, surfaced in the DRIVE
+PROBE aria-label export and as four additive readout spans (UNACCT AFTER
+DRAW, DRAW MAX, DRAW CALLS, PRESENT) in the profiler's diagnostic grid —
+the only channel the probe can read; the gameplay HUD and canvas rendering
+are byte-identical in behavior.
+
+Method (audit `2026-11-05T10-40-38Z-742630988`): mobile viewport 390x844,
+full-resolution canvas, live gameplay. New Game, intro tapped through (3
+cards), profiler opened + expanded, MINIMAL MODE on (RENDER PASS 0.00 =
+lighting off), F9 `driveClean` staging ((8600,29000)->(13000,31600),
+Rustbucket speed 300; staging re-enables vehicles+decals as in prior runs).
+Two sessions measured: session 1 on the pre-grid build (ring fields read
+from the same DRIVE PROBE region) and session 2 on the final build with
+the new fields live. Live-gameplay captures with the profiler HUD:
+`observe-031.png` (leg A) and `observe-032.png` (leg B — Rustbucket on the
+Mosslight Meadow road in rain, Sunwraith boss bar, strip FPS 60 / AVG 16.7 /
+P95 16.7 / WORST 33.4).
+
+Results (600-frame rings):
+
+| Leg | Enemies active (start→end read) / total | FRAME p50 / p95 | OVER50 | DRAW (renderMs) p50 / p95 / max | Draw calls p50 / max | STREAM p50 / max · events | ACCOUNTED p50 / p95 | UNACCOUNTED p50 / p95 | UNACCT AFTER DRAW p50 / p95 | PRESENT p50 / p95 | WORK p50 / p95 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| S1 Leg A (fresh session) | 0 → 14 / 779 | 16.70 / 16.80 | 1 | 112.00 / 112.00 / — | — / — | 0.00 / 0.50 · 55 steps | — | 16.40 / 16.70 | — | — | 1280 / 1504 |
+| S2 Leg A (fresh session) | 0 → 3 / 780 | 16.70 / 16.80 | 0 | 112.00 / 112.00 / 112.00 | 75 / 248 | 0.00 / 0.40 · 40 steps | 0.20 / 0.50 | 16.40 / 16.60 | 0.00 / 0.00 | 0.00 / 0.00 | 1376 / 1632 |
+| S2 Leg B (region-crossing loops, rain) | 3 → 1 / 771 | 16.70 / 16.80 | 0 | 112.00 / 112.00 / 112.00 | 69 / 267 | 0.00 / 0.30 · 30 steps | 0.20 / 0.40 | 16.50 / 16.70 | 0.00 / 0.00 | 0.00 / 0.00 | 1216 / 1472 |
+
+HI-RES CHECK p50/p95: 16.70/20.50 (S2 A), 16.70/19.30 (S2 B). Chunk cache
+32 chunks / 54.7 MiB in both S2 legs; latest-frame chunk line repeatedly
+"0.00 ms / 0 steps / 0 finished", queue 0. Leg B's ring spans repeated
+route loops (Mosslight Meadow REGION 1/18 → Starfall Expanse and back via
+the diagnostic teleport reset) including a weather change to rain — no
+step change in any metric vs leg A: region-crossing frames are
+indistinguishable from steady-state frames in this data.
+
+Verdict: NO FIX SHIPPED — the FIX-IF gate does not open, for two reasons.
+(1) Neither session reproduced the 33.30 ms cadence: FRAME p50 was 16.70
+with 0–1 frames over 50 ms in 600, matching the Oct 22 08:34 baseline on
+the same route/staging. The 33.30 legs in the Nov 4/5 runs remain a
+probe-cadence phenomenon, not game code (same conclusion as the morning
+run; SHA-gated code is identical apart from the additive fields above).
+(2) The draw-pass timer itself is not a usable cost measure in the probe
+environment: `renderMs` reads a constant 112.00 ms (p50 = p95 = max) in
+every frame of every session and build, and WORK reads 1216–1632 ms,
+while 600 frames complete in ~10–22 s of wall time and the rAF interval
+medians 16.70 ms — a synchronous in-callback segment cannot exceed the
+frame interval that contains it, so these two `performance.now()` brackets
+are measuring something other than wall-clock JS duration in this
+environment (most plausibly the probe's virtualized/coarsened clock
+interacting with canvas raster waits). Because the draw timer alone
+over-accounts the whole frame, UNACCT AFTER DRAW and PRESENT clamp to
+0.00 — reported as measured, not interpreted as "draw costs nothing."
+What IS solid: per-frame draw-call counts are real (p50 69–75, max
+248–267/frame while driving, live strip 42–49 in rain at leg-B read,
+vs 162–295 cited in the Nov 4 brief), chunk streaming stays ≤0.50 ms max,
+the seven update timers stay ≤0.50 ms p95 accounted, and at the probe's
+60 fps cadence the frame budget is met with 0 over-50 frames. No genuine
+reproducible defect is proven by these numbers, so no draw-pass
+optimization, dynamic resolution, or quality change is licensed. Next
+bisect, if pursued, needs a clock the probe cannot distort (e.g. draw
+timing accumulated over many frames against `Date.now()` wall time, or a
+real-device session) — the current `performance.now()` per-frame brackets
+around drawWorld and the frame callback cannot arbitrate the 33 ms
+question inside the audit probe.
