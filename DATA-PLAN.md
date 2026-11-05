@@ -1692,3 +1692,80 @@ Durable rows paired pre/post: `game_save` 1, `perf_recordings` 13
 (total 14) before and after; all staging stayed in the sandbox
 database; no Save / Save & exit click, no control-scheme toggle, no
 profiler recording.
+
+## 2026-11-05 14:36 PT — Native-clock draw cost measured (diagnosis only, no fix)
+
+SHA gate: `client/src/App.tsx` SHA-256
+`7f4852b6f606e08722c8998250f4282f0b922b3fc6078961ab097b2821c46130`
+verified BEFORE and AFTER the run; byte-identical, gate passed both
+times. No game code, CSS, save schema, or asset change was made.
+
+Timer confirmation (brief step 1): `diagnosticNow()` returns
+`NATIVE_PERFORMANCE_NOW.call(performance)` where
+`NATIVE_PERFORMANCE_NOW = Performance.prototype.now` is captured at
+module load, bypassing any probe-clock override;
+`DIAGNOSTIC_CLOCK_SOURCE = "Performance.prototype.now"`. All 54
+`diagnosticNow()` reads — draw bracket (`drawStarted`/`renderMs`),
+lighting sub-timer, terrain/camera/entities/streaming/enemy/vehicle/
+HUD timers, and the frame bracket — go through it. The remaining
+`performance.now()` calls are gameplay timestamps, not profiler reads.
+No draw-timing read still uses a probe clock, so no fix was applied.
+Live DRIVE PROBE footer confirms: "Clock: Performance.prototype.now ·
+0.1000 ms observed resolution."
+
+Method (audit `2026-11-05T22-37-47Z-486944285`): mobile viewport
+390x844 DPR 1, full-resolution canvas. New Game, intro tapped through
+(3 cards), profiler opened + expanded, F9 `driveClean` staging
+((8600,29000)->(13000,31600), Rustbucket speed 300, no kills; staging
+re-enables vehicles+decals, MINIMAL MODE ends OFF as in prior runs).
+An earlier staging attempt in this session was discarded (truck
+wrecked at 315 frames after a mid-leg MINIMAL toggle); the legs below
+are from a clean re-stage with no post-staging toggles. Leg A =
+first full 600-frame ring (steady-state). Leg B = next 600-frame ring
+from continued driving over repeated route loops (Mosslight Meadow
+REGION 1/18 → Starfall Expanse and back via the diagnostic teleport
+reset, rain). Staged frames (handoff copies in
+`audits/handoff-2026-11-05T22-37-47Z/`):
+`legA-steady-state-driveClean-600f.png` (audit observe-012.png;
+Rustbucket at 300 SPD in Mosslight Meadow rain, Sunwraith bar, strip
+FPS 20 / AVG 50.7) and `legB-region-crossing-driveClean-600f.png`
+(audit observe-013.png; same drive later, coins 122 → 239 across the
+two reads).
+
+Results (600-frame rings, native clock):
+
+| Leg | FRAME p50/p95 | HI-RES p50/p95 | DRAW (renderMs) p50/p95/max | Draw calls p50/max | STREAM p50/max · events total | TERRAIN p50/p95 | VEHICLE p50/p95 | ENEMY p50/p95 | ACCOUNTED p50/p95 | UNACCOUNTED p50/p95 | UNACCT AFTER DRAW p50/p95 | PRESENT p50/p95 | WORK p50/p95 | OVER50 | CLAMPED |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A steady-state | 50.00/100.00 | 47.30/103.50 | 1.30/52.00/88.20 | 56/200 | 0.00/0.70 · 65 | 0.10/1.20 | 0.00/0.20 | 0.00/0.20 | 0.30/3.40 | 42.80/99.80 | 32.40/98.70 | 36.00/97.40 | 2.50/61.40 | 287 | 6 |
+| B region-crossing | 33.40/100.00 | 30.10/96.80 | 1.10/13.00/94.60 | 50/256 | 0.00/0.60 · 40 | 0.10/0.60 | 0.00/0.10 | 0.00/0.20 | 0.20/1.30 | 33.20/99.60 | 32.20/84.20 | 25.20/90.80 | 2.30/57.60 | 269 | 2 |
+
+Verdict: DRAW COST IS NOW REAL AND SMALL AT THE MEDIAN. The fixed
+timer produces varying, physically possible values — draw p50
+1.10–1.30 ms (vs the broken constant 112.00 at 02:34), draw max
+88.20–94.60 ms on spike frames, WORK p50 2.30–2.50 ms (vs the broken
+1216–1632). Draw does NOT dominate FRAME. What dominates FRAME in
+this session is PRESENT (p50 25.20–36.00 ms) / UNACCOUNTED
+(32.20–42.80 ms p50): this probe session ran at ~20 FPS (strip FPS
+20, FRAME p50 33.40–50.00 vs 16.70 at 02:34), while in-callback JS
+work stayed at 2.30–2.50 ms p50 — the frame interval is consumed
+outside the game's JS, in rAF/present scheduling of the probe
+environment, not in draw or update code. Cross-checks vs 02:34 all
+hold: draw calls p50 50–56 / max 200–256 (02:34: 69–75 / 248–267 —
+same range), STREAM max 0.60–0.70 (02:34: ≤0.50 max; same order),
+update timers ≤0.20 ms p95 (02:34: ≤0.50 p95). The FRAME/OVER50
+regression vs 02:34 (269–287 over 50 vs 0–1) tracks the PRESENT
+term, not any game timer. Per the brief, NO optimization is stacked
+here. Scoped for a later run, if pursued: the draw tail (p95
+13.00–52.00, max ~95 ms) lands on chunk-streaming frames (65/40
+stream events per ring) — candidate: first-blit cost of newly built
+chunk canvases; measure on a 60 FPS session (real device or a
+non-throttled probe) before touching draw code, because at p50 the
+entire draw pass costs ~1.2 ms.
+
+Typecheck `bun x tsc --noEmit -p client/tsconfig.json && bun x tsc
+--noEmit -p server/tsconfig.json` exited 0. Console errors: 0 on the
+audit envelope and every probe response. Durable store untouched
+(audit scope: sandbox {game_save:1, perf_recordings:13} = durable
+{game_save:1, perf_recordings:13}); Save / Save & exit never clicked;
+joystick/WASD toggle never touched; no profiler recording started
+(diagnostic rings only, as briefed).
