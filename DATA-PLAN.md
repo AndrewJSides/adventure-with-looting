@@ -1618,3 +1618,77 @@ timing accumulated over many frames against `Date.now()` wall time, or a
 real-device session) — the current `performance.now()` per-frame brackets
 around drawWorld and the frame callback cannot arbitrate the 33 ms
 question inside the audit probe.
+
+## 2026-11-05 — Tamsin shop panel measurement, staged frames delivered (no fix shipped)
+
+SHA gate: `client/src/App.tsx` SHA-256 prefix `4d24e011` verified BEFORE
+measurement (`4d24e011da2b06e6c87926bd7020136c12421fc35fb274713fa5daafe5fa6c4e`)
+and re-verified after; byte-identical, gate passed both times. No game
+code, CSS, save schema, asset, terrain, or probe change was made.
+
+Live session (audit `2026-11-05T15-37-16Z-266532955`, mobile viewport
+390x844, full-resolution canvas): New Game → "Stage Tamsin shop" audit
+control opened Tamsin's Frontier Supply in the sandbox session (999
+gold staged). STAGED LIVE FRAMES of the open panel, in this audit dir:
+`act-002.png` (shop opens), `observe-003.png` / `observe-004.png` …
+`observe-009.png` (panel open, identical geometry), `observe-011.png`
+(after Close shop, back in Greyhaven gameplay — Close verified working).
+This closes the standing attestation gap: the open-shop frames now exist
+in a delivered audit capture set alongside this record.
+
+Measured panel geometry (probe DOM bboxes [x,y,w,h], 390x844 CSS px;
+glyph bands from pixel scans of `observe-003.png`, cross-checked: the
+orange Close-button pixel rows y533–584 match the DOM box exactly):
+
+- Dialog `.tamsin-shop`: [0,63,390,540] (bottom edge y603, pixel-confirmed)
+- Eyebrow "TAMSIN'S FRONTIER SUPPLY" glyphs: x22–215, y80–87
+- "999 GOLD" glyphs: x308–366, y83–90 (horizontally disjoint from eyebrow)
+- h2 "Armor, traps, and keys.": [22,102,262,28]
+- Scroll area `.merchant-scroll` (derived): x≈20–370, y136–533 (h≈397)
+- h3 "Town stock": [22,136,344,23]
+- Greyhaven Plate row: [22,165,344,62] — height 62
+- Snare Trap row: [22,233,344,77] — height 77 (detail wraps to 2 lines)
+- Iron Key row: [22,317,344,62] — height 62
+- Gold Key row: [22,385,344,62] — height 62
+- h3 "Why this stock?": [22,457,344,23]
+- Sentence paragraph: top border rule y485 (full width x22–366);
+  line 1 glyphs y500–510, x41–347 ("Maro travels light. Greyhaven keeps
+  siege gear and keys for"); line 2 glyphs y517–527, x156–230
+  ("the city blocks.")
+- Close shop button: [35,533,320,52] — height 52
+
+Hypothesis checks: (1) tap-target heights — all four stock rows
+62/77/62/62 and Close 52, every one ≥44px: PASS. (2) Clipped-text check
+— the full sentence "Maro travels light. Greyhaven keeps siege gear and
+keys for the city blocks." is painted completely on two lines, final
+period and descenders intact, glyph bottom y527, 6px clear of the
+scrollport's visible bottom edge (y533); probe `clipped_nodes` lists no
+panel element (only the off-canvas 1x1 status toast present on every
+frame) and `text_issues` is empty: PASS. (3) Pairwise overlap matrix —
+55 pairs across the 11 measured panel elements, 0 intersections with
+area >0 (vertical gaps: rows separated by 6–7px; paragraph visible
+bottom y533 exactly touches Close top y533, zero-area contact between
+different containers, not an overlap): PASS. (4) Close control 52px
+≥44: PASS. The audit-only "Show audit panels" button [8,104,105,44]
+overlays the h2 in audit-path frames only; it does not exist on the
+player route (unchanged standing note).
+
+One disclosure, measured not hidden: the sentence paragraph's
+decorative 1px bottom border rule (`.merchant-empty` border-block) sits
+at ≈y540, ~7px below the scrollport's visible bottom edge at the open
+state — inside the panel's designed scroll overflow (`.merchant-scroll`
+is `overflow-y:auto`); no text, control, or content is below the fold
+with it. The probe's scroll action did not move the scrollport
+(`needs_inner_scroll: 0` reported; same probe-scroll limitation noted
+in earlier entries), so scroll-reachability was established from the
+CSS/geometry, not from a probe scroll. This is not a clipped sentence,
+not an overlap, and not an undersized target, so the FIX-IF gate does
+not open.
+
+FIX-IF verdict: NO FIX SHIPPED. The hypothesis holds on every measured
+claim; `App.tsx` and `theme.css` remain byte-identical. Console errors:
+0 on the audit envelope and on every probe response in the session.
+Durable rows paired pre/post: `game_save` 1, `perf_recordings` 13
+(total 14) before and after; all staging stayed in the sandbox
+database; no Save / Save & exit click, no control-scheme toggle, no
+profiler recording.
