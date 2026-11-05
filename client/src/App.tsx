@@ -2812,7 +2812,7 @@ export function App(){
     type Density={hits:number;samples:number;density:number};
     type ProbeResult={name:string;x:number;y:number;grid:Density;offset:Density};
     type ProbeReport={buildId:string;viewport:{width:number;height:number;devicePixelRatio:number;canvasWidth:number;canvasHeight:number};parameters:{latticeWorldUnits:number;offsetWorldUnits:number;stripWidthPixels:number;grayscale:string;gradient:string;threshold:number};probes:ProbeResult[];pooled:{grid:Density;offset:Density}};
-    const fixedProbes=[{name:"Ember south",x:23400,y:33550},{name:"Ember interior",x:23400,y:31400},{name:"Silverrun",x:10400,y:21200},{name:"Harlan",x:30600,y:4600},{name:"Starfall",x:13000,y:31600}] as const;
+    const fixedProbes=[{name:"Ember south",x:23400,y:33550},{name:"Ember interior",x:23400,y:31400},{name:"Silverrun",x:10400,y:21200},{name:"Harlan",x:30600,y:4600},{name:"Starfall",x:13000,y:31600},{name:"Cinder Scar",x:21000,y:24800}] as const;
     const target=window as typeof window&{__AWL_RUN_LATTICE_DENSITY_PROBE__?:()=>Promise<ProbeReport>;__AWL_READ_LATTICE_DENSITY_PROBE__?:()=>ProbeReport|null};
     let lastReport:ProbeReport|null=null;
     const nextFrame=()=>new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));
@@ -2838,7 +2838,7 @@ export function App(){
     output.setAttribute("aria-live","polite");
     output.style.cssText="position:fixed;left:8px;right:8px;bottom:128px;z-index:10001;max-height:40vh;overflow:auto;padding:6px;background:#050807;color:#c9ffd0;font:9px/1.25 monospace;white-space:pre-wrap;opacity:.96;pointer-events:none";
     output.textContent="LATTICE DENSITY · ready";
-    run.onclick=()=>{const invoke=target.__AWL_RUN_LATTICE_DENSITY_PROBE__;if(!invoke){output.textContent="LATTICE DENSITY · probe unavailable";return;}run.disabled=true;output.textContent="LATTICE DENSITY · running five fixed coordinates…";void invoke().then(report=>{output.textContent=`LATTICE DENSITY ${JSON.stringify(report)}`;}).catch(error=>{output.textContent=`LATTICE DENSITY · ${error instanceof Error?error.message:"probe failed"}`;}).finally(()=>{run.disabled=false;});};
+    run.onclick=()=>{const invoke=target.__AWL_RUN_LATTICE_DENSITY_PROBE__;if(!invoke){output.textContent="LATTICE DENSITY · probe unavailable";return;}run.disabled=true;output.textContent="LATTICE DENSITY · running six fixed coordinates…";void invoke().then(report=>{output.textContent=`LATTICE DENSITY ${JSON.stringify(report)}`;}).catch(error=>{output.textContent=`LATTICE DENSITY · ${error instanceof Error?error.message:"probe failed"}`;}).finally(()=>{run.disabled=false;});};
     controls.append(run);document.body.append(output);
     return()=>{run.remove();output.remove();};
   },[]);
