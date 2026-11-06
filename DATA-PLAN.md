@@ -3218,3 +3218,24 @@ VERDICT B: the probe's final resample is EXONERATED (fifth exoneration) — at b
 OVERALL VERDICT: NEITHER. Both remaining named inside-tile candidates are ruled out. Per the FIX-IF gate, NO fix was implemented; the planned next probe (logged for a later run, not built): (1) Mosslight — profile ALL FOUR visible chunks and add a ground-only backing capture (entities/trees/lighting suppressed by audit flags) to localize the chunk→backing segment where its band appears; (2) Frostfall — ablate the chunk composite layer by layer (fallback lattice only / region lattice only / region tint map suppressed) since the band is already in the finished chunk but is not the variant photo, not the feathered cell, and not the lattice downscale; the region tint map (GROUND_REGION_TINT_SCALE, .45 alpha) and the fallback+region composite are the untested inside-chunk candidates.
 
 Staged probe frames (audit dir audits/2026-11-06T20-41-44Z-862784186/): observe-014.png (post-probe Mosslight staged view, TILING report in panel — verified visually: meadow terrain, road, trees, MELEE button, no center banner), act-009.png / observe-016.png (Frostfall deep center staged, panels up), act-010.png (Frostfall deep center staged, panels collapsed — verified visually: snow terrain, road, snow pines, player, joystick + DASH/MELEE, no center banner).
+
+## 2026-11-06 13:36 PT — Pause-menu below-fold pointer-drag live measurement (diagnosis-only, no fix)
+
+SHA gate: App.tsx pre-edit prefix 15b6ccac CONFIRMED (full pre 15b6ccacae4afe83934f…). Only change shipped: minimal audit-only probe wiring — a host-gated (artifact-capture.invalid or /hatch-audit- path) useEffect adding window.__AWL_PAUSE_DRAG_PROBE__ on F1. Each F1 press measures all .pause-overlay buttons intersecting the overlay viewport (content-space rects), scans leaf text nodes for scroll>client overflow, then dispatches ONE synthetic touch PointerEvent drag (pointerdown y=640, pointermove steps to y=340, pointerup, pointerType "touch", pointerId 9917) on the overlay so the game's OWN document pointer-drag handler performs the scroll; results render into an <output id="awl-pause-drag-audit">. Pressing F1 with no overlay open resets accumulated state (used between legs). No gameplay/HUD/audio/save-schema/default change. Post-edit App.tsx SHA 8dad962eb4716eb06bf71329a428bb341a77c417a5efd9e61099dfa0019edef0. Build (incl. strict typecheck) passed.
+
+Method: 390x844 DPR 1 probe, fresh New Game, intro tapped through, Pause opened. Three drags per leg scrolled scrollTop 0->300->600->707 (max=707; overlay 390x540, scrollHeight 1247, clientHeight 540). Day leg at natural day; night leg via the existing Ctrl+Shift+Digit4 scene setter (NIGHT 21:36, Greyhaven) after an F1 reset. Console errors: [] on every observe in both legs.
+
+RESULTS — identical in day and night, all 18 panel-native controls >=44px in both dimensions, OVERLAPS 0, CLIPPED 0 (both legs):
+- Equip Pipe Bomb 44x44 @31,439 · Equip Molotov 44x44 @81,439 · Equip Bile Jar 44x44 @131,439
+- CRAFT 3+1 72.2x44 @31,508 · CRAFT 1+2 72.2x44 @109.2,508 · CRAFT 2+1 72.2x44 @187.4,508
+- Use on-screen joystick 128.1x44 @98.7,682.5 · Use WASD or arrow keys 128.1x44 @231.9,682.5
+- Hardcore toggle (NEXT NEW GAME) 320x54 @35,743.5
+- Blood moon every 2/3/4/5/6 nights: 58x44 @40/103/166/229/292,837
+- Options 320x50 @35,970 · Resume 320x50 @35,1029 · Save 320x50 @35,1088 · Save & exit 320x50 @35,1146
+(Positions are content-space: x,y relative to overlay top-left + scrollTop.)
+
+NOT measured: overwrite-confirm dialog buttons (Cancel / Overwrite save) — the dialog only opens via the Save button, and this run's constraints forbade clicking Save / Save & exit; Overwrite save was never clicked. Joystick/WASD toggle never clicked (setting unchanged, JOYSTICK still selected in frames). No profiler recording started. Sandbox-only: durable-store counts before = after (game_save 1, perf_recordings 13; total 14).
+
+VERDICT: PASS, no findings — the below-fold pause controls are confirmed live at >=44px with zero overlaps and zero clipped text, day and night. Nothing logged for a fix-if run. The F1 PAUSEDRAG hook stays as audit-only wiring for future runs.
+
+Staged frames (audits/pause-drag-probe-2026-11-06/, copied from audit session audits/2026-11-06T21-44-21Z-619875180/): day-pause-top.png, day-pause-drag1-controls.png (joystick/WASD + hardcore exposed), day-pause-drag2-bloodmoon-options.png (blood-moon 2-6 + Options/Resume/Save exposed), day-pause-bottom-save-exit.png (scrollTop 707, Save & exit exposed), night-pause-top.png, night-pause-drag1-controls.png, night-pause-drag2-bloodmoon-options.png, night-pause-bottom-save-exit.png.
