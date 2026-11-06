@@ -2044,3 +2044,120 @@ profiler recording started (diagnostic rings only, as briefed).
 Preserved behaviors verified in session: driving on the diagnostic
 route, full-resolution textured canvas, touch joystick + context
 buttons with reserved slots, no center banner.
+
+## 2026-11-05 22:35 PT — Frostfall strip analysis (diagnosis only, NO FIX SHIPPED)
+
+Follow-up to the 19:34 lattice probe (grid-density 1.7125% vs offset-density
+1.6703% — square-look elevation NOT lattice-specific). This run tests the
+strip hypothesis directly: do visible hard edges align to (a) ground-chunk
+edges (640u), (b) the feathered texture lattice (512u grid,
+BIOME_TEXTURE_STRIDE), or (c) the raw texture lattice (same 512u grid offset
+256u, drawn under the feathered pass in `drawTextureLattice`)?
+
+Method (stated exactly; same strip/threshold as prior biome probes):
+scripted staged gameplay in the audit probe session — NOT the title menu —
+mobile viewport 390×844, screenshot DPR 1 (PNG 390×844), full-resolution
+canvas 390×540 CSS px at canvas bbox [0,101,390,540], textures active,
+timeOfDay .38 (day), clear. Staging used the existing audit-only
+`__AWL_SHOW_FROSTFALL_DEEP__` hook: center (21600,4700), northwest
+(21000,4100), southeast (22200,5300); all audit panels hidden before
+capture; 0 console errors on every probe response. Camera = player −
+(360,500), zoom 1; screen scale 390/720 = 0.5417 px/unit (x), 540/1000 =
+0.54 px/unit (y). Step at a line = |Rec.601 luma at band+2 − luma at
+band−2| (5 px strip); a hit is step > 30/255. Per candidate line: hit
+count/% over a clean row/col band, median/mean/p90/max step, vs control
+lines offset ±28 px. Family lines were chosen per stage so the three
+families land on distinct screen lines (NW stage separates all three in
+x: raw col 52, feathered col 191, chunk col 260). Pitch measured by
+autocorrelation of the mean-step column/row profiles (lags 40–379 /
+40–499 px); candidate pitches: chunk 640u = 347 px, stride 512u = 277 px,
+half-stride 256u = 139 px. Staged frames in audit dir
+`audits/2026-11-06T06-37-00Z-225743420/`: `probe-frostfall-strip-center.png`,
+`probe-frostfall-strip-northwest.png`, `probe-frostfall-strip-southeast.png`,
+plus `probe-frostfall-strip-nw-chunk-col260-crop.png` (attribution crop).
+
+Geometry first: all three staged views lie entirely inside the Frostfall
+replacement-mask plateau. Region radius 2200, feather
+min(radius*.42, 720) = 720, so mask alpha is saturated inside radius 1480
+of (21600,4700); the farthest staged view corner sits 1460 from center.
+Biome-boundary strips crossing the staged frames: 0 by construction — the
+boundary feather (1480–2200 annulus) never enters any staged view, so no
+boundary hard-edge segments exist to count in-frame.
+
+Vertical candidates (hits over clean rows; controls = ±28 px lines):
+- Center: raw x=21248 col 4 — 15/232 (6.5%), median 1.6 vs controls 0.7 /
+  hit% 9.5. Feathered x=21504 col 143 — 12/232 (5.2%), median 0.6 vs 0.3 /
+  6.7%. Raw+chunk x=21760 col 282 (confounded) — 0/232 (0.0%), median 0.6.
+- Northwest: raw x=20736 col 52 — 18/261 (6.9%), median 0.4 vs 0.6 / 1.1%.
+  Feathered x=20992 col 191 — 0/71 (0.0%), median 0.3, max step 1.0 (the
+  cleanest line measured). Chunk x=21120 col 260 — 17/71 (23.9%), median
+  1.0, mean 13.4, p90 44.4 — ATTRIBUTED, not a seam: the attribution crop
+  shows this column's measurement band (canvas rows 360–430) crosses the
+  waterfall icicle tips and a snow pine's foliage/snow-cap/shadow edges;
+  the open snow at that column in the crop shows no vertical line.
+  Raw x=21248 col 329 — 9/261 (3.4%), median 0.6 vs 0.6 / 2.5%.
+- Southeast: feathered x=22016 col 95 — 26/292 (8.9%), median 0.0 vs 0.2 /
+  7.9%. Raw x=22272 col 234 — 25/292 (8.6%), median 1.0 vs 0.9 / 18.3%.
+  Chunk x=22400 col 303 — 4/292 (1.4%), median 0.7 vs controls median 3.0 /
+  16.8% (line BELOW its controls). Feathered x=22528 col 373 — 25/292
+  (8.6%), median 0.9 (frame-edge content: status rail + pine).
+
+Horizontal candidates:
+- Center: raw y=4352 — 2/231 (0.9%). Chunk y=4480 — 0/231 (0.0%), median
+  0.0, max 22.0. Feathered y=4608 — 5/231 (2.2%) vs controls 8.0%. Raw
+  y=4864 — 0/231 (0.0%). Feathered+chunk y=5120 (confounded) — 9/117
+  (7.7%) vs controls 7.3% (parity).
+- Northwest: raw+chunk y=3840 (confounded) — 0/161 (0.0%), max 2.0.
+  Feathered y=4096 — 0/161 (0.0%). Raw y=4352 — 0/161 (0.0%). Chunk
+  y=4480 — 0/71 (0.0%), max 1.5.
+- Southeast: raw y=4864 — 10/161 (6.2%) vs controls 24.5%. Feathered+chunk
+  y=5120 (confounded) — 8/161 (5.0%), median 0.1. Raw y=5376 — 7/161
+  (4.3%) vs controls 18.0%. Feathered y=5632 — 12/161 (7.5%), median 1.0.
+  Chunk y=5760 — 0/51 (0.0%), max 2.0.
+
+Pitch (autocorrelation of mean-step profiles): NO peak at any candidate
+pitch in any stage — nothing at 347 px (chunk 640u), 277 px (stride
+512u), or 139 px (half-stride 256u) above r = 0.05 in either axis.
+Column-profile top peaks: center lag 129 px (238u) r = 0.24; NW lag
+228 px (421u) r = 0.19; SE lag 129 px (238u) r = 0.23 — mutually
+inconsistent, none matches a tiling pitch. Row-profile top peak is the
+same in all three stages: lag 42–44 px = 78–81 world units, r = 0.40 /
+0.29 / 0.27 (center / NW / SE). Striping index (share of columns with
+mean step > 2× the profile median): center 24.4%, NW 34.1%, SE 11.0%;
+rows: 27.2% / 36.3% / 31.9% — feature content (drifts, arcs, trees,
+waterfall), not aligned strips, per the candidate-line results above.
+
+READING: the strip hypothesis is REFUTED as the square-look source. No
+chunk edge, feathered-lattice line, or raw-lattice line carries a
+reproducible hard-edge elevation over its ±28 px controls in any stage;
+the single elevated candidate (NW chunk col 260) is proven feature
+content by crop. Strip width/pitch vs tile size: the tiling system's
+only pitches are 512u (stride) and 640u (chunk) with a 256u raw/feathered
+phase offset, and none imprints on the rendered pixels. The one
+reproducible periodic signal is a ~80u ROW rhythm (lag 42–44 px,
+r 0.27–0.40, all stages) that matches NO renderer pitch (not 512/256/
+640, not the 61.4u feather ramp, not the 32u tint cell) — logged as an
+open signal, not a proven cause: it has no candidate-line expression
+(every measured family row is flat), so there is nothing to aim a
+feather fix at.
+
+FIX-IF gate: NOT met — no single proven cause. NO FIX SHIPPED; App.tsx
+byte-identical (SHA-256 401f34d04b1b… pre AND post). Planned next probe
+(logged only): isolate the ~80u row rhythm — stage the same Frostfall
+view with the special-terrain overlay phase excluded vs included (the
+rhythm is rows-only, and `drawFrostfallTerrain`'s 44 snow-drift ellipses
+and ice arcs are the only row-structured overlay), and repeat the row
+autocorrelation in a non-Frostfall biome to test whether the rhythm is
+Frostfall-overlay-specific or texture-photo-internal. No feathering
+change is attempted until one cause is proven by numbers.
+
+Durable store untouched: before AND after, perf_recordings = 13 rows
+(ids 1–13) and game_save load = null in sandbox scope; audit scope
+reports sandbox {game_save:1, perf_recordings:13} = durable
+{game_save:1, perf_recordings:13}. Typecheck `tsc --noEmit -p
+client/tsconfig.json` exit 0. Save / Save & exit never clicked;
+joystick/WASD toggle never clicked; no profiler recording started
+(diagnostic staging only, as briefed). Preserved behaviors verified in
+session: full-resolution textured canvas, touch joystick + context
+buttons with reserved slots, no center banner, pause-menu control
+scheme toggle untouched.
