@@ -2309,3 +2309,105 @@ recording started (diagnostic rings only, as briefed). Preserved
 behaviors verified in session: driving on the diagnostic route
 with fully textured streamed terrain at full resolution, touch
 joystick + context buttons with reserved slots, no center banner.
+
+## 2026-11-06 00:36 PT — Frostfall row-rhythm isolation probe (diagnosis only, NO FIX SHIPPED)
+
+Executes the planned probe logged at the end of the 22:35 strip analysis:
+isolate the open ~80 world-unit row rhythm (row-profile autocorrelation top
+peak lag 42–44 px = 78–81u, r = 0.40 / 0.29 / 0.27 center / NW / SE) by
+staging the same three Frostfall views with the special-terrain overlay
+phase excluded vs included, plus one non-Frostfall control.
+
+SHA gate: App.tsx SHA-256 BEFORE
+`401f34d04b1b4fad11187b12b033201b316051118e752061150c9e0e4b762c7f`
+(prefix `401f34d0` confirmed — gate passed; the stale Oct 22 SHA in
+AGENTS.md was not used). POST `0820364acd1d826db0d921a8f405d756b8036297a9b5d4b435dd5120997d2575`:
+the delta is ONLY the minimal audit-only instrumentation below, shipped as
+briefed. No terrain/texture/gameplay/HUD/audio/save-schema change; no
+feathering change.
+
+Instrumentation shipped (audit-only, gated to artifact-capture.invalid OR
+/hatch-audit-, never installed on the player route, inert in normal play):
+(1) module flag `auditExcludeFrostfallOverlay` (default false) beside
+`auditFrostfallDeepBypass`; (2) one guard in `stepGroundChunk`'s special
+phase — `else if(!auditExcludeFrostfallOverlay)drawFrostfallTerrain(ctx)` —
+so chunk building skips the whole overlay (ice gradient, 14 ice arcs,
+waterfall, 44 snow-drift ellipses) only while the flag is set; (3) probe
+hook `__AWL_RUN_ROW_RHYTHM_PROBE__` / `__AWL_READ_ROW_RHYTHM_PROBE__` /
+`__AWL_SET_FROSTFALL_OVERLAY_EXCLUDED__` plus a small panel (Run / Overlay
+off / Overlay on / Hide) mirroring the lattice-density probe panel. The run
+stages center (21600,4700), NW (21000,4100), SE (22200,5300) via the
+existing `__AWL_SHOW_FROSTFALL_DEEP__` hook in both overlay states, then
+Ember Wastes interior (23400,31400) as the non-Frostfall control, settling
+180 frames per leg (same settle as the lattice probe).
+
+Method note (differs from the 22:35 run in one respect, stated exactly):
+the 22:35 autocorrelation was computed offline on captured 390×844
+screenshots; this run samples the canvas element directly in-page
+(390×540, canvas rows 2..537, profile n = 536), Rec.601 luma, per-row mean
+of |L(y+2) − L(y−2)| over all canvas columns (same 5 px strip), Pearson
+autocorrelation lags 40–499 px, viewport 390×844 DPR 1, timeOfDay .38,
+clear. Absolute r magnitudes are therefore not directly comparable across
+runs; the controlled comparisons are within-run (overlay in vs out per
+view; Frostfall vs Ember).
+
+Results (topLag / topR = max r over lags 40–499; r42–r44 = r at the prior
+run's peak lags):
+- Center IN: top 499 / 0.474; r42 0.230, r43 0.209, r44 0.188.
+  Center OUT: top 276 / 0.827; r42 0.011, r43 −0.048, r44 −0.088.
+  ΔtopR (out − in) = +0.353.
+- NW IN: top 437 / 0.472; r42 0.012, r43 0.027, r44 0.037.
+  NW OUT: top 276 / 0.866; r42 −0.083, r43 −0.175, r44 −0.217.
+  ΔtopR = +0.394.
+- SE IN: top 481 / 0.442; r42 0.037, r43 0.063, r44 0.086.
+  SE OUT: top 491 / 0.651; r42 −0.110, r43 −0.147, r44 −0.184.
+  ΔtopR = +0.209.
+- Ember control (overlay n/a): top 479 / 0.531; r42 0.289, r43 0.262,
+  r44 0.232.
+
+READING: the overlay hypothesis is REFUTED and the rhythm is NOT
+Frostfall-specific. (1) In no view and no overlay state is 42–44 px the
+top autocorrelation lag; overlay-IN r at 42–44 is weak (center 0.19–0.23,
+NW 0.01–0.04, SE 0.04–0.09) and overlay-OUT collapses it to ≤ 0.01 /
+negative everywhere — if the 44 drift ellipses and ice arcs imprinted the
+rhythm, inclusion would carry a strong 42–44 peak and exclusion would
+remove it; neither happens. (2) The Ember Wastes control carries
+r42–r44 = 0.29 / 0.26 / 0.23, the same band as the prior run's Frostfall
+values and stronger than any Frostfall view this run — the ~80u row
+correlation exists in a second photo-textured biome with no Frostfall
+overlay at all, i.e. it is texture-photo-internal (or method-level), not
+overlay-caused. (3) New signal: with the overlay excluded, center and NW
+top peaks land at lag 276 px = 511 world units ≈ the 512u texture stride
+(r 0.827 / 0.866) — once the overlay's broad ice gradient stops masking
+it, the photo lattice's own pitch dominates the row profile; overlay-IN
+top lags are long-lag broad-gradient correlation (437–499, r 0.44–0.47),
+not a discrete pitch. The overlay-out handoff frames also show the source
+photo's mirrored tiling directly.
+
+FIX-IF gate: NOT met for any overlay, feathering, or texture change —
+no fix shipped. If pursued further, the next probe is per-texture
+source-photo analysis (autocorrelate the raw biome PNGs), not a renderer
+change.
+
+Staged handoff frames in audit dir `audits/2026-11-06T08-43-54Z-842181372/`:
+`probe-row-rhythm-center-overlay-in.png`, `probe-row-rhythm-center-overlay-out.png`,
+`probe-row-rhythm-northwest-overlay-in.png`, `probe-row-rhythm-northwest-overlay-out.png`,
+`probe-row-rhythm-southeast-overlay-in.png`, `probe-row-rhythm-southeast-overlay-out.png`,
+`probe-row-rhythm-ember-interior.png` (all panels hidden before capture;
+overlay-out center frame verified visually: no drifts, arcs, waterfall,
+or ice gradient; overlay-in center frame shows all four).
+
+Durable store untouched: before AND after, perf_recordings = 13 rows
+(ids 1–13) and game_save load = null in sandbox scope; audit scope
+reports sandbox {game_save:1, perf_recordings:13} = durable
+{game_save:1, perf_recordings:13}. Typecheck `tsc --noEmit -p
+client/tsconfig.json` exit 0. Console errors: 0 on every probe response
+in the session. Save / Save & exit never clicked; joystick/WASD toggle
+never clicked; no profiler recording started. Disclosure: the sandbox
+save's pending region-clear relic modal occluded the staged frames, so
+two TAKE clicks (Crucible Carapace, later Warden's Hunger) were made
+inside the sandbox audit session only to dismiss it; no durable row
+changed (counts above). Preserved behaviors verified in session:
+full-resolution textured canvas (390×540 at [0,101,390,540] in play),
+touch joystick + context buttons with reserved slots, no center banner,
+pause-menu control-scheme toggle untouched.
