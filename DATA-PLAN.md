@@ -2909,3 +2909,281 @@ toggle never clicked; no profiler recording started (probe legs
 only). Preserved behaviors verified in session: full-resolution
 canvas (390×540), touch joystick + tap targets with reserved slots,
 no center banner, no dynamic resolution.
+
+## 2026-11-06 10:37 PT — Variant-canvas vs blit-scale discrimination probe: blit-1:1 leg NULL at both views, variant canvases carry NO rhythm at the band's physical period — verdict NEITHER; the in-chunk lattice draw downscale (1024→512) is the remaining inside-tile candidate
+
+Follow-up to the 08:37 feather discrimination: feathering
+exonerated, the two named remaining inside-tile paths were (a) the
+texture-variant canvas generation/downscale chain and (b) the
+ground-chunk blit scaling. This run authorized the one missing
+instrument for (b) — an audit-only flag forcing the ground-chunk →
+screen blit to exactly 1:1 — plus an Arm A profile computed directly
+on the generated variant canvases.
+
+SHA gate: App.tsx SHA-256 BEFORE
+`a9f8da884b4ac6b6d00a9b19cd29aa9ae9fe4aae7738297ea9683a4aea3e3a20`
+(prefix `a9f8da88` confirmed live before editing — gate passed).
+POST `e7cf9af85567cf2e2987680673ebb533b94c2d03f543ecff8ac5a57752ba1592`
+(prefix `e7cf9af8` — NEW gate baseline for the next run). The delta
+is ONLY the audit-only instrumentation below. No texture, gameplay,
+HUD, audio, or save-schema change; no player-facing behavior
+change; the normal blit branch is byte-identical when the flag is
+false.
+
+Instrumentation shipped (audit-only, gated to
+artifact-capture.invalid OR /hatch-audit- — the same effect gate as
+the tiling probe — never installed on the player route, inert in
+normal play): (1) module flag `auditBlit1To1` (default false)
+beside `auditSingleTileFeatherOff`; (2) in `drawGroundTexture`'s
+chunk blit only, when the flag is on the chunk is composited
+through an identity device transform (destination origin =
+current-transform-mapped chunk origin rounded to whole device
+pixels, destination size = chunk canvas size, smoothing already
+off) — a pure 1:1 device-pixel copy with no resampling; (3)
+`__AWL_SET_BLIT_1TO1__(enabled)` setter beside
+`__AWL_SET_FEATHER_OFF__` (blit is per-frame, so no chunk-cache
+reset), Blit 1:1 on / Blit 1:1 off panel buttons, and a FOURTH leg
+in `__AWL_RUN_TILING_PROBE__`'s per-view measure (`singleTileBlit1To1`,
+with `deltaBlitTopR` / `deltaBlitR42` / `deltaBlitR276` vs the
+feather-ON single-tile leg); (4) Arm A: the report gains
+`variants[]` — the same Rec.601 row-profile autocorrelation
+computed directly on the generated RAW variant canvas
+(`buildTextureVariants` output index 0, pre-blit, pre-feather) for
+region 12 (Frostfall) and region 1 (Mosslight), including
+`rMatch42/43/44` at the variant-canvas lags corresponding to the
+rendered 42/43/44 px lags (matchLag = round(renderedLag ×
+(VIEW_H / canvasCssHeight) × (canvasSize / 512)) = lags 156/159/163
+this run), and the viewport block gains backingWidth/backingHeight.
+Method otherwise identical to the 05:36/08:37 runs: 390×844 DPR 1,
+canvas CSS 390×540, backing 720×1000, timeOfDay .38, clear,
+180-frame settle per leg, chunk cache reset per leg, Frostfall
+overlay EXCLUDED in all arms, Rec.601 luma, per-row mean
+|L(y+2) − L(y−2)|, Pearson lags 40–499, r276 reported. Report
+build `33b3631552fd-20261106T184635895Z`.
+
+Results (topLag / topR = max r over lags 40–499; long-lag tops are
+envelope correlation per the 05:36 caveat — decisive statistics are
+r42–r44, r276, and the matched-lag variant r):
+- Frostfall center MULTI (overlay out): top 276 / 0.828; r42
+  0.011, r43 −0.046, r44 −0.085; r276 0.828. Reproduces 08:37
+  (276 / 0.829; 0.013 / −0.044 / −0.082; 0.829).
+- Frostfall center SINGLE feather-ON: top 499 / 0.534 (envelope);
+  r42 0.346, r43 0.333, r44 0.327; r276 −0.522. Reproduces the
+  brief's BEFORE numbers (0.351 / 0.335 / 0.326) — method
+  validated a third time.
+- Frostfall center SINGLE feather-OFF: top 492 / 0.647; r42
+  0.496, r43 0.490, r44 0.488; r276 −0.614. Band rises feather-off
+  again (08:37: 0.486 / 0.478 / 0.475) — feather stays exonerated.
+- Frostfall center SINGLE blit-1:1 (Arm B): top 476 / 0.555; r42
+  0.349, r43 0.333, r44 0.324; r276 −0.513. Deltas vs feather-ON
+  single-tile: Δr42 +0.002, ΔtopR +0.021, Δr276 +0.010 — NULL.
+  Forcing the chunk → screen blit to an exact 1:1 device-pixel
+  copy does not move the band at all.
+- Mosslight center MULTI: top 418 / 0.430; r42 0.272, r43 0.265,
+  r44 0.247; r276 −0.047 (08:37: 418 / 0.420; 0.253 / 0.243 /
+  0.232; −0.047).
+- Mosslight center SINGLE feather-ON: top 493 / 0.857; r42
+  0.374, r43 0.368, r44 0.360; r276 0.004. Reproduces the brief's
+  BEFORE numbers (0.373 / 0.367 / 0.360) essentially exactly.
+- Mosslight center SINGLE feather-OFF: top 493 / 0.857; r42
+  0.357, r43 0.351, r44 0.346; r276 0.419 (08:37: identical to
+  0.001 on r42–44).
+- Mosslight center SINGLE blit-1:1 (Arm B): top 493 / 0.857; r42
+  0.372, r43 0.366, r44 0.358; r276 0.009. Deltas: Δr42 −0.002,
+  ΔtopR 0.000, Δr276 +0.004 — NULL.
+- Arm A, Frostfall variant canvas (region 12, 1024×1024, raw):
+  top 447 / 0.362 (long-lag envelope); literal r42 0.005, r43
+  0.006, r44 −0.008; r276 0.085. At the band's physical period on
+  the variant canvas (matched lags 156/159/163): r −0.108 /
+  −0.127 / −0.153 — NEGATIVE, same sign as the raw-photo arm
+  (−0.172 / −0.240 / −0.282). The generated Frostfall variant does
+  NOT carry the rhythm at any relevant lag.
+- Arm A, Mosslight variant canvas (region 1, 1024×1024, raw):
+  top 40 / 0.549 — the scan-window EDGE, with literal r42 0.543,
+  r43 0.534, r44 0.523 decaying monotonically from lag 40: the
+  signature of broad smooth low-frequency content (short-lag
+  envelope correlation), NOT a periodic rhythm — those lags are
+  variant-canvas pixels, i.e. ~11 rendered px / ~21 world units,
+  1/3.7 of the band's scale. At the band's physical period
+  (matched lags 156/159/163): r −0.178 / −0.174 / −0.180 —
+  NEGATIVE. r276 −0.126. The generated Mosslight variant does NOT
+  carry the rhythm at the band's period either.
+
+VERDICT: NEITHER. (b) Blit scaling is RULED OUT: an exact 1:1
+blit changes r42 by ≤0.002 at both views — the band is indifferent
+to the blit (unsurprising in hindsight: at zoom 1 / renderScale 1
+the stock blit is already a whole-pixel 1:1 copy with smoothing
+off, and the flag proves it). (a) Variant generation/downscale is
+RULED OUT as the carrier: neither variant canvas holds positive
+correlation at the band's physical period (both matched-lag r
+negative, −0.11…−0.18, photo-arm-like). The rhythm therefore
+enters BETWEEN the variant canvas and the finished frame, in a
+step neither arm toggled: the remaining inside-tile candidate is
+the LATTICE DRAW inside chunk building — `drawTextureLattice`
+draws the 1024px variant into a 512-device-px cell on the 640px
+chunk canvas (a 2:1 downscale with smoothing ON, the default, in
+the chunk context) — and/or the probe's own final resample
+(720×1000 backing → 390×540 sample, shared with no other arm's
+method). Next discriminator: an audit leg that draws the lattice
+cell into the chunk at 1:1 (or into a supersampled chunk) — if the
+band collapses there, the in-chunk lattice downscale is the cause;
+if it persists, the probe's own sample resample is the last
+suspect and the "band" may be partly a measurement artifact of
+the 720→390 vertical resample interacting with the 512u lattice.
+Diagnosis-only — no fix ships this run, as briefed.
+
+Staged frames in audit dir `audits/2026-11-06T18-46-51Z-631225985/`:
+`probe-frostfall-staged-during-run.png` (Frostfall Peaks staged
+live mid-run, "TILING · running eight staged frames…", region
+12/18, FPS 52, joystick/DASH/MELEE/HUD intact),
+`probe-tiling-report-on-screen.png` (full TILING JSON in the
+probe output after the eight-leg run; post-run Mosslight frame
+with report text in observe-003.png).
+
+Durable store untouched: before AND after, perf_recordings = 13
+rows (ids 1–13, re-listed post-probe, identical) and game_save
+load = null in the invoke sandbox scope; audit scope reports
+sandbox {game_save:1, perf_recordings:13} = durable
+{game_save:1, perf_recordings:13}. Typecheck:
+`web_artifacts.build` passed (typecheck incl.) and
+`bun x tsc --noEmit -p client/tsconfig.json` exit 0. Console
+errors: 0 in the audit and in every probe response in the
+session. Save / Save & exit never clicked; joystick/WASD toggle
+never clicked; no profiler recording started (probe legs only).
+Preserved behaviors verified in session: full-resolution canvas
+(390×540 CSS / 720×1000 backing), touch joystick + tap targets
+with reserved slots, no center banner, no dynamic resolution.
+
+## 2026-11-06 11:37 PT — Chunk-build pump relocation, fourth attempt: same-session A/B/A control run — clauses (a)/(b) passed a fourth time on both comparisons, clause (c) FAILED on ON leg 1 RENDER p95 only, fix REVERTED, nothing shipped
+
+Fourth dispatch, under the brief's new same-session control design:
+the relocation was re-applied behind an audit-only runtime toggle
+(`auditPumpReloc`, default OFF = shipped behavior, tiling-probe
+panel pattern like `auditBlit1To1`, with a gated
+`__AWL_SET_PUMP_RELOC__` setter and Pump reloc on/off panel buttons)
+so OFF and ON legs could interleave inside ONE probe session on
+the driveClean route. SHA gate: App.tsx SHA-256 BEFORE
+`e7cf9af85567cf2e2987680673ebb533b94c2d03f543ecff8ac5a57752ba1592`
+(prefix `e7cf9af8` confirmed live before editing — gate passed;
+the stale Oct 22 SHA in AGENTS.md was NOT used). The toggle build
+passed `web_artifacts.build` (typecheck incl.) and two audits
+(console errors 0 throughout). The gate failed (below), so the
+toggle AND the relocation were reverted in this same edit: AFTER
+SHA is again `e7cf9af85567cf2e…` byte-exact (post-revert
+sha256sum verified; zero `auditPumpReloc`/`PUMP_RELOC` remnants —
+nothing ships from this run, not even the toggle).
+
+METHOD NOTE: a first page session was discarded before any gate
+leg — the tiling panel's one-way Hide button was clicked to expand
+the profiler, which permanently removes the Pump reloc buttons
+for that page session, so no ON leg could be toggled there (its
+single OFF ring — STREAM DRAW p95 15.20, terrain CAT MS p95
+13.30, ACCOUNTED p95 1.50, RENDER p95 5.20, PRESENT p95 25.90,
+FRAME 16.70/33.30 — is NOT gate evidence and is recorded only for
+provenance). All four gate legs below ran in ONE fresh page
+session (audit dir `audits/2026-11-06T19-41-45Z-935986522/`),
+mobile viewport 390×844 DPR 1, New Game, intro tapped through
+(3 cards), profiler opened (F9 staging auto-expands it), MINIMAL
+MODE OFF, no post-staging toggles other than the pump toggle
+itself. Legs interleaved OFF → ON → OFF → ON, each re-staged with
+F9 `driveClean` ((8600,29000)->(13000,31600), Rustbucket speed
+300, no kills), each read at the first full 600-frame ring. The
+toggle state was confirmed in the TILING panel output text before
+each ON/OFF leg ("chunk-build pump relocated to the frame loop" /
+"chunk-build pump back inside the terrain pass"). Console errors:
+0 on every audit envelope and every probe response. No Save /
+Save & exit clicks, no joystick/WASD toggle, no profiler
+recording; durable store counts before AND after: game_save rows
+0 (loadgame save null), perf_recordings 13 (ids 1–13) — unchanged.
+
+RESULTS (600-frame rings, native clock; DRAW = renderMs):
+
+LEG OFF 1 (600f; 33 streaming / 567 steady): FRAME 16.70/16.80;
+RENDER 1.00/3.50; WORK 1.70/5.90; ACCOUNTED 0.20/0.90; PRESENT
+15.00/23.40; UNACCOUNTED 16.50/16.70; OVER50 2; CLAMPED 15;
+STREAM MAX 51.90; events total 81; first blits 18 canvases, mean
+0.02, p95 0.10, max 0.10 (7 frames). STREAM DRAW 1.50/15.20/56.90;
+STEADY DRAW 1.00/2.70/30.20. STREAM CAT MS — terrain
+0.60/14.10/54.70, entities 0.70/1.20/1.80, other 0.00/0.10/0.30.
+WORST STREAM 56.9 ms: T54.7 (96% terrain — the classic pre-fix
+signature).
+
+LEG ON 1 (600f; 39/561): FRAME 16.70/33.40; RENDER 1.00/3.90;
+WORK 1.90/8.20; ACCOUNTED 0.20/0.80; PRESENT 15.00/32.90;
+UNACCOUNTED 16.50/33.10; OVER50 10; CLAMPED 2; STREAM MAX 28.00;
+events total 102; first blits 18, mean 0.54, p95 0.60, max 9.10
+(8 frames). STREAM DRAW 1.30/3.20/11.50; STEADY DRAW
+1.00/3.90/51.30. STREAM CAT MS — terrain 0.20/0.30/9.20, entities
+0.90/2.20/2.90, other 0.30/10.70/28.00 (STREAM MAX reappears as
+CAT-other max — the expected re-attribution). WORST STREAM
+11.5 ms. WORST STEADY 51.3 ms: T50.1 — a steady-frame category-
+window stall on a frame where the pump does no work.
+
+LEG OFF 2 (600f; 36/564): FRAME 16.70/33.30; RENDER 1.00/3.50;
+WORK 1.80/5.50; ACCOUNTED 0.20/0.80; PRESENT 14.90/36.60;
+UNACCOUNTED 16.50/33.10; OVER50 7; CLAMPED 10; STREAM MAX 17.30;
+events total 95; first blits 16, mean 1.00, p95 0.10, max 15.90
+(6 frames). STREAM DRAW 1.50/18.30/22.00; STEADY DRAW
+1.00/2.70/49.10. STREAM CAT MS — terrain 0.40/17.40/20.90,
+entities 0.70/1.60/1.80, other 0.00/0.10/0.10. WORST STREAM
+22.0 ms: T20.9 (95% terrain — OFF signature reproduced
+in-session, bracketing ON 1).
+
+LEG ON 2 (600f; 34/566): FRAME 16.70/33.30; RENDER 1.00/2.90;
+WORK 1.70/4.60; ACCOUNTED 0.20/0.70; PRESENT 15.00/25.60;
+UNACCOUNTED 16.50/23.80; OVER50 5; CLAMPED 0; STREAM MAX 17.20;
+events total 85; first blits 16, mean 0.54, p95 0.00, max 8.70
+(7 frames). STREAM DRAW 0.90/2.40/10.90; STEADY DRAW
+1.00/2.90/51.40. STREAM CAT MS — terrain 0.20/0.40/9.10, entities
+0.70/1.90/3.00, other 0.30/11.20/17.20 (re-attribution again).
+WORST STREAM 10.9 ms. WORST STEADY 51.4 ms: E51.1.
+
+GATE (this run's FIX-IF, judged ONLY within this session; WORK
+p95 reported, NOT judged): (a) STREAM DRAW p95 down ≥25% on both
+ON comparisons — PASS (ON 1: 3.20 vs OFF 15.20/18.30 = −79%/−83%;
+ON 2: 2.40 vs 15.20/18.30 = −84%/−87%). (b) terrain CAT MS p95
+down in step — PASS (ON 1: 0.30 vs 14.10/17.40 = −98%; ON 2: 0.40
+vs 14.10/17.40 = −97%/−98%). (c) ACCOUNTED p95 + RENDER p95 flat
+or down vs the same-session OFF legs on BOTH comparisons — FAIL:
+ON 2 passes cleanly (ACCOUNTED 0.70 vs 0.90/0.80; RENDER 2.90 vs
+3.50/3.50), but ON 1 RENDER p95 is 3.90 vs 3.50 on BOTH OFF legs
+(+0.40), while its ACCOUNTED p95 passes (0.80 vs 0.90/0.80).
+TRACKING ANALYSIS (required by the brief): the ON 1 RENDER
+elevation tracks NEITHER the toggle nor the session. Against the
+toggle: ON 2, later in the same session with the toggle still ON,
+came in BELOW both OFF legs (2.90 < 3.50), which a toggle-caused
+RENDER increase cannot explain. Against the session: the OFF legs
+bracket ON 1 at an identical 3.50 with no drift, and FRAME p50
+held 16.70 and ACCOUNTED p50 0.20 on all four legs. ON 1's RENDER
+p95 equals its own STEADY DRAW p95 (3.90) — the p95 was set by
+steady frames, not streaming frames — and the leg contains a
+51.3 ms steady frame whose terrain category window stalled to
+50.1 ms on a frame class where the relocated pump performs no
+work at all, so the relocation cannot mechanically produce it.
+It is a single-leg p95 excursion from environmental steady-frame
+stalls. But the brief's gate is absolute — flip ONLY if all three
+clauses pass on BOTH comparisons — so per the gate the fix was
+reverted byte-identical to e7cf9af8. Fourth consecutive run in
+which (a)/(b) pass with wide margins; this time the same-session
+control did its job — it isolated the (c) failure to one leg's
+steady-frame RENDER p95 (+0.40 ms) instead of a whole-session
+present-path offset, and ON 2 + both OFF brackets show the
+relocation itself is RENDER-neutral in-session. If re-dispatched
+again, the remaining question is purely the gate's tolerance for
+a single-leg steady-frame p95 excursion (e.g. judging RENDER on
+the streaming split, or a small explicit epsilon), not the fix.
+
+Staged probe frames (audit dir
+`audits/2026-11-06T19-41-45Z-935986522/`):
+`probe-off1-driveclean-mid-drive.png`,
+`probe-off1-driveclean-600f-panel.png`,
+`probe-on1-driveclean-mid-drive.png` (verified visually: TILING
+output reads "chunk-build pump relocated to the frame loop",
+Rustbucket driving fully textured Mosslight Meadow terrain,
+touch joystick + EXIT/DASH buttons, no center banner),
+`probe-on1-driveclean-600f-panel.png`,
+`probe-off2-driveclean-mid-drive.png`,
+`probe-off2-driveclean-600f-panel.png`,
+`probe-on2-driveclean-mid-drive.png` (verified visually: same
+relocated-pump confirmation, fully textured streamed terrain in
+rain), `probe-on2-driveclean-600f-panel.png`.
