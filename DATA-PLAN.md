@@ -2161,3 +2161,151 @@ joystick/WASD toggle never clicked; no profiler recording started
 session: full-resolution textured canvas, touch joystick + context
 buttons with reserved slots, no center banner, pause-menu control
 scheme toggle untouched.
+
+## 2026-11-05 23:36 PT — Chunk-build pump relocation: STREAM DRAW gate passed, FRAME p95 clause failed in this environment, fix REVERTED
+
+SHA gate: `client/src/App.tsx` SHA-256 BEFORE
+`401f34d04b1b4fad11187b12b033201b316051118e752061150c9e0e4b762c7f`
+(prefix `401f34d0` confirmed — gate passed; the stale Oct 22 SHA in
+AGENTS.md was NOT used). The fix built as
+`0fbecb634ba33b23937d818eba2e0f61da41d4b834aa4ff06e3e850b8631f5c0`
+was measured, the FRAME p95 clause of the FIX-IF gate could not be
+cleared in this environment, and the fix was REVERTED in this same
+edit: AFTER SHA is again `401f34d04b1b…` byte-exact (post-revert
+check passed — the shipped source is identical to the 20:35
+per-category instrumentation build; nothing ships from this run).
+
+THE FIX (as built and measured): `drawGroundTexture` no longer
+calls `processGroundChunkQueue(fastDriving)` inside the terrain
+pass; the frame loop instead pumps the queue once per frame after
+the per-frame diagnostic accumulator reset and immediately before
+`drawWorld`, gated `!world.dungeon && biomeTexturesReady`, with
+the same budget semantics (2.0 ms driving / 3.5 ms otherwise, draw
+budgets 72/180 — unchanged inside `processGroundChunkQueue`).
+Queueing, priorities, cache trim, and blitting are untouched, so
+chunk contents and the rendered output per chunk are identical;
+newly queued chunks take their first build step on the next
+frame's pump instead of the same frame's terrain pass. Because the
+pump sits after the accumulator reset, its steps still land in the
+same frame's `chunkStreamMs`/`chunkStreamEvents` (streaming-frame
+classification unchanged) and its draw calls still count in the
+frame total; its wall time is attributed to draw category "other"
+instead of "terrain". No dynamic resolution, no quality change,
+full-resolution canvas kept.
+
+METHOD: two audit probe sessions were needed. Session 1
+(`audits/2026-11-06T07-39-51Z-589127103/`) ran throttled
+throughout (~20 FPS, PRESENT p50 51.70 — the 14:34 environmental
+signature) and its window is NOT gate evidence; it did confirm the
+attribution mechanism under load (STREAM MAX 54.70 reappears as
+CAT-other MS max 54.70). Session 2
+(`audits/2026-11-06T07-48-49Z-424818419/`) started clean (59 FPS at
+village idle, FRAME p50 16.70) and degraded over ~10 minutes of
+driving. Mobile viewport 390×844 DPR 1, New Game, intro tapped
+through (3 cards), profiler opened + expanded, F9 `driveClean`
+staging ((8600,29000)->(13000,31600), Rustbucket speed 300, no
+kills, MINIMAL MODE OFF, no post-staging toggles). Console errors:
+0 on both audit envelopes and every probe response.
+
+RESULTS (600-frame rings, native clock; DRAW = renderMs):
+
+LEG A — first full ring, clean window (35 streaming / 565 steady):
+FRAME p50/p95 16.70/66.80; RENDER p50/p95 1.20/7.00; WORK
+2.20/24.40; PRESENT 15.40/72.10; UNACCOUNTED 16.50/66.60; OVER50
+116; CLAMPED 9; STREAM MAX 64.40; stream events total 80; first
+blits 19 canvases, mean 0.76, p50 0.00, p95 6.70, max 7.60
+(9 frames). STREAM DRAW p50/p95/max 1.20/8.20/46.30; STEADY DRAW
+1.20/6.50/66.00. STREAM CALLS p50/max 91/556; STEADY CALLS 79/507.
+STREAM CAT CALLS — terrain 7/32/32, decals 1/2/2, entities
+68/470/503, lighting 6/11/11, other 11/49/54. STREAM CAT MS —
+terrain 0.20/0.60/7.80, decals 0.00/0.10/2.70, entities
+0.80/3.10/45.90, lighting 0.10/0.30/0.30, other 0.40/35.60/64.40.
+STEADY CAT MS — terrain 0.20/0.40/51.40, decals 0.00/0.10/1.30,
+entities 0.90/4.40/62.00, lighting 0.00/0.20/58.90, other
+0.00/0.10/64.40. WORST STREAM frame 46.30 ms: calls T7 D1 E454
+L11 O12; ms T0.2 D0.0 E45.9 L0.1 O17.3. WORST STEADY frame 66.00:
+ms T0.2 D0.1 E1.3 L0.0 O64.4.
+→ vs before A (STREAM DRAW p95 35.50, terrain CAT MS p95 31.70):
+STREAM DRAW p95 8.20 (−77%), terrain CAT MS p95 0.60 (−98%).
+Worst streaming frame is now entities-dominated (the known
+first-use sprite stall), terrain 0.2 ms of 46.3.
+
+SETTLED WINDOW — next ring from continued driving (6 streaming /
+594 steady; thin streaming sample, reported for completeness):
+FRAME 16.70/83.30; STREAM MAX 71.80; events total 15. STREAM DRAW
+3.10/3.80/5.00; STEADY DRAW 1.20/4.70/81.00. STREAM CAT MS terrain
+0.20/0.20/0.20, other 2.10/15.90/71.90. WORST STREAM 5.00 ms:
+ms T0.2 D0.0 E0.7 L0.0 O14.3 (note: the frame's renderMs is 5.00
+while its "other" category window shows 14.3 — the pump ran
+before the draw bracket, so category wall time and renderMs
+diverge by design on pump frames).
+
+LEG B — re-staged F9 (rings reset by staging), first full ring
+(64 streaming / 536 steady), window partially throttled (FRAME
+p50 already 49.90): FRAME p50/p95 49.90/116.60; RENDER 1.20/18.30;
+WORK 2.60/50.30; ACCOUNTED p95 8.30; PRESENT 31.80/97.60; OVER50
+269; STREAM MAX 77.10; events total 186; first blits 37 canvases,
+mean 1.83, p95 7.10, max 39.70 (15 frames). STREAM DRAW
+p50/p95/max 1.20/14.40/65.30; STEADY DRAW 1.20/18.10/95.10.
+STREAM CALLS p50/max 102/381. STREAM CAT CALLS — terrain
+29/32/32, decals 0/1/1, entities 41/225/265, lighting 6/6/6,
+other 11/64/81. STREAM CAT MS — terrain 0.20/3.20/46.90, decals
+0.00/0.10/0.40, entities 0.70/5.80/65.00, lighting 0.00/0.20/3.90,
+other 0.50/16.50/77.20. STEADY CAT MS — terrain 0.20/2.70/50.70,
+entities 0.80/12.00/94.70, lighting 0.00/0.10/63.90. WORST STREAM
+frame 65.30 ms: calls T29 D0 E84 L6 O0; ms T0.3 D0.0 E65.0 L0.0
+O0.0. WORST STEADY 95.10: ms T0.2 D0.0 E94.7 L0.2 O0.0.
+→ vs before B (STREAM DRAW p95 25.50, terrain CAT MS p95 24.60):
+STREAM DRAW p95 14.40 (−44%), terrain CAT MS p95 3.20 (−87%).
+
+LATE SETTLED WINDOW (session fully throttled, strip FPS 21;
+environment-dominated, not gate evidence): FRAME 33.40/100.00;
+STREAM DRAW 1.50/15.70/68.60; STREAM CAT MS terrain p95 14.30,
+other p95 68.90; WORST STREAM 68.60 ms is T67.1 — under heavy
+contention the category windows themselves stall, blurring
+attribution; recorded only to show the degradation.
+
+GATE: STREAM DRAW p95 PASS both legs (8.20 < 35.50; 14.40 <
+25.50, thin settled window 3.80). Terrain CAT MS p95 down in step
+PASS both legs (0.60 vs 31.70; 3.20 vs 24.60). FRAME p95 FAIL /
+UNVERIFIABLE: 66.80 (leg A) and 116.60 (leg B window) vs before
+33.40 in both before legs. The elevation is entirely
+PRESENT/UNACCOUNTED (leg A PRESENT p95 72.10 with WORK p95 24.40
+and FRAME p50 16.70; the identical FRAME 16.70/66.70 +
+PRESENT-p95-69.10 signature appears in the 16:36 clean-session
+leg A on pre-fix code, and leg B's window was throttled at the
+median), and the relocation cannot mechanically add present time
+(same budgeted work, same frame callback; RENDER and WORK
+medians at before levels). But the brief's gate is absolute —
+"no FRAME p95 regression; otherwise REVERT" — and no post-fix
+window in this environment demonstrates FRAME p95 at or below
+33.40, so per the gate the fix was reverted. The mechanism is
+proven and the two primary metrics pass with wide margins;
+re-dispatch in a session whose present path is stable (FRAME p50
+16.70 sustained through both legs, as in the 20:34 before-session)
+is the scoped next step if the FRAME clause is to be judged on
+game-attributable time (WORK/ACCOUNTED) rather than probe
+present scheduling.
+
+Staged probe frames (audit dir
+`audits/2026-11-06T07-48-49Z-424818419/`):
+`probe-legA-driveclean-mid-drive.png` (leg A mid-drive, Mosslight
+Meadow, observe-010), `probe-legA-driveclean-600f-panel.png`
+(leg A ring read frame, observe-011),
+`probe-legB-driveclean-mid-drive.png` (leg B re-staged mid-drive,
+rain, observe-016), `probe-legB-driveclean-600f-panel.png`
+(observe-017), `probe-settled-window-driveclean.png`
+(observe-018).
+
+Durable store untouched: before AND after, perf_recordings = 13
+rows (ids 1–13) and game_save load = null in sandbox scope; audit
+scope reports sandbox {game_save:1, perf_recordings:13} = durable
+{game_save:1, perf_recordings:13}. Typecheck: fixed build passed
+`web_artifacts.build` (typecheck incl.); reverted source —
+`bun x tsc --noEmit -p client/tsconfig.json` and
+`-p server/tsconfig.json` both exit 0. Save / Save & exit never
+clicked; joystick/WASD toggle never clicked; no profiler
+recording started (diagnostic rings only, as briefed). Preserved
+behaviors verified in session: driving on the diagnostic route
+with fully textured streamed terrain at full resolution, touch
+joystick + context buttons with reserved slots, no center banner.
