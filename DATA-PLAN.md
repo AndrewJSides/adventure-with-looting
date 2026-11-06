@@ -2653,3 +2653,151 @@ started. Preserved behaviors verified in session: full-resolution
 textured canvas (390×540 at [0,101,390,540] in play), touch joystick
 + context buttons with reserved slots, no center banner, pause-menu
 control-scheme toggle untouched.
+
+## 2026-11-06 06:36 PT — Chunk-build pump relocation, third attempt: clauses (a)/(b) passed a third time, REVISED clause (c) FAILED on ACCOUNTED+RENDER in a present-throttled post-fix session, fix REVERTED, nothing shipped
+
+Third dispatch of the relocation, under the twice-revised gate:
+clause (c) judged on ACCOUNTED p95 + RENDER p95 (NOT WORK p95),
+with baselines re-taken this run and baseline legs repeated in the
+post-fix session to bound session drift. SHA gate: App.tsx
+SHA-256 BEFORE `dc29af44022fc6e27aaac93646771136d4c773669c89f342714d781d0c79b53e`
+(prefix `dc29af44` confirmed live before editing — gate passed).
+The fix built as
+`26bab74b5bf06fef7ec037676800b192e22dbda21482d0b04c5bc414ffd34fd6`
+was measured, gate clause (c) failed on both designated post-fix
+legs (and on both in-session repeat legs), and the fix was
+REVERTED in this same edit: AFTER SHA is again `dc29af44022f…`
+byte-exact (post-revert sha256sum verified — the shipped source
+is identical to the 05:36 tiling-probe instrumentation build;
+nothing ships from this run).
+
+THE FIX (as built and measured, identical to 23:36 and 02:36):
+`drawGroundTexture` no longer calls
+`processGroundChunkQueue(fastDriving)` inside the terrain pass;
+the frame loop pumps the queue once per frame after the per-frame
+diagnostic accumulator reset and immediately before `drawWorld`,
+gated `!world.dungeon && biomeTexturesReady`, budgets unchanged
+(2.0 ms driving / 3.5 ms otherwise, draws 72/180 inside
+`processGroundChunkQueue`). Fixed build passed `web_artifacts.build`
+(typecheck incl.); probe metrics confirm the re-attribution
+(STREAM MAX reappears as CAT-other max on both post-fix legs) and
+fully textured streamed terrain while driving.
+
+METHOD: two probe audit sessions (a rebuild separates pre/post),
+plus two extra repeat legs in the post-fix session per the brief.
+Pre-fix session `audits/2026-11-06T14-37-38Z-897216142/`,
+post-fix session `audits/2026-11-06T14-47-23Z-934903780/`.
+Mobile viewport 390×844 DPR 1, New Game, intro tapped through
+(3 cards), profiler opened + expanded, audit panels hidden, F9
+`driveClean` staging ((8600,29000)->(13000,31600), Rustbucket
+speed 300, no kills, MINIMAL MODE OFF), rings read at the first
+full 600-frame ring via ~2 s polling of the DRIVE PROBE panel.
+Console errors: 0 on both audit envelopes and every probe
+response in both sessions.
+
+BASELINE (pre-fix, session 1):
+LEG A (600f; 35 streaming / 565 steady): FRAME 16.70/33.30;
+RENDER 0.60/5.20; WORK 1.30/9.60; ACCOUNTED 0.20/0.80; PRESENT
+15.40/27.80; UNACCOUNTED 16.50/33.10; OVER50 3; CLAMPED 16;
+STREAM MAX 22.80; events total 90; first blits 18 canvases, mean
+0.01, p95 0.00, max 0.10 (7 frames). STREAM DRAW 0.90/15.30/26.90;
+STEADY DRAW 0.60/1.60/34.70. STREAM CAT MS — terrain
+0.50/14.80/26.40, entities 0.30/0.50/1.10, other 0.00/0.10/0.10.
+WORST STREAM 26.9 ms: T26.4 (98% terrain).
+LEG B (600f; 39/561): FRAME 16.70/50.00; RENDER 0.60/2.00; WORK
+1.30/3.60; ACCOUNTED 0.20/0.80; PRESENT 15.40/52.70; UNACCOUNTED
+16.50/49.70; OVER50 17; CLAMPED 10; STREAM MAX 14.00; events
+total 100; first blits 21, mean 0.34, p95 0.00, max 7.10
+(8 frames). STREAM DRAW 1.10/15.50/22.90; STEADY DRAW
+0.60/1.60/60.80. STREAM CAT MS — terrain 0.40/15.10/22.50,
+entities 0.40/1.00/1.40, other 0.00/0.10/0.10. WORST STREAM
+22.9 ms: T22.5 (98% terrain).
+
+POST-FIX (session 2; the whole session was present-throttled —
+PRESENT p95 62–81 on every leg vs 27.80/52.70 baseline, OVER50
+36–166 vs 3/17):
+LEG A (600f; 49/551): FRAME 16.70/83.30; RENDER 1.10/8.70; WORK
+2.10/53.00; ACCOUNTED 0.30/6.60; PRESENT 15.80/76.80; UNACCOUNTED
+16.60/82.80; OVER50 166; CLAMPED 10; STREAM MAX 67.70; events
+total 125; first blits 28, mean 0.75, p95 6.80, max 7.30
+(12 frames). STREAM DRAW 1.20/6.80/60.80; STEADY DRAW
+1.10/8.70/64.00. STREAM CAT MS — terrain 0.20/0.40/14.30,
+entities 0.90/1.90/6.00, other 0.40/63.50/69.60 (STREAM MAX as
+CAT-other max — the expected re-attribution). WORST STREAM
+60.8 ms: O69.6. WORST STEADY 64.0: E63.8.
+LEG B (600f; 48/552): FRAME 16.70/66.70; RENDER 0.90/4.40; WORK
+1.80/23.30; ACCOUNTED 0.20/2.60; PRESENT 15.50/75.50; UNACCOUNTED
+16.60/66.60; OVER50 118; CLAMPED 4; STREAM MAX 75.20; events
+total 121; first blits 21, mean 0.37, p95 0.00, max 7.70
+(9 frames). STREAM DRAW 0.90/3.20/69.40; STEADY DRAW
+0.90/4.30/60.90. STREAM CAT MS — terrain 0.20/0.30/7.90,
+entities 0.70/2.80/61.30, other 0.40/16.60/75.20 (STREAM MAX as
+CAT-other max again). WORST STREAM 69.4 ms: E61.3. WORST STEADY
+60.9: E60.7.
+REPEAT R1 (600f; 56/544): FRAME 16.80/83.30; RENDER 1.10/6.00;
+WORK 1.90/22.90; ACCOUNTED 0.20/4.20; PRESENT 17.20/81.20; OVER50
+148; STREAM DRAW 1.10/4.50/53.70; STREAM CAT MS terrain p95 0.80,
+other p95 55.20.
+REPEAT R2 (600f; 40/560): FRAME 16.70/66.60; RENDER 0.80/2.80;
+WORK 1.50/9.10; ACCOUNTED 0.20/2.10; PRESENT 15.30/62.30; OVER50
+36; STREAM DRAW 0.80/2.40/60.10; STREAM CAT MS terrain p95 0.30,
+other p95 10.60 (max 71.90 ≈ STREAM MAX 71.70).
+
+GATE (revised): (a) STREAM DRAW p95 down ≥25% on both legs —
+PASS both (A 6.80 vs 15.30 = −56%; B 3.20 vs 15.50 = −79%;
+repeats −71%/−85%). (b) terrain CAT MS p95 down in step — PASS
+both (A 0.40 vs 14.80 = −97%; B 0.30 vs 15.10 = −98%; repeats
+0.80/0.30). (c) ACCOUNTED p95 + RENDER p95 flat or down vs
+same-session baseline on both legs — FAIL both legs: ACCOUNTED
+p95 6.60 vs 0.80 (A) and 2.60 vs 0.80 (B); RENDER p95 8.70 vs
+5.20 (A) and 4.40 vs 2.00 (B). The repeat legs fail (c) too
+(ACCOUNTED 4.20/2.10 vs 0.80; RENDER 6.00/2.80 vs 5.20/2.00), so
+no leg pairing in the post-fix session clears (c) — the drift
+repeats bound the session effect without rescuing the clause.
+WORK p95 (reported, NOT judged per the brief): 53.00/23.30 vs
+9.60/3.60 baseline; repeats 22.90/9.10. Noted for the record:
+the post-fix session was throttled at the present path on every
+leg (PRESENT p95 62–81 vs baseline 28/53; steady-frame category
+windows stalling to E63.8/L56.2/T59.5 ms that the pump cannot
+mechanically cause; ACCOUNTED p50 flat at 0.20–0.30 and RENDER
+p50 0.80–1.10 vs 0.60 baseline), and FRAME p50 held 16.70 on all
+six legs. Per the brief — ship ONLY if all three clauses pass,
+otherwise revert byte-identical to dc29af44 — the fix was
+reverted. Third consecutive run in which (a)/(b) pass with wide
+margins and an environment-sensitive p95 clause fails; if this
+is re-dispatched again, the gate needs a clause-(c) reference
+measured inside the post-fix session itself (e.g. a same-session
+steady-frame ACCOUNTED/RENDER control), because cross-session
+p95 comparison in this probe environment has now decided the
+outcome three times on session state, not on the fix.
+
+Staged probe frames (in the delivered capture sets):
+pre-fix audit dir `audits/2026-11-06T14-37-38Z-897216142/`:
+`probe-baseline-legA-driveclean-mid-drive.png`,
+`probe-baseline-legA-driveclean-600f-panel.png`,
+`probe-baseline-legB-driveclean-mid-drive.png` (Rustbucket in
+dawn rain, Mosslight Meadow, fully textured terrain, MINIMAL
+MODE OFF, no center banner),
+`probe-baseline-legB-driveclean-600f-panel.png`.
+Post-fix audit dir `audits/2026-11-06T14-47-23Z-934903780/`:
+`probe-postfix-legA-driveclean-mid-drive.png` (verified visually:
+fixed build f7b5b9b0, fully textured streamed terrain, Rustbucket
+driving the route, touch joystick + EXIT/DASH buttons, no center
+banner), `probe-postfix-legA-driveclean-600f-panel.png`,
+`probe-postfix-legB-driveclean-mid-drive.png`,
+`probe-postfix-legB-driveclean-600f-panel.png`,
+`probe-postfix-repeatR2-driveclean-600f-panel.png`.
+
+Durable store untouched: before AND after, perf_recordings = 13
+rows (ids 1–13) and game_save load = null in sandbox scope; both
+audits report sandbox {game_save:1, perf_recordings:13} = durable
+{game_save:1, perf_recordings:13}. Typecheck: fixed build passed
+`web_artifacts.build` (typecheck incl.); reverted source —
+`bun x tsc --noEmit -p client/tsconfig.json` and
+`-p server/tsconfig.json` both exit 0. Save / Save & exit never
+clicked; joystick/WASD toggle never clicked; no profiler
+recording started (diagnostic rings only, as briefed). Preserved
+behaviors verified in session: driving on the diagnostic route
+with fully textured streamed terrain at full resolution in both
+builds, touch joystick + context buttons with reserved slots, no
+center banner.
