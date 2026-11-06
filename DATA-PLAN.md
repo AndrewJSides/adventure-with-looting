@@ -1925,3 +1925,122 @@ durable {game_save:1, perf_recordings:13}); Save / Save & exit never
 clicked; joystick/WASD toggle never touched; no profiler recording
 started (diagnostic rings only, as briefed).
 
+
+## 2026-11-05 20:35 PT — Per-category draw-call split of the streaming tail (instrumentation only, NO FIX SHIPPED)
+
+SHA gate: `client/src/App.tsx` SHA-256 BEFORE
+`211983506a4afcdf86ea75b26850706ae58bacb49f1a012eb1fe475f1dde2960`
+(prefix `21198350` confirmed — gate passed; the stale Oct 22 SHA in
+AGENTS.md was NOT used and AGENTS.md was not edited). AFTER
+(instrumentation shipped):
+`401f34d04b1b4fad11187b12b033201b316051118e752061150c9e0e4b762c7f`.
+Client tsc `--noEmit` exited 0 (twice: before and after the panel
+span widening). Console errors: 0 on both audit envelopes and every
+probe response.
+
+WHAT SHIPPED (probe tooling only, like the first-blit probe):
+per-category draw-call instrumentation in the existing diagnostic
+frame pipeline. Categories are the passes the renderer already
+distinguishes — terrain (chunk blits + scenery, the drawWorld
+"terrain" block), decals (drawGoreDecals), entities (the drawWorld
+"entities" block, incl. the dungeon renderer's entity section),
+lighting (lighting/overlay tail: day/night overlay, tints, weather,
+vignettes), other. The instrumented canvas wrapper attributes each
+counted call to the current category and `setDrawCategory` at the
+pass boundaries accumulates wall ms per category — both ONLY while
+`forcedDiagnosticScenario` is set (the existing probe flag set by
+`__AWL_SETUP_DRIVE_DIAGNOSTIC__`); with the probe off they are no-ops
+beyond a flag check. `DiagnosticFrame` gained
+`categoryCalls`/`categoryMs`; each STREAM/STEADY split now reports
+per-category calls and ms (p50/p95/max), and the summary carries
+`worstStreamingFrame`/`worstSteadyFrame` with the full category
+split of each split's worst-render frame. The profiler panel shows
+four CAT lines (STREAM/STEADY × CALLS/MS, p50/p95/max per category)
+plus WORST STREAM CAT / WORST STEADY CAT lines. No gameplay,
+terrain, texture, audio, save-schema, or probe-method change; no
+optimization applied (audit/diagnosis-only per the FIX-IF gate).
+
+MEASUREMENT — two 600-frame driveClean legs, 390×844 DPR 1,
+sandbox probe session, read at the first full 600-frame ring
+(first-pass window; a later settled-loop read is noted separately):
+
+LEG A (600 frames; 38 streaming / 562 steady): FRAME p50/p95
+16.70/33.40; RENDER 1.00/8.60; DRAW CALLS p50/p95 79/678; STREAM
+MAX (chunk stream) 58.20; stream events total 95; first blits 21
+canvases, mean 0.40, p95 0.10, max 8.10 (8 frames). STREAM DRAW
+p50/p95/max 2.80/35.50/62.60; STEADY DRAW 1.00/3.90/58.70. STREAM
+CALLS p50/max 95/678; STEADY CALLS 75/625. STREAM CAT CALLS
+p50/p95/max — terrain 32/68/81, decals 0/1/1, entities 66/591/624,
+lighting 4/12/12, other 0/1/1. STREAM CAT MS p50/p95/max — terrain
+0.60/31.70/60.40, decals 0.00/0.10/0.20, entities 0.90/2.80/3.80,
+lighting 0.00/0.10/6.60, other 0.00/0.10/0.30. STEADY CAT CALLS —
+terrain 29/32/32, decals 0/1/1, entities 49/213/604, lighting
+4/11/12, other 0/1/1. STEADY CAT MS — terrain 0.20/0.30/7.80,
+decals 0.00/0.10/4.20, entities 0.80/3.00/58.50, lighting
+0.00/0.10/0.30, other 0.00/0.10/1.60. WORST STREAM frame 62.60 ms:
+calls T22 D1 E592 L12 O1; ms T60.4 D0.0 E2.1 L0.1 O0.0. WORST
+STEADY frame 58.70 ms: calls T10 D0 E42 L4 O0; ms T0.2 D0.0 E58.5
+L0.0 O0.0.
+
+LEG B (600 frames; 39 streaming / 561 steady): FRAME p50/p95
+16.70/33.40; RENDER 1.10/6.20; DRAW CALLS p50/p95 72/952; STREAM
+MAX 39.70; stream events total 100; first blits 21 canvases, mean
+0.42, p95 0.10, max 8.70 (8 frames). STREAM DRAW p50/p95/max
+1.70/25.50/40.90; STEADY DRAW 1.00/3.00/43.00. STREAM CALLS p50/max
+99/399; STEADY CALLS 72/952. STREAM CAT CALLS — terrain 32/76/113,
+decals 1/3/3, entities 47/271/277, lighting 6/13/13, other 0/1/1.
+STREAM CAT MS — terrain 0.50/24.60/40.10, decals 0.00/0.10/0.10,
+entities 0.80/2.00/4.60, lighting 0.10/0.10/0.20, other
+0.00/0.10/0.20. STEADY CAT CALLS — terrain 29/32/32, decals 1/3/3,
+entities 45/431/906, lighting 6/13/14, other 0/1/1. STEADY CAT MS —
+terrain 0.20/0.30/3.50, decals 0.00/0.10/1.10, entities
+0.70/2.40/42.80, lighting 0.10/0.20/34.00, other 0.00/0.10/1.10.
+WORST STREAM frame 40.90 ms: calls T39 D0 E36 L6 O0; ms T40.1
+D0.0 E0.8 L0.0 O0.0. WORST STEADY frame 43.00 ms: calls T27 D0
+E35 L6 O0; ms T0.1 D0.0 E42.8 L0.0 O0.1.
+
+READING (next fix candidates, logged only — no fix this run):
+(1) STREAM DRAW p95 is TERRAIN wall time: terrain CAT MS p95
+31.70/24.60 against STREAM DRAW p95 35.50/25.50 (~90–96%), and the
+worst streaming frames are 96–98% terrain ms, tracking the chunk
+stream maxima (58.20/39.70). It is NOT blit volume (terrain calls
+p95 only 68/76) and NOT first blits (p95 0.10 ms, mean ~0.4): the
+cost is the chunk stream/build work that lands inside the terrain
+pass window. (2) Entity draw VOLUME is the streaming call-count
+story (entities CAT CALLS p95 591/271, max 624 — the largest call
+category on streaming frames) but entity ms stays low (p95
+2.80/2.00), so entities inflate STREAM CALLS without driving
+STREAM DRAW time. (3) The previously unexplained steady-split
+residual spikes are now named: both legs' worst STEADY frames are
+~100% ENTITIES ms (58.5 of 58.7; 42.8 of 43.0) with LOW entity
+call counts (42; 35) — a single-stall signature inside the
+entities pass (consistent with a first-use sprite-cache
+rasterization), not call volume. One secondary outlier: leg B
+steady lighting ms max 34.00 on a non-worst frame. (4) Decals are
+negligible in driveClean (no kills): calls ≤3, ms p95 ≤0.10
+everywhere.
+
+Settled-loop cross-check (leg A window read ~26 s after staging,
+ring holding later route loops, 6 streaming / 594 steady): STREAM
+DRAW p50/p95/max 1.40/15.20/19.10, STEADY DRAW max 57.70 with the
+same entities signature (worst steady ms T0.2 D0.0 E57.4 L0.1
+O0.0) — the steady entities stall recurs on settled loops too.
+
+Staged probe frames (audit dir
+`audits/2026-11-06T04-51-14Z-554968495/`):
+`probe-legA-driveclean-mid-drive.png` (leg A mid-drive),
+`probe-legA-driveclean-600f-panel.png` (leg A 600-frame panel),
+`probe-legB-driveclean-mid-drive.png` (leg B mid-drive),
+`probe-legB-driveclean-600f-panel.png` (leg B 600-frame panel).
+
+Durable store untouched: before AND after, perf_recordings = 13
+rows (ids 1–13) and game_save load = null in sandbox scope; audit
+scope reports sandbox {game_save:1, perf_recordings:13} = durable
+{game_save:1, perf_recordings:13}. Save / Save & exit never
+clicked; joystick/WASD toggle never clicked (pause menu opened
+once to verify presence only: joystick toggle present and pressed,
+WASD option present, one-slot Save and Save & exit present); no
+profiler recording started (diagnostic rings only, as briefed).
+Preserved behaviors verified in session: driving on the diagnostic
+route, full-resolution textured canvas, touch joystick + context
+buttons with reserved slots, no center banner.
