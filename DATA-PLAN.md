@@ -1769,3 +1769,88 @@ audit envelope and every probe response. Durable store untouched
 {game_save:1, perf_recordings:13}); Save / Save & exit never clicked;
 joystick/WASD toggle never touched; no profiler recording started
 (diagnostic rings only, as briefed).
+
+## 2026-11-05 16:36 PT — Draw-tail first-blit split on a clean 60 FPS session (diagnosis only, no fix)
+
+SHA gate: `client/src/App.tsx` SHA-256 BEFORE
+`c8781844f2cdaab9f033f75a1d5775fdef869b0f7029d16be9ad99bc039d7d60`
+(prefix `c8781844` confirmed — gate passed). AFTER (instrumentation
+only): `17e49146a6bd384c82f54632d8f93c7ff62ea430bedd97b38f804722d7ed07d1`.
+The delta is measurement-only: per-frame `firstBlitMs/Count/MaxMs/
+Durations` on the diagnostic frame; a pending-first-blit key set fed
+by `noteChunkLoad`, with the first `drawImage` of each newly built
+chunk canvas timed in `drawGroundTexture` (native clock); a
+streaming/steady split in `summarizeDiagnosticRing` (streaming =
+frame contains a STREAM event or follows one within 2 frames); an
+audit-only `__AWL_READ_FIRST_BLIT_LOG__` hook; six readout rows in
+the profiler DRIVE PROBE panel. No gameplay, visual, quality, save,
+or draw-path behaviour changed; the only added cost on the draw path
+is one Set lookup per visible chunk blit plus a clock read on a
+canvas's first-ever blit. Client + server typecheck exit 0.
+
+Clean-session check (brief step 2): this probe session DID reach
+~60 FPS — strip FPS 57–60 while driving, FRAME p50 16.70 ms on both
+legs (vs 33.40–50.00 at 14:34). The 14:34 ~20 FPS session does NOT
+reproduce; with WORK p50 1.50–2.20 ms, the earlier shortfall was
+environmental (probe rAF/present scheduling), not game JS.
+
+Method (audit `2026-11-06T00-48-31Z-000419596`): mobile viewport
+390x844 DPR 1, full-resolution canvas. New Game, intro tapped
+through (3 cards), profiler opened + expanded, F9 `driveClean`
+staging ((8600,29000)->(13000,31600), Rustbucket speed 300, no
+kills, MINIMAL MODE OFF, no post-staging toggles). Leg A = first
+full 600-frame ring (steady-state). Leg B = next disjoint 600-frame
+ring from continued driving over repeated route loops (Mosslight
+Meadow REGION 1/18 → Starfall Expanse REGION 9/18 and back via the
+diagnostic teleport reset, rain; coins 133 → 224 across the two
+reads). Staged frames (handoff copies in
+`audits/handoff-2026-11-06T00-48-31Z/`):
+`legA-steady-state-driveClean-600f.png` (audit observe-009.png;
+Rustbucket at 300 SPD in Starfall Expanse rain, Fallen Seer bar)
+and `legB-region-crossing-driveClean-600f.png` (audit
+observe-012.png; same drive back in Mosslight Meadow, strip FPS 57).
+
+Results (600-frame rings, native clock; DRAW = renderMs wall clock):
+
+| Leg | FRAME p50/p95 | WORK p50/p95 | PRESENT p50/p95 | UNACCOUNTED p50/p95 | UNACCT AFTER DRAW p50/p95 | OVER50 | STREAM events total · max |
+|---|---|---|---|---|---|---|---|
+| A steady-state | 16.70/66.70 | 2.20/12.20 | 15.10/69.10 | 16.50/66.50 | 15.50/65.50 | 99 | 40 · 71.20 |
+| B region-crossing | 16.70/16.80 | 1.50/3.50 | 15.20/19.60 | 16.50/16.70 | 15.60/16.00 | 0 | 35 · 10.10 |
+
+| Leg | Split frames (stream/steady) | STREAM DRAW p50/p95/max | STEADY DRAW p50/p95/max | STREAM CALLS p50/max | STEADY CALLS p50/max | FIRST BLIT canvases · mean/p50/p95/max · frames |
+|---|---|---|---|---|---|---|
+| A | 17/583 | 1.60/72.50/87.90 | 1.20/4.40/70.00 | 92/304 | 75/604 | 9 · 9.24/0.00/7.60/75.60 · 5 |
+| B | 14/586 | 1.60/11.40/17.20 | 0.90/2.40/35.40 | 73/352 | 65/382 | 5 · 2.94/0.00/6.90/7.80 · 4 |
+
+Overall DRAW p50/p95/max: A 1.20/5.70/87.90, B 0.90/2.50/35.40.
+Draw calls p50/max overall: A 76/604, B 65/382.
+
+Verdict: (1) THE 60 FPS SESSION REPRODUCED — FRAME p50 16.70 ms on
+both legs; leg B is fully clean (FRAME p95 16.80, OVER50 0). Leg A's
+p95/OVER50 elevation (99 frames) sits in PRESENT (p95 69.10) during
+the post-staging warm-up window, not in WORK (p50 2.20). (2) THE
+DRAW TAIL IS FIRST-BLIT-CONCENTRATED, with one refinement: at the
+median a first blit is free (per-canvas p50 0.00 ms at the 0.1 ms
+clock resolution), but the expensive minority lands on/around
+streaming frames — streaming-split draw p95 is 72.50 (A) / 11.40 (B)
+vs steady 4.40 / 2.40, and the single worst first blit cost 75.60 ms
+(A warm-up burst; leg A draw max 87.90 is a streaming frame). In
+settled driving (leg B) first blits cap at 7.80 ms and the streaming
+draw max is 17.20. Two honest caveats: leg A's steady split still
+holds a 70.00 ms max (one spike outside the +2-frame window), and
+leg B's worst draw frame (35.40) is in the steady split, not
+explained by a timed first blit — a residual non-blit spike source
+remains. Per the brief, NO optimization is stacked here. Scoped for
+a later run, if pursued: pre-blit/upload newly built chunk canvases
+during the build budget (or a 1px offscreen warm blit at completion)
+so the first on-screen blit never pays the upload; ALSO chase the
+residual steady-split spike (35–70 ms) separately — first-blit work
+alone will not remove it.
+
+Typecheck `bun x tsc --noEmit -p client/tsconfig.json && bun x tsc
+--noEmit -p server/tsconfig.json` exited 0. Console errors: 0 on the
+audit envelope and every probe response. Durable store untouched
+(audit scope: sandbox {game_save:1, perf_recordings:13} = durable
+{game_save:1, perf_recordings:13}); Save / Save & exit never clicked;
+joystick/WASD toggle never touched; no profiler recording started
+(diagnostic rings only, as briefed).
