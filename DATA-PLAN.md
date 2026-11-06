@@ -2801,3 +2801,111 @@ behaviors verified in session: driving on the diagnostic route
 with fully textured streamed terrain at full resolution in both
 builds, touch joystick + context buttons with reserved slots, no
 center banner.
+
+## 2026-11-06 08:37 PT — Feathered-lattice-cell discrimination probe: feather-ON single-tile legs REPRODUCED, band PERSISTS feather-OFF at both views — feather path EXCLUDED, resampling chain / another inside-tile path remains
+
+Follow-up to the 05:36 tiling-repetition probe: the 42–44 px
+row-profile rhythm was proven renderer-inside-tile (single-tile
+r42–44 +0.31…+0.37 vs every raw-photo arm −0.28…+0.04), leaving the
+feathered lattice cell — the same photo under 12% alpha ramps, drawn
+offset half a stride from the raw cell in `drawTextureLattice` — as
+the remaining undiscriminated inside-tile candidate. This run
+authorized the one missing instrument: a flag that disables that
+feathered drawImage in the single-tile branch only.
+
+SHA gate: App.tsx SHA-256 BEFORE
+`dc29af44022fc6e27aaac93646771136d4c773669c89f342714d781d0c79b53e`
+(prefix `dc29af44` confirmed live before editing — gate passed).
+POST `a9f8da884b4ac6b6d00a9b19cd29aa9ae9fe4aae7738297ea9683a4aea3e3a20`
+(prefix `a9f8da88` — NEW gate baseline for the next run). The delta
+is ONLY the audit-only instrumentation below. No texture, gameplay,
+HUD, audio, or save-schema change; no player-facing behavior change;
+the multi-tile lattice branch is byte-identical.
+
+Instrumentation shipped (audit-only, gated to
+artifact-capture.invalid OR /hatch-audit- — the same effect gate as
+the tiling probe — never installed on the player route, inert in
+normal play): (1) module flag `auditSingleTileFeatherOff` (default
+false) beside `auditSingleTileAnchor`; (2) in `drawTextureLattice`'s
+single-tile branch only, the feathered-cell drawImage is wrapped in
+`if(!auditSingleTileFeatherOff){…}` — flag false renders the exact
+original two-cell clamp; (3) `__AWL_SET_FEATHER_OFF__(disabled)`
+setter beside `__AWL_SET_SINGLE_TILE__` (sets the flag +
+`resetGroundChunkCache()`), Feather off / Feather on panel buttons,
+and a THIRD leg in `__AWL_RUN_TILING_PROBE__`'s per-view measure:
+after the feather-ON single-tile leg, the flag is set, the chunk
+cache is reset, the view is re-staged, settled 180 frames, and
+measured as `singleTileFeatherOff` (report also gains
+`deltaFeatherOffTopR` / `deltaFeatherOffR276` and a `featherOff`
+parameters string). Method otherwise identical to the 05:36 run:
+390×844 DPR 1, timeOfDay .38, clear, 180-frame settle per leg,
+chunk cache reset per leg, Frostfall overlay EXCLUDED in all arms,
+Rec.601 luma, per-row mean |L(y+2) − L(y−2)|, Pearson lags 40–499,
+r276 reported. Report build `8887c8613af9-20261106T164240028Z`.
+
+Results (topLag / topR = max r over lags 40–499; long-lag tops are
+envelope correlation per the 05:36 caveat — decisive statistics are
+r42–r44 and r276):
+- Frostfall center MULTI (overlay out): top 276 / 0.829; r42 0.013,
+  r43 −0.044, r44 −0.082; r276 0.829. Reproduces 05:36 (276 / 0.825;
+  0.017 / −0.041 / −0.081; 0.825) — method validated again.
+- Frostfall center SINGLE feather-ON: top 475 / 0.549 (envelope);
+  r42 0.351, r43 0.335, r44 0.326; r276 −0.524. REPRODUCES the
+  prior single-tile leg (0.355 / 0.339 / 0.330; r276 −0.528) to
+  within 0.005 on every decisive statistic.
+- Frostfall center SINGLE feather-OFF: top 467 / 0.757 (envelope);
+  r42 0.486, r43 0.478, r44 0.475; r276 −0.616. The band does NOT
+  collapse toward the photo-arm values (−0.17 / −0.24 / −0.28) — it
+  RISES by +0.135 / +0.143 / +0.149 vs feather-ON.
+- Mosslight center MULTI: top 418 / 0.420; r42 0.253, r43 0.243,
+  r44 0.232; r276 −0.047. Reproduces 05:36 (418 / 0.422; 0.243 /
+  0.229 / 0.217; −0.048).
+- Mosslight center SINGLE feather-ON: top 493 / 0.857; r42 0.373,
+  r43 0.367, r44 0.360; r276 0.007. REPRODUCES the prior leg
+  (493 / 0.857; 0.375 / 0.369 / 0.361; 0.004) essentially exactly.
+- Mosslight center SINGLE feather-OFF: top 493 / 0.857 (unchanged);
+  r42 0.358, r43 0.352, r44 0.346; r276 0.424. The band does NOT
+  collapse toward the photo-arm values (0.04 / −0.01 / 0.02) — it is
+  unchanged within 0.015. (r276 moves +0.416: with the feather cell
+  gone, rows one stride apart pair raw-cell content against raw-cell
+  content instead of against the offset feather blend; the 42–44
+  band is indifferent to it.)
+
+VERDICT: the feathered lattice cell is NOT the cause of the
+42–44 px / ~80u rhythm. Per the brief's decision rule — collapse
+feather-off toward the photo-arm values would have convicted the
+feather path; persistence acquits it — the band persists at BOTH
+views (strengthens at Frostfall, flat at Mosslight). The rhythm
+therefore lives in the RESAMPLING CHAIN or another inside-tile path
+that renders the RAW cell (candidate space for the next probe: the
+texture-variant canvas generation / downscale of the photo into the
+512u variant, the ground-chunk canvas blit scaling, or the probe's
+own canvas resample — the last is shared with the photo arms'
+method only in part, since the photo arms were measured on the raw
+images, not through this canvas chain). Diagnosis-only — no fix
+ships this run, as briefed.
+
+Staged frames in audit dir `audits/2026-11-06T16-43-30Z-289335363/`:
+`probe-frostfall-staged-during-run.png` (Frostfall Peaks staged live
+at probe start, region 12/18), `observe-003.png` (full TILING JSON
+report on screen after the measured six-leg run),
+`probe-mosslight-single-tile-feather-on.png` (Mosslight single-tile
+clamp, feather ON: soft 12%-alpha blend visible across the tile),
+`probe-mosslight-single-tile-feather-off.png` (same clamp, Feather
+off clicked: the hard un-blended square edge of the single raw cell
+is plainly visible around the player — direct visual proof the flag
+suppresses exactly the feathered draw and nothing else; joystick,
+DASH/MELEE, HUD all intact in both frames, FPS 57).
+
+Durable store untouched: before AND after, perf_recordings = 13
+rows (ids 1–13, re-listed post-probe, identical) and game_save load
+= null in the invoke sandbox scope; audit scope reports sandbox
+{game_save:1, perf_recordings:13} = durable {game_save:1,
+perf_recordings:13}. Typecheck: `web_artifacts.build` passed
+(typecheck incl.) and `bun x tsc --noEmit -p client/tsconfig.json`
+exit 0. Console errors: 0 in the audit and in every probe response
+in the session. Save / Save & exit never clicked; joystick/WASD
+toggle never clicked; no profiler recording started (probe legs
+only). Preserved behaviors verified in session: full-resolution
+canvas (390×540), touch joystick + tap targets with reserved slots,
+no center banner, no dynamic resolution.
