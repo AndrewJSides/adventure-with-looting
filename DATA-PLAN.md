@@ -2540,3 +2540,116 @@ recording started (diagnostic rings only, as briefed). Preserved
 behaviors verified in session: driving on the diagnostic route
 with fully textured streamed terrain at full resolution, touch
 joystick + context buttons with reserved slots, no center banner.
+
+## 2026-11-06 05:36 PT — Tiling-repetition isolation probe: single-tile clamp vs multi-tile lattice (diagnosis only, NO FIX SHIPPED)
+
+Follow-up to the 00:36 row-rhythm probe: test whether the overlay-out
+lag-276 px peak (= one 512u texture-tile period, r 0.83/0.87) comes from
+renderer-side tiling repetition by rendering the same views with the
+ground lattice clamped to a SINGLE texture tile (no repeat) vs the
+normal multi-tile lattice.
+
+SHA gate: App.tsx SHA-256 BEFORE
+`0820364acd1d826db0d921a8f405d756b8036297a9b5d4b435dd5120997d2575`
+(prefix `0820364a` confirmed live before editing — gate passed; the
+stale SHA in AGENTS.md was not used). POST
+`dc29af44022fc6e27aaac93646771136d4c773669c89f342714d781d0c79b53e`:
+the delta is ONLY the minimal audit-only instrumentation below. No
+terrain/texture/gameplay/HUD/audio/save-schema change; no feathering
+change; no player-facing fix.
+
+Instrumentation shipped (audit-only, gated to artifact-capture.invalid
+OR /hatch-audit-, never installed on the player route, inert in normal
+play): (1) module flag `auditSingleTileAnchor` (default null) beside
+`auditExcludeFrostfallOverlay`; (2) one branch in `drawTextureLattice`:
+while the anchor is set it draws ONLY the raw cell (512u lattice offset
+256u) and the feathered cell (aligned 512u lattice) containing the
+anchor and returns — every other lattice cell is skipped, so all ground
+layers that flow through the lattice (Mosslight base + per-region
+replacement via the blend scratch) are clamped together; flag null
+renders the exact original lattice; (3) probe hook
+`__AWL_RUN_TILING_PROBE__` / `__AWL_READ_TILING_PROBE__` /
+`__AWL_SET_SINGLE_TILE__` / `__AWL_HIDE_TILING_PANEL__` plus a small
+panel (Run / Single tile on / Single tile off / Hide). The run stages
+Frostfall center (21600, 4700) via `__AWL_SHOW_FROSTFALL_DEEP__` with
+the special-terrain overlay EXCLUDED in both arms (matching the 00:36
+overlay-out baseline) and Mosslight Meadow center (8600, 29000,
+region 1 center) as the control, each multi-tile then single-tile,
+settling 180 frames per leg, ground chunk cache reset per leg.
+
+Method (identical to the 00:36 run): canvas sampled in-page
+(390×540, rows 2..537, profile n = 536), Rec.601 luma, per-row mean of
+|L(y+2) − L(y−2)| over all canvas columns, Pearson autocorrelation
+lags 40–499 px, viewport 390×844 DPR 1, timeOfDay .38, clear.
+Report build `e037d2c2ecc3-20261106T134046782Z`. This run also reports
+r276 = r at lag 276 px (the 512u stride). Caveat: single-tile top
+peaks sit at lag 493 where the autocorrelation overlap is only
+m = 536−493 = 43 rows and the profile is a single textured band
+against flat surround, so those long-lag topR values are envelope
+correlation, not a pitch; the decisive statistics are r276 (m = 260)
+and r42–r44 (m ≈ 490).
+
+Results (topLag / topR = max r over lags 40–499):
+- Frostfall center MULTI (overlay out): top 276 / 0.825; r42 0.017,
+  r43 −0.041, r44 −0.081; r276 0.825. Reproduces the 00:34/00:36
+  baseline (276 / 0.827; r42 0.011, r43 −0.048, r44 −0.088) to within
+  0.01 — method validated.
+- Frostfall center SINGLE: top 493 / 0.645 (envelope, see caveat);
+  r42 0.355, r43 0.339, r44 0.330; r276 −0.528. ΔtopR −0.180,
+  Δr276 −1.354.
+- Mosslight center MULTI: top 418 / 0.422; r42 0.243, r43 0.229,
+  r44 0.217; r276 −0.048. No 276 peak at this view in either state.
+- Mosslight center SINGLE: top 493 / 0.857 (envelope, see caveat);
+  r42 0.375, r43 0.369, r44 0.361; r276 0.004. ΔtopR +0.435,
+  Δr276 +0.053.
+
+VERDICT (split, per the brief's hypothesis test):
+- 276 px / 512u peak: hypothesis CONFIRMED — renderer-side tiling
+  repetition. With one tile instance there is nothing to repeat at
+  512u and r276 collapses from +0.825 to −0.528 (rows one period
+  apart now pair the tile's textured band against the flat
+  untextured surround). The multi-tile Frostfall frame shows the
+  mechanism directly: the mirrored snow photo repeats across the
+  whole view.
+- 42–44 px / ~80u band: hypothesis NOT confirmed. The band does not
+  drop in the single-tile state at either view — it RISES
+  (Frostfall ≈0/negative → 0.33–0.35; Mosslight 0.22–0.24 →
+  0.36–0.38). Whatever carries the ~80u row correlation lives inside
+  a single tile's rendered content (photo-internal structure,
+  texture-variant processing, and/or non-lattice canvas content),
+  not in lattice repetition. Separate thread from the 512u pitch;
+  consistent with the 00:36 Ember control carrying the band.
+- Optional warp arm NOT run: the periodic displacement warp named
+  in ATTRIBUTION.md is baked into the PNG derivatives at build time
+  ("a smooth periodic displacement to move the repeat outside the
+  normal play view"); the runtime renderer has no warp gate (the
+  only feDisplacementMap uses are world-map SVG decorations), so it
+  is identical in both arms and cannot be toggled without swapping
+  texture assets.
+
+FIX-IF gate: diagnosis-only — no fix ships this run, as briefed.
+
+Staged frames in audit dir `audits/2026-11-06T13-41-20Z-988061700/`:
+`probe-frostfall-multi-tile-overlay-out.png` (clean, panels hidden:
+mirrored snow photo tiling the whole view, no overlay drifts/arcs/
+waterfall), `probe-frostfall-single-tile-overlay-out.png` (clean,
+panels hidden: exactly one textured tile block in a flat dark-green
+field), `probe-mosslight-single-tile.png` (clean, panels hidden:
+textured grass only in the two clamped cells, flat surround),
+`probe-mosslight-multi-tile.png` (live catch mid-run during the
+Mosslight multi-tile leg, panels visible: grass textured across the
+whole view), plus `observe-002.png` showing the tiling probe's full
+JSON report on screen after the measured run.
+
+Durable store untouched: before AND after, perf_recordings = 13 rows
+(ids 1–13) and game_save load = null in the invoke sandbox scope;
+audit scope reports sandbox {game_save:1, perf_recordings:13} =
+durable {game_save:1, perf_recordings:13} (the game_save:1 is the
+pre-existing durable row). Typecheck `tsc --noEmit -p
+client/tsconfig.json` exit 0. Console errors: 0 in the audit and in
+every probe response in the session. Save / Save & exit never
+clicked; joystick/WASD toggle never clicked; no profiler recording
+started. Preserved behaviors verified in session: full-resolution
+textured canvas (390×540 at [0,101,390,540] in play), touch joystick
++ context buttons with reserved slots, no center banner, pause-menu
+control-scheme toggle untouched.
