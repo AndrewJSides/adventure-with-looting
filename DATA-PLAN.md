@@ -1854,3 +1854,74 @@ audit envelope and every probe response. Durable store untouched
 {game_save:1, perf_recordings:13}); Save / Save & exit never clicked;
 joystick/WASD toggle never touched; no profiler recording started
 (diagnostic rings only, as briefed).
+
+## 2026-11-05 19:05 PT — First-blit pre-blit fix: gate (b) FAILED, optimization reverted
+
+SHA gate: `client/src/App.tsx` SHA-256 BEFORE
+`17e49146a6bd384c82f54632d8f93c7ff62ea430bedd97b38f804722d7ed07d1`
+(prefix `17e49146` confirmed — gate passed). The fix (pre-blit each
+newly completed chunk canvas once into a shared offscreen scratch
+inside `processGroundChunkQueue`, cost charged to streaming/build
+totals) built as `75aa66dd…` / build `fa571a827ccc-20261106T023917264Z`,
+was measured, FAILED the gate, and was REVERTED in this same edit:
+AFTER SHA is again `17e49146a6bd…` byte-exact (post-gate check
+passed — the shipped source is identical to the 16:36
+instrumentation build; no gameplay, visual, quality, or save change
+ships from this run).
+
+Method (audit `2026-11-06T02-39-38Z-830570801`): mobile viewport
+390x844 DPR 1, full-resolution canvas. New Game, story intros tapped
+through, F9 `driveClean` staging ((8600,29000)->(13000,31600),
+Rustbucket speed 300, no kills, MINIMAL MODE OFF). Clean 60 FPS
+session (FRAME p50 16.70 in every window; strip FPS 54–57). Leg A
+measured twice from fresh-cache stagings (A′, A″); leg B as the
+next disjoint 600-frame ring (B″) plus one overlay-free settled
+daylight window. Full numbers + frames in
+`audits/handoff-2026-11-06T02-39-38Z/` (`gate-numbers.txt`,
+`legA-warmup-driveClean-600f.png` = observe-014,
+`legB-region-crossing-driveClean-600f.png` = observe-020,
+`staged-driving-frame-night-rain.png` = act-005).
+
+Results (600-frame rings, native clock; DRAW = renderMs):
+
+| Leg | Split (stream/steady) | STREAM DRAW p50/p95/max | STEADY DRAW p50/p95/max | FIRST BLIT canvases · mean/max | STREAM events · max | OVER50 | FRAME p50/p95 |
+|---|---|---|---|---|---|---|---|
+| Before A | 17/583 | 1.60/72.50/87.90 | 1.20/4.40/70.00 | 9 · 9.24/75.60 | 40 · 71.20 | 99 | 16.70/66.70 |
+| After A′ | 33/567 | 4.30/13.50/23.20 | 0.80/1.50/22.30 | 15 · 0.02/0.10 | 80 · 16.80 | 0 | 16.70/33.30 |
+| After A″ | 32/568 | 3.90/14.40/18.70 | 1.10/2.80/66.20 | 16 · 0.00/0.00 | 80 · 14.00 | 5 | 16.70/33.40 |
+| Before B | 14/586 | 1.60/11.40/17.20 | 0.90/2.40/35.40 | 5 · 2.94/7.80 | 35 · 10.10 | 0 | 16.70/16.80 |
+| After B″ | 16/584 | 3.10/17.00/31.80 | 0.90/1.90/47.30 | 7 · 0.03/0.10 | 40 · 29.80 | 11 | 16.70/33.40 |
+| After settled (day) | 10/590 | 2.10/11.50/12.00 | 1.00/2.40/46.10 | 3 · 0.00/0.00 | 30 · 10.30 | 5 | 16.70/33.30 |
+
+Gate: (a) PASS — leg A streaming p95 13.50/14.40 vs 72.50 (under
+half, 36.25). (b) FAIL — leg B streaming p95 17.00 (night
+region-crossing ring) and 11.50 (settled daylight window) vs the
+required < 11.40. (c) PASS — steady p50/p95 and FRAME p50 16.70
+never regressed. Verdict per the brief's FIX-IF gate: REVERT.
+
+DISPROOF, for the record: the pre-blit worked mechanically — first
+blits cost 0.00–0.10 ms in every after window (before: mean 9.24,
+worst 75.60) — and the warm-up leg's streaming tail collapsed with
+it. But in settled region-crossing driving the streaming-split draw
+tail persists with first blits at zero: it is NOT first-blit GPU
+upload. It tracks streaming-frame draw-call volume (B″ STREAM CALLS
+p50 193 vs before 73) and chunk-stream spikes (STREAM MAX 29.80 vs
+before 10.10 — the pre-blit also pushed cost into STREAM). The
+known residual steady-split spikes persist unchanged (A″ steady max
+66.20, B″ 47.30; before 70.00/35.40) with all first blits at 0.00 —
+a separate non-blit source, not chased here per the brief. Caveats:
+after windows ran dusk→night in rain (before legs daytime; before B
+also rain) and a story card overlay (THE RELICS) was up during the
+A′/A″/B″ reads with the canvas rendering beneath it; the
+overlay-free daylight settled window also misses gate (b), so the
+verdict does not hinge on the night window.
+
+Typecheck on the reverted source is the previously shipped
+`17e49146` build (client + server tsc exited 0 during this run's
+fixed build; the revert restores that exact file). Console errors:
+0 on the audit envelope and every probe response. Durable store
+untouched (audit scope: sandbox {game_save:1, perf_recordings:13} =
+durable {game_save:1, perf_recordings:13}); Save / Save & exit never
+clicked; joystick/WASD toggle never touched; no profiler recording
+started (diagnostic rings only, as briefed).
+
