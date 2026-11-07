@@ -3268,3 +3268,165 @@ OVERALL VERDICT: the band is injected during NORMAL ground-chunk BUILDING (insid
 Sandbox-only: no Save / Save & exit clicked, joystick/WASD toggle never clicked (joystick still shown in frames), no profiler recording started. A session loot-choice card (Briar Mantle) that the staged session dealt was taken once to dismiss the modal so the Arm B visual frame could be captured; sandbox session only. Durable-store counts before = after (game_save 1, perf_recordings 13; total 14 — audit scope line, both audits; action reads identical: 13 recordings ids 1–13).
 
 Staged probe frames (audits/chunk-localize-probe-2026-11-06/, copied from audit session audits/2026-11-06T22-48-03Z-635837102/, full JSON in chunk-localize-report.json): post-probe-report-panel.png (CHUNK LOCALIZE report JSON in panel over the staged view), mosslight-ground-only.png (Arm B visual: same staged Mosslight view with only the ground composite — grass + road, no trees/player/props), mosslight-full-restored.png (same view after Ground only off — trees, player, loot marker restored; joystick + DASH/MELEE, no center banner).
+
+
+## 2026-11-06 15:36 PT — Chunk-build pump relocation, fifth attempt: NOISE-TOLERANT clause-(c) gate PASSED on all three clauses, relocation SHIPPED as the default
+
+Fifth dispatch, under the brief's revised gate: clause (c) judged on
+the MEAN across legs per arm with a +0.5 ms tolerance (not the old
+absolute both-legs/any-p95 rule that reverted attempts 1–4). SHA
+gate: App.tsx SHA-256 BEFORE
+`be389f9103ddb8d7461103ac8a3806f0554fe3117ed19d63106f4af5ba4dada3`
+(prefix `be389f91` confirmed live before editing — gate passed; the
+stale Oct 22 SHA in AGENTS.md was NOT used). The relocation was
+re-applied behind the audit-only toggle (`auditPumpReloc`, default
+OFF during measurement, tiling-probe panel pattern like
+`auditBlit1To1`, gated `__AWL_SET_PUMP_RELOC__` setter + Pump reloc
+on/off panel buttons, toggle-build SHA `e558a959…`), measured in
+ONE session, and — the gate passing — the default was flipped to ON
+in this same edit: POST-SHIP SHA is
+`9bd485cc61e5afae7919390df0307c06cadec8ecc89633a20007db234e7e2ff0`
+(new baseline). The toggle, setter, and panel buttons REMAIN (audit
+A/B can still force the legacy in-terrain-pass pump); the tiling
+effect cleanup now restores the flag to `true` (the shipped
+default). THE FIX (as shipped): `drawGroundTexture` no longer calls
+`processGroundChunkQueue(fastDriving)` inside the terrain pass; the
+frame loop pumps the queue once per frame after the per-frame
+diagnostic accumulator reset and immediately before `drawWorld`,
+gated `!world.dungeon && biomeTexturesReady`, same budget semantics
+(2.0 ms driving / 3.5 ms otherwise, draw budgets 72/180 —
+unchanged). Queueing, priorities, cache trim, and blitting are
+untouched; chunk contents and rendered output per chunk are
+identical; newly queued chunks take their first build step on the
+next frame's pump. Pump steps still land in the same frame's
+`chunkStreamMs`/`chunkStreamEvents` and draw-call total; wall time
+is attributed to draw category "other" instead of "terrain". No
+dynamic resolution, no quality change, full-resolution canvas.
+
+AUDIT-DRIVEN PANEL FIX (in the shipped tree, audit-only CSS): the
+two added Pump buttons wrapped the tiling panel to a 4th row whose
+top row slid under the "Audit panels" toggle button (top:104, 44
+tall, z 10004), occluding "Run tiling probe" at phone width (first
+audit's fix_before_attesting). Shifting the panel stack down 36 px
+instead pushed chunk-localize over the menu's New Game button
+(second audit flag), so the final fix keeps every panel at its
+baseline offset except the tiling panel (bottom 612→600, output
+646→634) and compacts ONLY the tiling panel's buttons (11 px
+monospace, 2×6 px padding, gap 6→4 px → ~18 px rows): tiling rows
+now span y 161–244 at 390×844, clearing the toggle (ends y 148) and
+the row-rhythm panel (starts y 252). Final audits: unreachable
+controls [] on mobile AND desktop, console errors 0 throughout.
+
+METHOD: ONE page session (audit dir
+`audits/2026-11-06T23-46-30Z-867309933/`), mobile viewport 390×844
+DPR 1, New Game, intro tapped through (3 cards, via the story
+dialog node), MINIMAL MODE OFF, no post-staging toggles other than
+the pump toggle itself. Legs interleaved OFF → ON → OFF → ON, each
+re-staged with F9 `driveClean` ((8600,29000)->(13000,31600),
+Rustbucket speed 300, no kills), each read at the first full
+600-frame ring. Toggle state confirmed in the TILING panel output
+text before each leg ("chunk-build pump back inside the terrain
+pass" / "chunk-build pump relocated to the frame loop"). Console
+errors: 0 on every audit envelope and every probe response. No
+Save / Save & exit clicks, no joystick/WASD toggle, no profiler
+recording; durable store counts before AND after (via actions):
+game_save rows 0 (loadgame save null), perf_recordings 13 (ids
+1–13) — unchanged. (The audit harness's own rendered copy showed
+game_save:1 from its own session; not this sandbox.)
+
+RESULTS (600-frame rings, native clock; DRAW = renderMs):
+
+LEG OFF 1 (600f; 40 streaming / 560 steady): FRAME 16.70/33.40;
+RENDER 0.90/7.10; WORK 1.70/10.20; ACCOUNTED 0.20/1.10; PRESENT
+15.10/37.40; UNACCOUNTED 16.50/33.20; OVER50 9; CLAMPED 13; STREAM
+MAX 25.00; events total 95; first blits 21 canvases, mean 1.70,
+p95 0.00, max 35.70 (8 frames). STREAM DRAW 1.60/19.70/38.80;
+STEADY DRAW 0.90/3.10/47.60. STREAM CAT MS — terrain
+0.50/18.40/37.40, entities 0.70/1.40/8.20, other 0.00/0.10/3.30.
+WORST STREAM 38.8 ms: T37.4 (96% terrain — the classic pre-fix
+signature).
+
+LEG ON 1 (600f; 26/574): FRAME 16.70/49.90; RENDER 1.10/3.60;
+WORK 2.00/6.80; ACCOUNTED 0.30/0.90; PRESENT 15.20/40.70;
+UNACCOUNTED 16.40/49.20; OVER50 16; CLAMPED 0; STREAM MAX 12.40;
+events total 65; first blits 13, mean 0.01, p95 0.00, max 0.10
+(5 frames). STREAM DRAW 0.70/1.50/1.60; STEADY DRAW 1.20/3.70/41.30.
+STREAM CAT MS — terrain 0.20/0.20/0.30, entities 0.40/1.10/1.40,
+other 0.40/11.10/12.40 (STREAM MAX reappears as CAT-other max —
+the expected re-attribution). WORST STREAM 1.6 ms.
+
+LEG OFF 2 (600f; 37/563): FRAME 16.70/49.90; RENDER 0.80/2.30;
+WORK 1.50/4.00; ACCOUNTED 0.20/0.90; PRESENT 15.40/44.90;
+UNACCOUNTED 16.50/34.60; OVER50 15; CLAMPED 6; STREAM MAX 35.90;
+events total 95; first blits 18, mean 0.99, p95 0.10, max 17.70
+(7 frames). STREAM DRAW 1.60/38.70/48.70; STEADY DRAW
+0.80/1.80/31.20. STREAM CAT MS — terrain 0.50/27.30/48.10,
+entities 0.40/1.10/43.60, other 0.00/0.10/3.40. WORST STREAM
+48.7 ms: T48.1 (99% terrain — OFF signature reproduced in-session,
+bracketing ON 1).
+
+LEG ON 2 (600f; 34/566): FRAME 16.70/33.30; RENDER 0.60/2.10;
+WORK 1.30/4.10; ACCOUNTED 0.20/0.60; PRESENT 15.30/29.60;
+UNACCOUNTED 16.50/33.00; OVER50 4; CLAMPED 2; STREAM MAX 45.30;
+events total 85; first blits 18, mean 0.39, p95 0.10, max 6.90
+(8 frames). STREAM DRAW 0.60/2.10/7.80; STEADY DRAW
+0.60/2.00/41.70. STREAM CAT MS — terrain 0.10/0.30/7.00, entities
+0.40/1.20/3.00, other 0.30/10.50/45.30 (re-attribution again).
+WORST STREAM 7.8 ms.
+
+GATE (this run's FIX-IF, judged ONLY within this session, on the
+MEAN across legs per arm; WORK p95 reported, NOT judged):
+mean OFF — STREAM DRAW p95 29.20, terrain CAT MS p95 22.85,
+ACCOUNTED p95 1.00, RENDER p95 4.70 (WORK p95 mean 7.10).
+mean ON — STREAM DRAW p95 1.80, terrain CAT MS p95 0.25,
+ACCOUNTED p95 0.75, RENDER p95 2.85 (WORK p95 mean 5.45).
+(a) mean STREAM DRAW p95 ON ≤ 0.75 × mean OFF — PASS
+(1.80 ≤ 21.90; −93.8%).
+(b) mean terrain CAT MS p95 ON down in step vs mean OFF — PASS
+(0.25 vs 22.85; −98.9%).
+(c) NOISE-TOLERANT — mean ACCOUNTED p95 ON ≤ mean OFF + 0.5 ms
+(0.75 ≤ 1.50; in fact DOWN 0.25) AND mean RENDER p95 ON ≤ mean
+OFF + 0.5 ms (2.85 ≤ 5.20; in fact DOWN 1.85) — PASS.
+Note the tolerance doing its designed work: OFF 1's own RENDER
+p95 (7.10) was a +4.80 excursion vs OFF 2 (2.30) inside the OFF
+arm itself — the per-leg absolutes swung ±5 ms in BOTH arms while
+the arm means stayed cleanly ordered. ALL THREE CLAUSES PASS →
+default flipped to ON per the brief; the relocation SHIPS (fifth
+attempt; attempts 1–4 all reverted on the old gates). The final
+audit's content review independently recomputed the means from
+the captured legs and confirmed them, and closed the prior P0
+("relocation not shipped") as resolved.
+
+SHIP-DEFAULT VERIFICATION (fresh session on the shipped build,
+audit dir `audits/2026-11-06T23-54-51Z-438389868/`, pump toggle
+NEVER touched): one 600-frame driveClean ring — STREAM DRAW p95
+10.30 (vs 19.70/38.70 OFF legs), terrain CAT MS p95 0.40 (ON
+signature: pump absent from the terrain pass), STREAM CAT-other
+p95 42.30 / max 64.90 = STREAM MAX 64.90 (the pump's work
+re-attributed to "other", as designed). The window itself was
+present-throttled (FRAME p95 83.30, PRESENT p95 77.80, OVER50
+114; worst-stream frame's terrain category WINDOW stalled to
+68.6 ms on a frame whose draw was entities-led — the known
+environmental category-window artifact from attempts 1–4), which
+lifts the absolutes vs the gate session's ON legs (1.50/2.10) but
+cannot produce the terrain-flat + other-re-attributed signature;
+FRAME p50 held 16.70. The shipped default is mechanically the
+relocated pump.
+
+Staged probe frames (audit dir
+`audits/2026-11-06T23-46-30Z-867309933/`):
+`probe-off1-driveclean-mid-drive.png`,
+`probe-off1-driveclean-600f-panel.png`,
+`probe-on1-driveclean-mid-drive.png`,
+`probe-on1-driveclean-600f-panel.png` (TILING output reads
+"chunk-build pump relocated to the frame loop"),
+`probe-off2-driveclean-mid-drive.png`,
+`probe-off2-driveclean-600f-panel.png`,
+`probe-on2-driveclean-mid-drive.png` (verified visually: same
+relocated-pump confirmation, Rustbucket driving fully textured
+Mosslight Meadow terrain at night in rain with headlight cone,
+touch joystick + EXIT/DASH buttons, no center banner),
+`probe-on2-driveclean-600f-panel.png`; ship-default frames in
+`audits/2026-11-06T23-54-51Z-438389868/`:
+`probe-shipdefault-driveclean-mid-drive.png`,
+`probe-shipdefault-driveclean-600f-panel.png`.
